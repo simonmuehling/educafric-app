@@ -74,6 +74,42 @@ svg {
   fill: none !important;
 }
 
+/* ===== BULLETIN PREVIEW - Adaptive A4 Layout (Non-Print) ===== */
+/* Flexbox layout for proper content distribution on screen preview */
+.bulletin-a4-optimized {
+  display: flex;
+  flex-direction: column;
+  min-height: 297mm;
+}
+
+.bulletin-a4-optimized .bulletin-main-content {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.bulletin-a4-optimized .grades-table-wrapper {
+  flex: 1 1 auto;
+}
+
+.bulletin-a4-optimized .bulletin-footer-section {
+  flex: 0 0 auto;
+  margin-top: auto;
+}
+
+/* Annual summary always visible in preview */
+.bulletin-a4-optimized .annual-summary-print {
+  display: block !important;
+  visibility: visible !important;
+}
+
+/* A4 container preview styling */
+.a4-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 297mm;
+}
+
 /* ===== PDF CAPTURE MODE - Applies A4 compact styles for html2canvas ===== */
 .pdf-capture-mode #print-root {
   width: 794px !important;
@@ -362,17 +398,38 @@ svg {
     box-sizing: border-box !important;
   }
   
-  /* A4 Container - Single Page Fit - Allow annual summary overflow */
+  /* A4 Container - Adaptive Single Page Fit */
   .a4-container {
     width: 198mm !important; /* 210mm - 6mm margins x2 */
-    height: auto !important; /* Allow content to determine height */
+    height: 285mm !important; /* Fixed A4 height for proper layout */
     max-width: 198mm !important;
-    max-height: none !important; /* Remove height restriction for T3 annual summary */
+    max-height: 285mm !important;
     margin: 0 auto !important;
     padding: 3mm !important;
     overflow: visible !important; /* Allow annual summary to show */
     box-sizing: border-box !important;
     transform-origin: top center !important;
+    display: flex !important;
+    flex-direction: column !important;
+  }
+  
+  /* Main content fills available space */
+  .bulletin-main-content {
+    flex: 1 1 auto !important;
+    display: flex !important;
+    flex-direction: column !important;
+    min-height: 0 !important;
+  }
+  
+  /* Grades table wrapper fills available space */
+  .grades-table-wrapper {
+    flex: 1 1 auto !important;
+  }
+  
+  /* Footer section stays at bottom */
+  .bulletin-footer-section {
+    flex: 0 0 auto !important;
+    margin-top: auto !important;
   }
   
   /* Hide print buttons and toolbars */
@@ -405,12 +462,12 @@ svg {
     page-break-inside: avoid !important; 
   }
   
-  /* ===== BULLETIN A4 OPTIMIZED - COMPACT SINGLE PAGE FIT ===== */
+  /* ===== BULLETIN A4 OPTIMIZED - ADAPTIVE SINGLE PAGE FIT ===== */
   .bulletin-a4-optimized {
     width: 100% !important;
     max-width: 198mm !important;
-    height: auto !important;
-    max-height: none !important; /* Allow T3 annual summary to print fully */
+    height: 285mm !important; /* Fixed A4 height */
+    max-height: 285mm !important;
     margin: 0 auto !important;
     padding: 2mm !important;
     font-family: Arial, sans-serif !important;
@@ -420,6 +477,8 @@ svg {
     overflow: visible !important; /* Allow annual summary footer to show */
     background: white !important;
     box-sizing: border-box !important;
+    display: flex !important;
+    flex-direction: column !important;
   }
   
   .bulletin-a4-optimized .ministry-header {
