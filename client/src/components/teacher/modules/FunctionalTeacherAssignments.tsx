@@ -172,14 +172,14 @@ const FunctionalTeacherAssignments: React.FC = () => {
       setIsCreateHomeworkOpen(false);
       resetHomeworkForm();
       toast({
-        title: 'Devoir créé avec succès!',
-        description: 'Le devoir a été envoyé aux élèves avec des notifications automatiques.'
+        title: language === 'fr' ? 'Devoir créé avec succès!' : 'Assignment created successfully!',
+        description: language === 'fr' ? 'Le devoir a été envoyé aux élèves avec des notifications automatiques.' : 'The assignment has been sent to students with automatic notifications.'
       });
     },
     onError: () => {
       toast({
-        title: 'Erreur',
-        description: 'Impossible de créer le devoir.',
+        title: language === 'fr' ? 'Erreur' : 'Error',
+        description: language === 'fr' ? 'Impossible de créer le devoir.' : 'Unable to create assignment.',
         variant: 'destructive'
       });
     }
@@ -202,14 +202,14 @@ const FunctionalTeacherAssignments: React.FC = () => {
       setEditingHomework(null);
       resetHomeworkForm();
       toast({
-        title: 'Devoir modifié',
-        description: 'Les modifications ont été enregistrées avec succès.'
+        title: language === 'fr' ? 'Devoir modifié' : 'Assignment updated',
+        description: language === 'fr' ? 'Les modifications ont été enregistrées avec succès.' : 'Changes have been saved successfully.'
       });
     },
     onError: () => {
       toast({
-        title: 'Erreur',
-        description: 'Impossible de modifier le devoir.',
+        title: language === 'fr' ? 'Erreur' : 'Error',
+        description: language === 'fr' ? 'Impossible de modifier le devoir.' : 'Unable to update assignment.',
         variant: 'destructive'
       });
     }
@@ -228,14 +228,14 @@ const FunctionalTeacherAssignments: React.FC = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/teacher/assignments'] });
       toast({
-        title: 'Devoir archivé',
-        description: 'Le devoir a été archivé avec succès (conservation 10 jours).'
+        title: language === 'fr' ? 'Devoir archivé' : 'Assignment archived',
+        description: language === 'fr' ? 'Le devoir a été archivé avec succès (conservation 10 jours).' : 'The assignment has been archived successfully (10-day retention).'
       });
     },
     onError: () => {
       toast({
-        title: 'Erreur',
-        description: 'Impossible d\'archiver le devoir.',
+        title: language === 'fr' ? 'Erreur' : 'Error',
+        description: language === 'fr' ? 'Impossible d\'archiver le devoir.' : 'Unable to archive assignment.',
         variant: 'destructive'
       });
     }
@@ -395,6 +395,31 @@ const FunctionalTeacherAssignments: React.FC = () => {
         actions: 'Actions',
         priority: 'Priorité',
         archivedAt: 'Archivé le'
+      },
+      form: {
+        createTitle: 'Créer un Devoir',
+        editTitle: 'Modifier le Devoir',
+        assignmentTitle: 'Titre du Devoir',
+        description: 'Description',
+        descriptionPlaceholder: 'Description détaillée du devoir...',
+        titlePlaceholder: 'Ex: Exercices de mathématiques',
+        selectClass: 'Sélectionnez une classe',
+        selectSubject: 'Sélectionnez une matière',
+        loading: 'Chargement...',
+        dueDate: 'Date d\'Échéance',
+        autoReminder: 'Rappel Automatique',
+        sendReminder: 'Envoyer rappel',
+        day1: '1 jour avant l\'échéance',
+        day2: '2 jours avant l\'échéance',
+        day3: '3 jours avant l\'échéance',
+        week1: '1 semaine avant l\'échéance',
+        notifications: 'Notifications',
+        notifyStudents: 'Notifier les élèves',
+        notifyParents: 'Notifier les parents',
+        detailedInstructions: 'Instructions Détaillées',
+        instructionsPlaceholder: 'Instructions spécifiques, références aux pages du manuel, critères d\'évaluation...',
+        save: 'Enregistrer',
+        cancel: 'Annuler'
       }
     },
     en: {
@@ -445,6 +470,31 @@ const FunctionalTeacherAssignments: React.FC = () => {
         actions: 'Actions',
         priority: 'Priority',
         archivedAt: 'Archived on'
+      },
+      form: {
+        createTitle: 'Create Assignment',
+        editTitle: 'Edit Assignment',
+        assignmentTitle: 'Assignment Title',
+        description: 'Description',
+        descriptionPlaceholder: 'Detailed description of the assignment...',
+        titlePlaceholder: 'Ex: Math exercises',
+        selectClass: 'Select a class',
+        selectSubject: 'Select a subject',
+        loading: 'Loading...',
+        dueDate: 'Due Date',
+        autoReminder: 'Automatic Reminder',
+        sendReminder: 'Send reminder',
+        day1: '1 day before deadline',
+        day2: '2 days before deadline',
+        day3: '3 days before deadline',
+        week1: '1 week before deadline',
+        notifications: 'Notifications',
+        notifyStudents: 'Notify students',
+        notifyParents: 'Notify parents',
+        detailedInstructions: 'Detailed Instructions',
+        instructionsPlaceholder: 'Specific instructions, textbook page references, evaluation criteria...',
+        save: 'Save',
+        cancel: 'Cancel'
       }
     }
   };
@@ -667,32 +717,32 @@ const FunctionalTeacherAssignments: React.FC = () => {
                         <p className="text-gray-600 mb-2">{assignment.description}</p>
                         {assignment.instructions && (
                           <div className="bg-blue-50 p-3 rounded-lg mb-3">
-                            <h5 className="font-medium text-blue-900 mb-1">Instructions :</h5>
+                            <h5 className="font-medium text-blue-900 mb-1">{language === 'fr' ? 'Instructions :' : 'Instructions:'}</h5>
                             <p className="text-blue-800 text-sm">{assignment.instructions}</p>
                           </div>
                         )}
                         
                         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
                           <div>
-                            <p className="text-sm text-gray-600">Classe</p>
+                            <p className="text-sm text-gray-600">{t.table.class}</p>
                             <p className="font-semibold flex items-center">
                               <Users className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1" />
                               {assignment.className}
                             </p>
                           </div>
                           <div>
-                            <p className="text-sm text-gray-600">Matière</p>
+                            <p className="text-sm text-gray-600">{t.table.subject}</p>
                             <p className="font-semibold">{assignment.subjectName}</p>
                           </div>
                           <div>
-                            <p className="text-sm text-gray-600">Échéance</p>
+                            <p className="text-sm text-gray-600">{t.table.dueDate}</p>
                             <p className="font-semibold flex items-center">
                               <Calendar className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1" />
                               {formatDate(assignment.dueDate)}
                             </p>
                           </div>
                           <div>
-                            <p className="text-sm text-gray-600">Progression</p>
+                            <p className="text-sm text-gray-600">{t.table.progress}</p>
                             <div className="flex items-center space-x-2">
                               <div className="flex-1 bg-gray-200 rounded-full h-2">
                                 <div 
@@ -703,7 +753,7 @@ const FunctionalTeacherAssignments: React.FC = () => {
                               <span className="text-sm font-semibold">{assignment.completionRate}%</span>
                             </div>
                             <p className="text-xs text-gray-500 mt-1">
-                              {assignment.submittedCount}/{assignment.totalStudents} élèves
+                              {assignment.submittedCount}/{assignment.totalStudents} {language === 'fr' ? 'élèves' : 'students'}
                             </p>
                           </div>
                         </div>
@@ -907,9 +957,9 @@ const FunctionalTeacherAssignments: React.FC = () => {
                 <div className="flex items-center">
                   <Archive className="w-5 h-5 text-purple-600 mr-2" />
                   <div>
-                    <h4 className="font-medium text-purple-900">Archives (Rétention 10 jours)</h4>
+                    <h4 className="font-medium text-purple-900">{language === 'fr' ? 'Archives (Rétention 10 jours)' : 'Archives (10-day retention)'}</h4>
                     <p className="text-sm text-purple-700">
-                      {assignments.length} devoirs archivés • Suppression automatique après 10 jours
+                      {assignments.length} {language === 'fr' ? 'devoirs archivés • Suppression automatique après 10 jours' : 'archived assignments • Automatic deletion after 10 days'}
                     </p>
                   </div>
                 </div>
@@ -931,15 +981,15 @@ const FunctionalTeacherAssignments: React.FC = () => {
                         
                         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
                           <div>
-                            <p className="text-sm text-gray-600">Classe</p>
+                            <p className="text-sm text-gray-600">{t.table.class}</p>
                             <p className="font-semibold">{assignment.className}</p>
                           </div>
                           <div>
-                            <p className="text-sm text-gray-600">Matière</p>
+                            <p className="text-sm text-gray-600">{t.table.subject}</p>
                             <p className="font-semibold">{assignment.subjectName}</p>
                           </div>
                           <div>
-                            <p className="text-sm text-gray-600">Échéance Initiale</p>
+                            <p className="text-sm text-gray-600">{language === 'fr' ? 'Échéance Initiale' : 'Original Due Date'}</p>
                             <p className="font-semibold">{formatDate(assignment.dueDate)}</p>
                           </div>
                           <div>
@@ -970,25 +1020,25 @@ const FunctionalTeacherAssignments: React.FC = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded-lg w-full max-w-md max-h-[90vh] overflow-y-auto">
             <h3 className="text-lg font-semibold mb-4">
-              {editingHomework ? 'Modifier le Devoir' : 'Créer un Devoir'}
+              {editingHomework ? t.form.editTitle : t.form.createTitle}
             </h3>
             <div className="space-y-4">
               <div>
-                <label className="text-sm font-medium">Titre du Devoir</label>
+                <label className="text-sm font-medium">{t.form.assignmentTitle}</label>
                 <input
                   type="text"
                   value={homeworkForm.title || ''}
                   onChange={(e) => setHomeworkForm(prev => ({ ...prev, title: e.target.value }))}
-                  placeholder="Ex: Exercices de mathématiques"
+                  placeholder={t.form.titlePlaceholder}
                   className="w-full border rounded-md px-3 py-2"
                 />
               </div>
               <div>
-                <label className="text-sm font-medium">Description</label>
+                <label className="text-sm font-medium">{t.form.description}</label>
                 <textarea
                   value={homeworkForm.description || ''}
                   onChange={(e) => setHomeworkForm(prev => ({ ...prev, description: e.target.value }))}
-                  placeholder="Description détaillée du devoir..."
+                  placeholder={t.form.descriptionPlaceholder}
                   rows={3}
                   className="w-full border rounded-md px-3 py-2"
                 />
@@ -997,14 +1047,14 @@ const FunctionalTeacherAssignments: React.FC = () => {
               {!editingHomework && (
                 <div className="grid grid-cols-2 gap-2">
                   <div>
-                    <label className="text-sm font-medium text-gray-700 mb-2 block">Classe</label>
+                    <label className="text-sm font-medium text-gray-700 mb-2 block">{t.table.class}</label>
                     <Select 
                       value={homeworkForm.classId}
                       onValueChange={(value) => setHomeworkForm(prev => ({ ...prev, classId: value }))}
                       disabled={classesLoading}
                     >
                       <SelectTrigger className="w-full">
-                        <SelectValue placeholder={classesLoading ? "Chargement..." : "Sélectionnez une classe"} />
+                        <SelectValue placeholder={classesLoading ? t.form.loading : t.form.selectClass} />
                       </SelectTrigger>
                       <SelectContent>
                         {teacherClasses.map((cls) => (
@@ -1016,14 +1066,14 @@ const FunctionalTeacherAssignments: React.FC = () => {
                     </Select>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-gray-700 mb-2 block">Matière</label>
+                    <label className="text-sm font-medium text-gray-700 mb-2 block">{t.table.subject}</label>
                     <Select 
                       value={homeworkForm.subjectId}
                       onValueChange={(value) => setHomeworkForm(prev => ({ ...prev, subjectId: value }))}
                       disabled={subjectsLoading}
                     >
                       <SelectTrigger className="w-full">
-                        <SelectValue placeholder={subjectsLoading ? "Chargement..." : "Sélectionnez une matière"} />
+                        <SelectValue placeholder={subjectsLoading ? t.form.loading : t.form.selectSubject} />
                       </SelectTrigger>
                       <SelectContent>
                         {teacherSubjects.map((subject) => (
@@ -1038,7 +1088,7 @@ const FunctionalTeacherAssignments: React.FC = () => {
               )}
               
               <div>
-                <label className="text-sm font-medium">Date d'Échéance</label>
+                <label className="text-sm font-medium">{t.form.dueDate}</label>
                 <input
                   type="date"
                   value={homeworkForm.dueDate}
@@ -1053,7 +1103,7 @@ const FunctionalTeacherAssignments: React.FC = () => {
                 <div className="flex items-center justify-between mb-2">
                   <label className="text-sm font-medium flex items-center gap-2">
                     <Timer className="w-4 h-4 text-blue-600" />
-                    Rappel Automatique
+                    {t.form.autoReminder}
                   </label>
                   <input
                     type="checkbox"
@@ -1064,16 +1114,16 @@ const FunctionalTeacherAssignments: React.FC = () => {
                 </div>
                 {homeworkForm.reminderEnabled && (
                   <div className="mt-2">
-                    <label className="text-xs text-gray-600">Envoyer rappel</label>
+                    <label className="text-xs text-gray-600">{t.form.sendReminder}</label>
                     <select
                       value={homeworkForm.reminderDays}
                       onChange={(e) => setHomeworkForm(prev => ({ ...prev, reminderDays: e.target.value }))}
                       className="w-full border rounded-md px-2 py-1 text-sm mt-1"
                     >
-                      <option value="1">1 jour avant l'échéance</option>
-                      <option value="2">2 jours avant l'échéance</option>
-                      <option value="3">3 jours avant l'échéance</option>
-                      <option value="7">1 semaine avant l'échéance</option>
+                      <option value="1">{t.form.day1}</option>
+                      <option value="2">{t.form.day2}</option>
+                      <option value="3">{t.form.day3}</option>
+                      <option value="7">{t.form.week1}</option>
                     </select>
                   </div>
                 )}
@@ -1083,7 +1133,7 @@ const FunctionalTeacherAssignments: React.FC = () => {
               <div className="bg-green-50 p-3 rounded-lg border border-green-200">
                 <label className="text-sm font-medium flex items-center gap-2 mb-2">
                   <MessageCircle className="w-4 h-4 text-green-600" />
-                  Notifications
+                  {t.form.notifications}
                 </label>
                 <div className="space-y-2">
                   <label className="flex items-center gap-2 text-sm">
@@ -1093,7 +1143,7 @@ const FunctionalTeacherAssignments: React.FC = () => {
                       onChange={(e) => setHomeworkForm(prev => ({ ...prev, notifyStudents: e.target.checked }))}
                       className="w-4 h-4 accent-green-600"
                     />
-                    Notifier les élèves
+                    {t.form.notifyStudents}
                   </label>
                   <label className="flex items-center gap-2 text-sm">
                     <input
@@ -1102,29 +1152,29 @@ const FunctionalTeacherAssignments: React.FC = () => {
                       onChange={(e) => setHomeworkForm(prev => ({ ...prev, notifyParents: e.target.checked }))}
                       className="w-4 h-4 accent-green-600"
                     />
-                    Notifier les parents
+                    {t.form.notifyParents}
                   </label>
                 </div>
               </div>
               
               <div>
-                <label className="text-sm font-medium">Priorité</label>
+                <label className="text-sm font-medium">{t.table.priority}</label>
                 <select
                   value={homeworkForm.priority}
                   onChange={(e) => setHomeworkForm(prev => ({ ...prev, priority: e.target.value }))}
                   className="w-full border rounded-md px-3 py-2"
                 >
-                  <option value="low">Faible</option>
-                  <option value="medium">Moyenne</option>
-                  <option value="high">Élevée</option>
+                  <option value="low">{t.priority.low}</option>
+                  <option value="medium">{t.priority.medium}</option>
+                  <option value="high">{t.priority.high}</option>
                 </select>
               </div>
               <div>
-                <label className="text-sm font-medium">Instructions Détaillées</label>
+                <label className="text-sm font-medium">{t.form.detailedInstructions}</label>
                 <textarea
                   value={homeworkForm.instructions}
                   onChange={(e) => setHomeworkForm(prev => ({ ...prev, instructions: e.target.value }))}
-                  placeholder="Instructions spécifiques, références aux pages du manuel, critères d'évaluation..."
+                  placeholder={t.form.instructionsPlaceholder}
                   rows={3}
                   className="w-full border rounded-md px-3 py-2"
                 />
@@ -1141,8 +1191,8 @@ const FunctionalTeacherAssignments: React.FC = () => {
                   className="flex-1 bg-green-600 hover:bg-green-700"
                 >
                   {(editingHomework ? updateHomeworkMutation.isPending : createHomeworkMutation.isPending) 
-                    ? (editingHomework ? 'Modification...' : 'Création...') 
-                    : (editingHomework ? 'Modifier le Devoir' : 'Créer le Devoir')}
+                    ? (language === 'fr' ? (editingHomework ? 'Modification...' : 'Création...') : (editingHomework ? 'Updating...' : 'Creating...'))
+                    : (editingHomework ? t.form.editTitle : t.form.createTitle)}
                 </Button>
                 <Button 
                   onClick={() => {
@@ -1152,7 +1202,7 @@ const FunctionalTeacherAssignments: React.FC = () => {
                   }}
                   variant="outline"
                 >
-                  Annuler
+                  {t.form.cancel}
                 </Button>
               </div>
             </div>
