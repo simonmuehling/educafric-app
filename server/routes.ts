@@ -1366,6 +1366,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // ===== ANNUAL SUMMARY - Fetch previous trimester averages for T3 bulletins =====
   // This endpoint retrieves T1 and T2 generalAverage values to populate annual summary
+  // SECURITY: Multi-tenant isolation enforced by schoolId filter
   app.get("/api/bulletins/annual-summary/:studentId", requireAuth, async (req, res) => {
     try {
       const user = req.user as any;
@@ -1376,9 +1377,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ success: false, message: 'Student ID required' });
       }
       
-      console.log('[ANNUAL_SUMMARY] Fetching trimester averages for student:', studentId, 'year:', academicYear);
+      // Multi-tenant security: Only allow access to students in user's school
+      if (!user.schoolId) {
+        return res.status(403).json({ success: false, message: 'School access required' });
+      }
       
-      // Fetch T1, T2, T3 bulletins for the student
+      console.log('[ANNUAL_SUMMARY] Fetching trimester averages for student:', studentId, 'year:', academicYear, 'school:', user.schoolId);
+      
+      // Fetch T1, T2, T3 bulletins for the student with schoolId filter for security
       const bulletins = await db
         .select({
           term: bulletinComprehensive.term,
@@ -1390,7 +1396,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .where(
           and(
             eq(bulletinComprehensive.studentId, studentId),
-            eq(bulletinComprehensive.academicYear, academicYear)
+            eq(bulletinComprehensive.academicYear, academicYear),
+            eq(bulletinComprehensive.schoolId, user.schoolId) // Multi-tenant isolation
           )
         )
         .orderBy(bulletinComprehensive.term);

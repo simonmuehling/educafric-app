@@ -1071,8 +1071,8 @@ export default function ReportCardPreview({
           {/* FOOTER SECTION - Pushed to bottom via margin-top: auto */}
           <div className="bulletin-footer-section">
           {/* Third Trimester Annual Summary - Ministry Required for 3rd Term / Annual Report Sheet */}
-          {/* Only show if data is actually available (not all zeros) */}
-          {isThirdTrimester && annualSummary && (annualSummary.firstTrimesterAverage > 0 || annualSummary.secondTrimesterAverage > 0 || annualSummary.thirdTrimesterAverage > 0) && (
+          {/* Always show for T3 bulletins - display "--" for missing data */}
+          {isThirdTrimester && annualSummary && (
             <div className={`${isSectionedBulletin ? "mt-2" : "mt-3"} border border-orange-300 rounded p-2 bg-orange-50 annual-summary-print print:border-black print:bg-white`}>
               <h3 className="text-lg font-semibold text-orange-800 mb-3 print:text-black print:text-sm print:mb-1">
                 RÉSUMÉ ANNUEL / ANNUAL SUMMARY
