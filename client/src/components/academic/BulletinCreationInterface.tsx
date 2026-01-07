@@ -357,11 +357,13 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
         });
         if (!response.ok) throw new Error('Failed to fetch school settings');
         const data = await response.json();
-        console.log('Bulletin school settings data:', data);
+        console.log('[BULLETIN_INTERFACE] ✅ School settings loaded:', data);
+        console.log('[BULLETIN_INTERFACE] 📷 Logo URL from API:', data.settings?.school?.logoUrl);
         // Transform to match expected structure for bulletins
         return {
           data: {
             ...data.settings?.school,
+            logoUrl: data.settings?.school?.logoUrl || '', // Ensure logoUrl is explicitly included
             officialInfo: {
               regionaleMinisterielle: data.settings?.school?.regionaleMinisterielle,
               delegationDepartementale: data.settings?.school?.delegationDepartementale
@@ -385,7 +387,9 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
         };
       }
     },
-    staleTime: 1000 * 60 * 5, // 5 minutes cache
+    staleTime: 0, // Always fetch fresh data to ensure logo is current
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
   }) as { data: any, isLoading: boolean };
 
   // Fetch competency evaluation systems
@@ -694,6 +698,9 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
   const [schoolLogoUrl, setSchoolLogoUrl] = useState('');
   // Use the existing schoolInfo from line 194 - consolidate real school logo URL
   const realSchoolLogoUrl = schoolInfo?.data?.logoUrl || schoolLogoUrl;
+  
+  // Debug log for logo tracking
+  console.log('[BULLETIN_INTERFACE] 🎯 realSchoolLogoUrl:', realSchoolLogoUrl, '| from schoolInfo:', schoolInfo?.data?.logoUrl, '| from state:', schoolLogoUrl);
 
   // Auto-fill registration number from educafricNumber when school data loads
   React.useEffect(() => {
