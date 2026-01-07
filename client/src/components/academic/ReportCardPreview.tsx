@@ -1071,37 +1071,46 @@ export default function ReportCardPreview({
           {/* FOOTER SECTION - Pushed to bottom via margin-top: auto */}
           <div className="bulletin-footer-section">
           {/* Third Trimester Annual Summary - Ministry Required for 3rd Term / Annual Report Sheet */}
-          {isThirdTrimester && annualSummary && (
+          {/* Only show if data is actually available (not all zeros) */}
+          {isThirdTrimester && annualSummary && (annualSummary.firstTrimesterAverage > 0 || annualSummary.secondTrimesterAverage > 0 || annualSummary.thirdTrimesterAverage > 0) && (
             <div className={`${isSectionedBulletin ? "mt-2" : "mt-3"} border border-orange-300 rounded p-2 bg-orange-50 annual-summary-print print:border-black print:bg-white`}>
               <h3 className="text-lg font-semibold text-orange-800 mb-3 print:text-black print:text-sm print:mb-1">
-                {language === 'fr' ? 'RÉSUMÉ ANNUEL / ANNUAL SUMMARY' : 'ANNUAL SUMMARY / RÉSUMÉ ANNUEL'}
+                RÉSUMÉ ANNUEL / ANNUAL SUMMARY
               </h3>
               
-              {/* Trimester Averages - Ministry Format */}
+              {/* Trimester Averages - Ministry Format - Show "--" for missing data */}
               <div className="grid grid-cols-4 gap-3 mb-4 print:gap-1 print:mb-2">
                 <div className="text-center print:border print:border-black print:p-1">
                   <div className="text-xs text-gray-600 print:text-black print:text-[8px]">
-                    {language === 'fr' ? '1er T.' : '1st T.'}
+                    1er T. / 1st T.
                   </div>
-                  <div className={`text-sm font-semibold print:text-[10px] ${annualSummary.firstTrimesterAverage < 10 ? 'text-red-600 print:text-red-600' : 'print:text-black'}`}>{annualSummary.firstTrimesterAverage}/20</div>
+                  <div className={`text-sm font-semibold print:text-[10px] ${annualSummary.firstTrimesterAverage > 0 && annualSummary.firstTrimesterAverage < 10 ? 'text-red-600 print:text-red-600' : 'print:text-black'}`}>
+                    {annualSummary.firstTrimesterAverage > 0 ? `${annualSummary.firstTrimesterAverage.toFixed(2)}/20` : '--/20'}
+                  </div>
                 </div>
                 <div className="text-center print:border print:border-black print:p-1">
                   <div className="text-xs text-gray-600 print:text-black print:text-[8px]">
-                    {language === 'fr' ? '2e T.' : '2nd T.'}
+                    2e T. / 2nd T.
                   </div>
-                  <div className={`text-sm font-semibold print:text-[10px] ${annualSummary.secondTrimesterAverage < 10 ? 'text-red-600 print:text-red-600' : 'print:text-black'}`}>{annualSummary.secondTrimesterAverage}/20</div>
+                  <div className={`text-sm font-semibold print:text-[10px] ${annualSummary.secondTrimesterAverage > 0 && annualSummary.secondTrimesterAverage < 10 ? 'text-red-600 print:text-red-600' : 'print:text-black'}`}>
+                    {annualSummary.secondTrimesterAverage > 0 ? `${annualSummary.secondTrimesterAverage.toFixed(2)}/20` : '--/20'}
+                  </div>
                 </div>
                 <div className="text-center print:border print:border-black print:p-1">
                   <div className="text-xs text-gray-600 print:text-black print:text-[8px]">
-                    {language === 'fr' ? '3e T.' : '3rd T.'}
+                    3e T. / 3rd T.
                   </div>
-                  <div className={`text-sm font-semibold print:text-[10px] ${annualSummary.thirdTrimesterAverage < 10 ? 'text-red-600 print:text-red-600' : 'print:text-black'}`}>{annualSummary.thirdTrimesterAverage}/20</div>
+                  <div className={`text-sm font-semibold print:text-[10px] ${annualSummary.thirdTrimesterAverage > 0 && annualSummary.thirdTrimesterAverage < 10 ? 'text-red-600 print:text-red-600' : 'print:text-black'}`}>
+                    {annualSummary.thirdTrimesterAverage > 0 ? `${annualSummary.thirdTrimesterAverage.toFixed(2)}/20` : '--/20'}
+                  </div>
                 </div>
                 <div className="text-center bg-white rounded border p-2 print:border-2 print:border-black print:p-1 print:bg-yellow-50">
                   <div className="text-xs text-orange-700 font-medium print:text-black print:text-[8px]">
-                    {language === 'fr' ? 'Moy. Annuelle' : 'Annual Avg.'}
+                    Moy. Annuelle / Annual Avg.
                   </div>
-                  <div className={`text-lg font-bold print:text-[12px] ${annualSummary.annualAverage < 10 ? 'text-red-600 print:text-red-600' : 'text-orange-800 print:text-black'}`}>{annualSummary.annualAverage}/20</div>
+                  <div className={`text-lg font-bold print:text-[12px] ${annualSummary.annualAverage > 0 && annualSummary.annualAverage < 10 ? 'text-red-600 print:text-red-600' : 'text-orange-800 print:text-black'}`}>
+                    {annualSummary.annualAverage > 0 ? `${annualSummary.annualAverage.toFixed(2)}/20` : '--/20'}
+                  </div>
                 </div>
               </div>
 
@@ -1109,19 +1118,21 @@ export default function ReportCardPreview({
               <div className="grid grid-cols-2 gap-4 mb-4 print:gap-2 print:mb-2">
                 <div className="text-center border rounded p-2 print:border-black print:p-1">
                   <div className="text-xs text-gray-600 print:text-black print:text-[8px]">
-                    {language === 'fr' ? 'Rang Annuel' : 'Annual Rank'}
+                    Rang Annuel / Annual Rank
                   </div>
-                  <div className="text-sm font-semibold print:text-[10px]">{annualSummary.annualRank}{language === 'fr' ? 'e' : 'th'} / {annualSummary.totalStudents}</div>
+                  <div className="text-sm font-semibold print:text-[10px]">
+                    {annualSummary.annualRank > 0 ? `${annualSummary.annualRank}${language === 'fr' ? 'e' : 'th'} / ${annualSummary.totalStudents}` : '--'}
+                  </div>
                 </div>
                 <div className="text-center border rounded p-2 print:border-black print:p-1">
                   <div className="text-xs text-gray-600 print:text-black print:text-[8px]">
-                    {language === 'fr' ? 'Décision Conseil de Classe' : 'CLASS COUNCIL DECISION'}
+                    Décision Conseil / CLASS COUNCIL DECISION
                   </div>
                   <div className={`text-sm font-bold print:text-[10px] ${
-                    annualSummary.passDecision === 'PASSE' || annualSummary.passDecision === 'Promoted' ? 'text-green-700' : 
-                    annualSummary.passDecision === 'REDOUBLE' || annualSummary.passDecision === 'Repeat' ? 'text-orange-700' : 'text-red-700'
+                    annualSummary.passDecision?.includes('PASSE') || annualSummary.passDecision?.includes('PASSED') ? 'text-green-700' : 
+                    annualSummary.passDecision?.includes('REDOUBLE') || annualSummary.passDecision?.includes('REPEAT') ? 'text-orange-700' : 'text-gray-500'
                   }`}>
-                    {annualSummary.passDecision}
+                    {annualSummary.passDecision || (language === 'fr' ? 'Données incomplètes' : 'Incomplete data')}
                   </div>
                 </div>
               </div>

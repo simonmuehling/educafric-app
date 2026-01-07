@@ -1364,6 +1364,78 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ===== ANNUAL SUMMARY - Fetch previous trimester averages for T3 bulletins =====
+  // This endpoint retrieves T1 and T2 generalAverage values to populate annual summary
+  app.get("/api/bulletins/annual-summary/:studentId", requireAuth, async (req, res) => {
+    try {
+      const user = req.user as any;
+      const studentId = parseInt(req.params.studentId);
+      const academicYear = (req.query.academicYear as string) || '2024-2025';
+      
+      if (!studentId) {
+        return res.status(400).json({ success: false, message: 'Student ID required' });
+      }
+      
+      console.log('[ANNUAL_SUMMARY] Fetching trimester averages for student:', studentId, 'year:', academicYear);
+      
+      // Fetch T1, T2, T3 bulletins for the student
+      const bulletins = await db
+        .select({
+          term: bulletinComprehensive.term,
+          generalAverage: bulletinComprehensive.generalAverage,
+          studentRank: bulletinComprehensive.studentRank,
+          classSize: bulletinComprehensive.classSize
+        })
+        .from(bulletinComprehensive)
+        .where(
+          and(
+            eq(bulletinComprehensive.studentId, studentId),
+            eq(bulletinComprehensive.academicYear, academicYear)
+          )
+        )
+        .orderBy(bulletinComprehensive.term);
+      
+      // Extract averages by term
+      const t1Bulletin = bulletins.find(b => b.term === 'T1');
+      const t2Bulletin = bulletins.find(b => b.term === 'T2');
+      const t3Bulletin = bulletins.find(b => b.term === 'T3');
+      
+      const t1Average = t1Bulletin?.generalAverage ? parseFloat(t1Bulletin.generalAverage.toString()) : null;
+      const t2Average = t2Bulletin?.generalAverage ? parseFloat(t2Bulletin.generalAverage.toString()) : null;
+      const t3Average = t3Bulletin?.generalAverage ? parseFloat(t3Bulletin.generalAverage.toString()) : null;
+      
+      // Calculate annual average only if all three terms available
+      let annualAverage = null;
+      if (t1Average !== null && t2Average !== null && t3Average !== null) {
+        annualAverage = (t1Average + t2Average + t3Average) / 3;
+      }
+      
+      // Get class size from most recent bulletin
+      const classSize = t3Bulletin?.classSize || t2Bulletin?.classSize || t1Bulletin?.classSize || 0;
+      
+      console.log('[ANNUAL_SUMMARY] ✅ Found averages - T1:', t1Average, 'T2:', t2Average, 'T3:', t3Average);
+      
+      res.json({
+        success: true,
+        annualSummary: {
+          firstTrimesterAverage: t1Average,
+          secondTrimesterAverage: t2Average,
+          thirdTrimesterAverage: t3Average,
+          annualAverage,
+          annualRank: t3Bulletin?.studentRank || null,
+          totalStudents: classSize,
+          hasCompleteData: t1Average !== null && t2Average !== null && t3Average !== null,
+          passDecision: annualAverage !== null 
+            ? (annualAverage >= 10 ? 'PASSE / PASSED' : 'REDOUBLE / REPEAT')
+            : null
+        }
+      });
+    } catch (error) {
+      console.error('[ANNUAL_SUMMARY] Error:', error);
+      res.status(500).json({ success: false, message: 'Failed to fetch annual summary' });
+    }
+  });
+
   // Change Password - Works for ALL roles
   app.put("/api/auth/change-password", requireAuth, async (req, res) => {
     try {
