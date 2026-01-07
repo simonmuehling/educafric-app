@@ -1,5 +1,5 @@
 # Overview
-Educafric is a bilingual, mobile-first EdTech platform designed for the African market. It aims to provide comprehensive academic management, communication tools, financial services, and offline capabilities to improve educational access and outcomes across Africa. The project seeks significant market penetration and user growth by leveraging technology to enhance educational accessibility and results.
+Educafric is a bilingual, mobile-first EdTech platform designed for the African market. Its core purpose is to deliver comprehensive academic management, communication tools, financial services, and offline capabilities to enhance educational access and outcomes across Africa. The project aims for significant market penetration and user growth by leveraging technology to improve educational accessibility and results.
 
 # User Preferences
 - BASES DE DONNÉES SÉPARÉES DEV/PROD: Les bases de données de développement et production sont COMPLÈTEMENT SÉPARÉES avec ZÉRO réplication automatique. Toute modification de données utilisateur (mot de passe, rôles, affiliations) DOIT être exécutée dans LES DEUX environnements via le panneau Database. Pour modifier la production: Database > Production database > My Data > activer toggle "Edit" > exécuter SQL.
