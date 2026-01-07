@@ -14860,91 +14860,133 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get('/api/director/class-reports', requireAuth, requireAnyRole(['Director']), async (req: Request, res: Response) => {
     try {
-      console.log('[CLASS_REPORTS] Fetching class reports for director...');
+      const user = req.user as any;
+      const userSchoolId = user.schoolId || user.school_id;
       
-      // For demo purposes, use sandbox school data
-      const user = { schoolId: 999, role: 'Director' };
+      console.log('[CLASS_REPORTS] Fetching class reports for director, schoolId:', userSchoolId);
+      
+      if (!userSchoolId) {
+        return res.status(400).json({ error: 'School ID required' });
+      }
 
-      // Simplified demo data for class reports since database queries need refinement
-      const demoSchool = {
-        id: user.schoolId,
-        name: 'Collège Saint-Joseph de Douala',
-        logoUrl: '/images/school-logo.png',
-        academicYear: '2024-2025',
-        currentTerm: 'Trimestre 1'
-      };
+      // Fetch real school data from database
+      const [schoolData] = await db.select().from(schools).where(eq(schools.id, userSchoolId)).limit(1);
+      
+      if (!schoolData) {
+        return res.status(404).json({ error: 'School not found' });
+      }
 
-      const demoClasses = [
-        {
-          id: 1,
-          name: '6ème A',
-          level: '6ème',
-          section: 'A',
-          teacherName: 'Mme. Kouame Adjoua',
-          studentCount: 28,
-          averageGrade: 15.2,
-          highestGrade: 18.5,
-          lowestGrade: 11.0,
-          subjects: [
-            { id: 1, name: 'Mathématiques', averageScore: 16.1, studentGrades: [] },
-            { id: 2, name: 'Français', averageScore: 14.8, studentGrades: [] },
-            { id: 3, name: 'Anglais', averageScore: 15.3, studentGrades: [] },
-            { id: 4, name: 'Sciences Physiques', averageScore: 14.9, studentGrades: [] }
-          ]
-        },
-        {
-          id: 2,
-          name: '5ème B',
-          level: '5ème',
-          section: 'B',
-          teacherName: 'M. Ndongo Paul',
-          studentCount: 25,
-          averageGrade: 14.7,
-          highestGrade: 17.8,
-          lowestGrade: 10.5,
-          subjects: [
-            { id: 1, name: 'Mathématiques', averageScore: 15.2, studentGrades: [] },
-            { id: 2, name: 'Français', averageScore: 14.1, studentGrades: [] },
-            { id: 3, name: 'Histoire-Géographie', averageScore: 15.0, studentGrades: [] }
-          ]
-        },
-        {
-          id: 3,
-          name: '4ème C',
-          level: '4ème',
-          section: 'C',
-          teacherName: 'Mme. Tchoumi Marie',
-          studentCount: 30,
-          averageGrade: 13.8,
-          highestGrade: 16.5,
-          lowestGrade: 9.2,
-          subjects: [
-            { id: 1, name: 'Mathématiques', averageScore: 14.5, studentGrades: [] },
-            { id: 2, name: 'Sciences Physiques', averageScore: 13.2, studentGrades: [] },
-            { id: 3, name: 'Anglais', averageScore: 13.7, studentGrades: [] }
-          ]
+      // Fetch real classes for this school
+      const schoolClasses = await db.select().from(classes).where(eq(classes.schoolId, userSchoolId));
+      
+      // Build class reports with real data
+      const classReports = await Promise.all(schoolClasses.map(async (cls) => {
+        // Count students in this class
+        const classStudents = await db.select().from(students).where(eq(students.classId, cls.id));
+        const studentCount = classStudents.length;
+        
+        // Get head teacher name if assigned
+        let teacherName = cls.headTeacher || '';
+        if (cls.headTeacherId) {
+          const [teacher] = await db.select().from(users).where(eq(users.id, cls.headTeacherId)).limit(1);
+          if (teacher) {
+            teacherName = `${teacher.firstName || ''} ${teacher.lastName || ''}`.trim();
+          }
         }
-      ];
+        
+        // Get grades for this class from bulletins or grades table
+        const classGrades = await db.select()
+          .from(grades)
+          .where(eq(grades.classId, cls.id));
+        
+        // Calculate averages from real grades
+        let averageGrade = 0;
+        let highestGrade = 0;
+        let lowestGrade = 20;
+        
+        if (classGrades.length > 0) {
+          const gradeValues = classGrades.map(g => Number(g.score) || 0).filter(g => g > 0);
+          if (gradeValues.length > 0) {
+            averageGrade = gradeValues.reduce((sum, g) => sum + g, 0) / gradeValues.length;
+            highestGrade = Math.max(...gradeValues);
+            lowestGrade = Math.min(...gradeValues);
+          }
+        }
+        
+        // Get subjects taught in this class from teacher assignments
+        const subjectAssignments = await db.select()
+          .from(teacherSubjectAssignments)
+          .where(eq(teacherSubjectAssignments.classId, cls.id));
+        
+        const subjectsList = await Promise.all(subjectAssignments.map(async (assignment) => {
+          // Get subject grades for average calculation
+          const subjectGrades = await db.select()
+            .from(grades)
+            .where(and(
+              eq(grades.classId, cls.id),
+              eq(grades.subjectId, assignment.subjectId)
+            ));
+          
+          const subjectGradeValues = subjectGrades.map(g => Number(g.score) || 0).filter(g => g > 0);
+          const subjectAverage = subjectGradeValues.length > 0 
+            ? subjectGradeValues.reduce((sum, g) => sum + g, 0) / subjectGradeValues.length 
+            : 0;
+          
+          return {
+            id: assignment.subjectId,
+            name: assignment.subjectName || `Subject ${assignment.subjectId}`,
+            averageScore: Math.round(subjectAverage * 10) / 10,
+            studentGrades: []
+          };
+        }));
+        
+        // Extract level from class name (e.g., "6ème A" -> "6ème")
+        const levelMatch = cls.name?.match(/^(\d+(?:ème|ere|nd|rd|th|st)?|[A-Za-z]+\s*\d*)/i);
+        const level = cls.level || (levelMatch ? levelMatch[1] : cls.name?.split(' ')[0] || 'N/A');
+        const section = cls.section || cls.name?.split(' ').slice(1).join(' ') || '';
+        
+        return {
+          id: cls.id,
+          name: cls.name || `Classe ${cls.id}`,
+          level: level,
+          section: section,
+          teacherName: teacherName || 'Non assigné',
+          studentCount: studentCount,
+          averageGrade: Math.round(averageGrade * 10) / 10,
+          highestGrade: Math.round(highestGrade * 10) / 10,
+          lowestGrade: lowestGrade === 20 ? 0 : Math.round(lowestGrade * 10) / 10,
+          subjects: subjectsList
+        };
+      }));
 
-      // Calculate overall summary from demo data
-      const totalStudents = demoClasses.reduce((sum, cls) => sum + cls.studentCount, 0);
-      const allAverages = demoClasses.map(cls => cls.averageGrade);
-      const overallAverage = allAverages.reduce((sum, avg) => sum + avg, 0) / allAverages.length;
-      const topPerformingClass = demoClasses.reduce((prev, current) => 
-        (prev.averageGrade > current.averageGrade) ? prev : current).name;
+      // Calculate overall summary from real data
+      const totalStudents = classReports.reduce((sum, cls) => sum + cls.studentCount, 0);
+      const classesWithGrades = classReports.filter(cls => cls.averageGrade > 0);
+      const overallAverage = classesWithGrades.length > 0 
+        ? classesWithGrades.reduce((sum, cls) => sum + cls.averageGrade, 0) / classesWithGrades.length 
+        : 0;
+      const topPerformingClass = classesWithGrades.length > 0 
+        ? classesWithGrades.reduce((prev, current) => (prev.averageGrade > current.averageGrade) ? prev : current).name
+        : classReports[0]?.name || 'N/A';
 
       const response = {
-        school: demoSchool,
-        classes: demoClasses,
+        school: {
+          id: schoolData.id,
+          name: schoolData.name || 'École',
+          logoUrl: schoolData.logoUrl || '',
+          academicYear: schoolData.academicYear || '2024-2025',
+          currentTerm: schoolData.currentTerm || 'Trimestre 1'
+        },
+        classes: classReports,
         summary: {
-          totalClasses: demoClasses.length,
+          totalClasses: classReports.length,
           totalStudents,
-          overallAverage,
+          overallAverage: Math.round(overallAverage * 10) / 10,
           topPerformingClass
         }
       };
 
-      console.log(`[CLASS_REPORTS] ✅ Generated reports for ${demoClasses.length} classes`);
+      console.log(`[CLASS_REPORTS] ✅ Generated real reports for ${classReports.length} classes, schoolId: ${userSchoolId}`);
       res.json(response);
       
     } catch (error) {
