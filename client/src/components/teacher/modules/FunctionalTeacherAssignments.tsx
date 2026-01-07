@@ -662,22 +662,22 @@ const FunctionalTeacherAssignments: React.FC = () => {
 
       {/* Tabs for filtering assignments */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="active" className="flex items-center gap-2">
-            <BookOpen className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-            {t.tabs.active}
+        <TabsList className="grid w-full grid-cols-4 h-auto gap-0.5 p-1">
+          <TabsTrigger value="active" className="flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-2 px-1 sm:px-3 py-2 text-[10px] sm:text-sm min-h-[44px]">
+            <BookOpen className="h-4 w-4 sm:h-4 sm:w-4 flex-shrink-0" />
+            <span className="truncate max-w-full">{language === 'fr' ? 'Actifs' : 'Active'}</span>
           </TabsTrigger>
-          <TabsTrigger value="completed" className="flex items-center gap-2">
-            <CheckCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-            {t.tabs.completed}
+          <TabsTrigger value="completed" className="flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-2 px-1 sm:px-3 py-2 text-[10px] sm:text-sm min-h-[44px]">
+            <CheckCircle className="h-4 w-4 sm:h-4 sm:w-4 flex-shrink-0" />
+            <span className="truncate max-w-full">{language === 'fr' ? 'Terminés' : 'Done'}</span>
           </TabsTrigger>
-          <TabsTrigger value="overdue" className="flex items-center gap-2">
-            <AlertCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-            {t.tabs.overdue}
+          <TabsTrigger value="overdue" className="flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-2 px-1 sm:px-3 py-2 text-[10px] sm:text-sm min-h-[44px]">
+            <AlertCircle className="h-4 w-4 sm:h-4 sm:w-4 flex-shrink-0" />
+            <span className="truncate max-w-full">{language === 'fr' ? 'Retard' : 'Late'}</span>
           </TabsTrigger>
-          <TabsTrigger value="archives" className="flex items-center gap-2">
-            <Archive className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-            {t.tabs.archives}
+          <TabsTrigger value="archives" className="flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-2 px-1 sm:px-3 py-2 text-[10px] sm:text-sm min-h-[44px]">
+            <Archive className="h-4 w-4 sm:h-4 sm:w-4 flex-shrink-0" />
+            <span className="truncate max-w-full">{language === 'fr' ? 'Archives' : 'Archives'}</span>
           </TabsTrigger>
         </TabsList>
 
