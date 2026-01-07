@@ -12277,12 +12277,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.put("/api/parent/settings", requireAuth, async (req, res) => {
     try {
-      const updatedSettings = req.body;
-      console.log('[PARENT_SETTINGS_UPDATE] Updating settings:', updatedSettings);
-      res.json({ success: true, message: 'Parent settings updated successfully' });
+      const user = req.user as any;
+      const parentId = user.id;
+      const { profile, preferences } = req.body;
+      
+      console.log(`[PARENT_SETTINGS_UPDATE] Updating settings for parent ID: ${parentId}`);
+      console.log('[PARENT_SETTINGS_UPDATE] Data received:', JSON.stringify({ profile, preferences }));
+      
+      // Build update object for user profile
+      const updateData: any = {};
+      
+      if (profile) {
+        if (profile.firstName !== undefined) updateData.firstName = profile.firstName;
+        if (profile.lastName !== undefined) updateData.lastName = profile.lastName;
+        if (profile.email !== undefined) updateData.email = profile.email || null;
+        if (profile.phone !== undefined) updateData.phone = profile.phone;
+        if (profile.occupation !== undefined) updateData.occupation = profile.occupation;
+        if (profile.address !== undefined) updateData.address = profile.address;
+      }
+      
+      // Update timestamp
+      updateData.updatedAt = new Date();
+      
+      // Actually update the database
+      if (Object.keys(updateData).length > 1) {
+        await db
+          .update(users)
+          .set(updateData)
+          .where(eq(users.id, parentId));
+        
+        console.log(`[PARENT_SETTINGS_UPDATE] ✅ Updated parent ${parentId}:`, Object.keys(updateData).join(', '));
+        
+        res.json({ 
+          success: true, 
+          message: 'Paramètres mis à jour avec succès / Settings updated successfully',
+          updatedFields: Object.keys(updateData).filter(k => k !== 'updatedAt')
+        });
+      } else {
+        console.log('[PARENT_SETTINGS_UPDATE] No fields to update');
+        res.json({ success: true, message: 'No changes to save' });
+      }
     } catch (error) {
       console.error('[PARENT_SETTINGS_UPDATE] Error:', error);
-      res.status(500).json({ success: false, message: 'Failed to update parent settings' });
+      res.status(500).json({ success: false, message: 'Échec de la mise à jour / Failed to update parent settings' });
     }
   });
 
@@ -13900,6 +13937,109 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ]
       } 
     });
+  });
+
+  // ============= COMMERCIAL SETTINGS =============
+  
+  // GET /api/commercial/settings - Get commercial profile settings
+  app.get("/api/commercial/settings", requireAuth, requireAnyRole(['Commercial', 'SiteAdmin', 'Admin']), async (req, res) => {
+    try {
+      const user = req.user as any;
+      const commercialId = user.id;
+      
+      console.log(`[COMMERCIAL_SETTINGS] Fetching settings for commercial ID: ${commercialId}`);
+      
+      // Fetch commercial profile from users table
+      const [commercialData] = await db.select({
+        id: users.id,
+        firstName: users.firstName,
+        lastName: users.lastName,
+        email: users.email,
+        phone: users.phone,
+        gender: users.gender,
+        address: users.address,
+        createdAt: users.createdAt,
+        profilePictureUrl: users.profilePictureUrl,
+        educafricNumber: users.educafricNumber
+      })
+      .from(users)
+      .where(eq(users.id, commercialId))
+      .limit(1);
+      
+      if (!commercialData) {
+        return res.status(404).json({ success: false, message: 'Commercial not found' });
+      }
+      
+      const settings = {
+        profile: {
+          id: commercialData.id,
+          firstName: commercialData.firstName || '',
+          lastName: commercialData.lastName || '',
+          email: commercialData.email || '',
+          phone: commercialData.phone || '',
+          gender: commercialData.gender || '',
+          address: commercialData.address || '',
+          profilePictureUrl: commercialData.profilePictureUrl || '',
+          educafricNumber: commercialData.educafricNumber || '',
+          joinDate: commercialData.createdAt ? new Date(commercialData.createdAt).toISOString().split('T')[0] : ''
+        },
+        preferences: {
+          language: 'fr',
+          notifications: { email: true, sms: true, push: true, whatsapp: true },
+          theme: 'modern'
+        }
+      };
+      
+      console.log(`[COMMERCIAL_SETTINGS] ✅ Loaded settings for: ${commercialData.firstName} ${commercialData.lastName}`);
+      res.json({ success: true, settings });
+    } catch (error) {
+      console.error('[COMMERCIAL_SETTINGS] Error:', error);
+      res.status(500).json({ success: false, message: 'Failed to fetch commercial settings' });
+    }
+  });
+
+  // PUT /api/commercial/settings - Update commercial profile settings
+  app.put("/api/commercial/settings", requireAuth, requireAnyRole(['Commercial', 'SiteAdmin', 'Admin']), async (req, res) => {
+    try {
+      const user = req.user as any;
+      const commercialId = user.id;
+      const { profile, preferences } = req.body;
+      
+      console.log(`[COMMERCIAL_SETTINGS_UPDATE] Updating settings for commercial ID: ${commercialId}`);
+      
+      const updateData: any = {};
+      
+      if (profile) {
+        if (profile.firstName !== undefined) updateData.firstName = profile.firstName;
+        if (profile.lastName !== undefined) updateData.lastName = profile.lastName;
+        if (profile.email !== undefined) updateData.email = profile.email || null;
+        if (profile.phone !== undefined) updateData.phone = profile.phone;
+        if (profile.gender !== undefined) updateData.gender = profile.gender;
+        if (profile.address !== undefined) updateData.address = profile.address;
+      }
+      
+      updateData.updatedAt = new Date();
+      
+      if (Object.keys(updateData).length > 1) {
+        await db
+          .update(users)
+          .set(updateData)
+          .where(eq(users.id, commercialId));
+        
+        console.log(`[COMMERCIAL_SETTINGS_UPDATE] ✅ Updated commercial ${commercialId}:`, Object.keys(updateData).join(', '));
+        
+        res.json({ 
+          success: true, 
+          message: 'Paramètres mis à jour avec succès / Settings updated successfully',
+          updatedFields: Object.keys(updateData).filter(k => k !== 'updatedAt')
+        });
+      } else {
+        res.json({ success: true, message: 'No changes to save' });
+      }
+    } catch (error) {
+      console.error('[COMMERCIAL_SETTINGS_UPDATE] Error:', error);
+      res.status(500).json({ success: false, message: 'Failed to update commercial settings' });
+    }
   });
 
   // Commercial activity tracking endpoints
