@@ -1,5 +1,5 @@
 # Overview
-Educafric is a bilingual, mobile-first EdTech platform designed to digitize education across Africa. It aims to improve accessibility, affordability, and learning outcomes through integrated academic management, communication tools, financial services, and offline capabilities. This multi-tenant solution seeks to become a leading educational platform by addressing critical needs and leveraging the significant market potential within the African education sector.
+Educafric is a bilingual, mobile-first EdTech platform aimed at digitizing education across Africa. Its primary purpose is to enhance accessibility, affordability, and learning outcomes by integrating academic management, communication, financial services, and offline capabilities. This multi-tenant solution is designed to address critical needs and capitalize on the significant market potential within the African education sector, aspiring to become a leading educational platform.
 
 # User Preferences
 - EXEMPTION PREMIUM PERMANENTE: Comptes sandbox et @test.educafric.com sont définitivement exemptés de TOUTES restrictions premium. Patterns d'exemption incluent @test.educafric.com, sandbox@, demo@, test@, .sandbox@, .demo@, .test@. Exemptions couvrent : restrictions de fonctionnalités, limites freemium, vérifications d'abonnement. Logs automatiques : [PREMIUM_EXEMPT] et [LIMITS_EXEMPT] pour tracking.
@@ -58,6 +58,29 @@ Educafric is a bilingual, mobile-first EdTech platform designed to digitize educ
 - LOGO PDF HYBRIDE MULTI-PATH: Le générateur PDF (`pdfGenerator.ts`) utilise un système de résolution hybride pour trouver les logos d'école. Chemins testés: 1) Chemin normalisé, 2) `public/` + chemin, 3) `public/uploads/logos/` + nom fichier, 4) Chemin relatif depuis projet. Logs détaillés: `[PDF_LOGO] 🔍 Searching logo...`. Le formulaire de bulletin affiche un aperçu du logo + option d'upload manuel dans la section "Informations École". Les logos sont stockés dans `public/uploads/logos/` avec noms format `school-{id}-{timestamp}.{ext}`.
 - LOGOS ÉCOLE - FORMAT GIF INTERDIT: Le format GIF n'est PAS supporté par le générateur PDF (pdf-lib). SEULS les formats PNG et JPEG sont autorisés pour les logos d'école. Validation côté frontend (input accept + vérification file.type) ET côté backend (multer fileFilter). Message d'erreur bilingue si tentative d'upload GIF: "Format GIF non supporté. Utilisez PNG ou JPEG pour que le logo apparaisse sur les bulletins PDF."
 - ABONNEMENTS PARENTS DYNAMIQUES: Site Admin configure les tarifs d'abonnement parent par école via la table `school_parent_pricing`. Deux options principales: Communication (passerelle école-parent) et Géolocalisation (suivi position enfant). Tarifs configurables: Gratuit/5000/10000/15000 CFA/an. Réductions famille automatiques: 2 enfants (-X%), 3+ enfants (-Y%). APIs: `GET/PATCH /api/siteadmin/schools/:id/parent-pricing` (Site Admin), `GET /api/parent/pricing` (prix dynamiques), `POST /api/parent/subscribe` (souscription). Interface ParentSubscription.tsx affiche prix avec prix avec réductions calculées. TOUJOURS récupérer les tarifs depuis `school_parent_pricing` pour l'école de l'enfant.
+- BULLETINS T1/T2/T3 - CONFIGURATION CSS CRITIQUE: Fichier `client/src/index.css` contient toutes les règles CSS pour les bulletins. NE JAMAIS supprimer ou modifier ces règles sans backup:
+  **LAYOUT FLEXBOX ADAPTATIF**:
+  - `.bulletin-a4-optimized` : Container principal avec `display: flex`, `flex-direction: column`, `min-height: 297mm`
+  - `.bulletin-main-content` : Contenu avec `flex: 1 1 auto` pour remplir l'espace disponible
+  - `.grades-table-wrapper` : Tableau notes avec `flex: 1 1 auto` pour s'adapter au nombre de matières
+  - `.bulletin-footer-section` : Pied avec `flex: 0 0 auto` et `margin-top: auto` pour rester en bas
+  **BILAN ANNUEL T3 VISIBLE**:
+  - `.annual-summary-print` : `display: block !important`, `visibility: visible !important` en preview ET print
+  - NE JAMAIS ajouter `display: none` sur `.border-orange-300` ou éléments du bilan annuel
+  - Règle `.pdf-capture-mode .border-orange-300 { display: none }` INTERDITE
+  **A4 CONTAINER**:
+  - `.a4-container` : `display: flex`, `flex-direction: column`, `min-height: 297mm`
+  - PAS de `overflow: hidden` ou `max-height` restrictifs
+  **PDF CAPTURE MODE** (pour html2canvas):
+  - `.pdf-capture-mode #print-root` : `width: 794px`, `min-height: 1123px`
+  - `.pdf-capture-mode .a4-container` : `max-width: 778px`, `min-height: 1107px`
+  - `.pdf-capture-mode .bulletin-a4-optimized` : `min-height: 1100px`, background blanc
+  - Polices compactes: headers 7-8px, tables 6-8px, student info 7px
+  **PRINT STYLES** (@media print):
+  - `.annual-summary-print` : toujours visible avec background blanc
+  - Couleurs préservées: `.text-red-600`, `.text-green-700`, `.text-orange-700` avec !important
+  - `-webkit-print-color-adjust: exact !important` pour impression couleur
+  **COMPOSANT**: `client/src/components/academic/ReportCardPreview.tsx` génère les bulletins avec classes CSS appropriées
 
 # System Architecture
 - **UI/UX Decisions**: The platform features an African-themed, mobile-first, PWA-enabled UI built with Radix UI, Shadcn/UI, and Tailwind CSS. All alert and confirmation dialogs maintain a consistent `bg-white` background. Student ID cards adhere to a standardized template, supporting color printing, digital signatures, QR codes, and mobile-friendly display. The logo display system incorporates a robust 4-level fallback mechanism, with specific rules for school logos in PDFs (PNG/JPEG only, GIF forbidden).
@@ -70,6 +93,7 @@ Educafric is a bilingual, mobile-first EdTech platform designed to digitize educ
     - **Cache Management**: `queryClient.ts` uses `serializeQueryKey()` to prevent query key collisions.
     - **Document Management**: A centralized system provides instant PDF document creation with digital signatures, with documents stored in the `/public/documents/` directory.
 - **Feature Specifications**: Key features include real-time attendance tracking (Present, Late, Absent statuses), flexible timetable management, multi-channel notifications (Email, WhatsApp, PWA), bilingual templates, integrated payment systems, GPS tracking, iCal/ICS export, robust bulk Excel import with immediate data display, Competency-Based Approach (CBA) bulletin generation, and Jitsi Meet integration for online classes. Schools can define custom academic levels. Online courses have specific access rules based on subscription types (personal, school, none), with UI elements always visible but displaying contextual restrictions or prompts. Parent subscriptions are dynamic, configurable by Site Admins, and include automatic family discounts.
+- **Bulletin Generation (T1/T2/T3)**: Bulletins use adaptive flexbox layout in `client/src/index.css` to optimize A4 page space. T3 bulletins include mandatory "Bilan Annuel / Annual Summary" section with T1, T2, T3 averages and pass/fail decision. CSS classes: `.bulletin-a4-optimized`, `.bulletin-main-content`, `.grades-table-wrapper`, `.bulletin-footer-section`, `.annual-summary-print`. Key rule: NEVER hide `.border-orange-300` elements in pdf-capture-mode. Print colors preserved with `-webkit-print-color-adjust: exact`.
 
 # External Dependencies
 - **Neon Database**: Serverless PostgreSQL database solution.
