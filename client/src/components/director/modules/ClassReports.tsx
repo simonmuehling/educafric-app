@@ -5,6 +5,7 @@ import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useQuery } from '@tanstack/react-query';
+import { getCSRFToken } from '@/lib/queryClient';
 import { 
   Users, BookOpen, Award, Download, Printer, Eye,
   GraduationCap, TrendingUp, BarChart3, Star,
@@ -137,18 +138,9 @@ const ClassReports: React.FC = () => {
 
   const t = text[language as keyof typeof text];
 
-  // Fetch class reports data
+  // Fetch class reports data - uses default query client fetcher with CSRF
   const { data: classReportsData, isLoading, error } = useQuery<ClassReportsData>({
-    queryKey: ['/api/director/class-reports'],
-    queryFn: async () => {
-      const response = await fetch('/api/director/class-reports', { 
-        credentials: 'include' 
-      });
-      if (!response.ok) {
-        throw new Error('Failed to fetch class reports');
-      }
-      return response.json();
-    }
+    queryKey: ['/api/director/class-reports']
   });
 
   // Filter classes by level
@@ -161,8 +153,10 @@ const ClassReports: React.FC = () => {
 
   const handleDownloadClassReport = async (classId: number, className: string) => {
     try {
+      const csrfToken = getCSRFToken();
       const response = await fetch(`/api/director/class-reports/${classId}/pdf`, {
-        credentials: 'include'
+        credentials: 'include',
+        headers: csrfToken ? { 'X-CSRF-Token': csrfToken } : {}
       });
       
       if (response.ok) {
