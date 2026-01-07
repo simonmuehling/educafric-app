@@ -758,6 +758,28 @@ const TeacherAbsenceManager: React.FC = () => {
     return formatted;
   };
 
+  const translateReason = (reason: string): string => {
+    const reasonTranslations: Record<string, { fr: string; en: string }> = {
+      'maladie': { fr: 'Maladie', en: 'Illness' },
+      'urgence-familiale': { fr: 'Urgence familiale', en: 'Family emergency' },
+      'rendez-vous-medical': { fr: 'Rendez-vous médical', en: 'Medical appointment' },
+      'formation': { fr: 'Formation professionnelle', en: 'Professional training' },
+      'conges': { fr: 'Congés', en: 'Leave' },
+      'autre': { fr: 'Autre', en: 'Other' },
+      'medical': { fr: 'Médical', en: 'Medical' },
+      'personal': { fr: 'Personnel', en: 'Personal' },
+      'official': { fr: 'Officiel', en: 'Official' },
+      'emergency': { fr: 'Urgence', en: 'Emergency' },
+      'training': { fr: 'Formation', en: 'Training' },
+      'other': { fr: 'Autre', en: 'Other' }
+    };
+    const translation = reasonTranslations[reason.toLowerCase()];
+    if (translation) {
+      return translation[language as 'fr' | 'en'] || translation.fr;
+    }
+    return reason;
+  };
+
   if (absencesLoading) {
     return (
       <Card className="w-full">
@@ -952,7 +974,7 @@ const TeacherAbsenceManager: React.FC = () => {
                       {/* Reason */}
                       <div>
                         <p className="text-sm text-gray-600">
-                          <strong>Motif:</strong> {absence.reason}
+                          <strong>{language === 'fr' ? 'Motif:' : 'Reason:'}</strong> {translateReason(absence.reason)}
                         </p>
                       </div>
 
@@ -960,11 +982,11 @@ const TeacherAbsenceManager: React.FC = () => {
                       <div className="flex items-center space-x-4 text-sm">
                         <span className={`flex items-center space-x-1 ${absence.parentsNotified ? 'text-green-600' : 'text-gray-500'}`}>
                           {absence.parentsNotified ? <CheckCircle className="w-4 h-4" /> : <XCircle className="w-4 h-4" />}
-                          <span>Parents notifiés</span>
+                          <span>{language === 'fr' ? 'Parents notifiés' : 'Parents notified'}</span>
                         </span>
                         <span className={`flex items-center space-x-1 ${absence.studentsNotified ? 'text-green-600' : 'text-gray-500'}`}>
                           {absence.studentsNotified ? <CheckCircle className="w-4 h-4" /> : <XCircle className="w-4 h-4" />}
-                          <span>Élèves notifiés</span>
+                          <span>{language === 'fr' ? 'Élèves notifiés' : 'Students notified'}</span>
                         </span>
                         {absence.substituteName && (
                           <span className="flex items-center space-x-1 text-blue-600">
@@ -1396,11 +1418,34 @@ interface ReportsTabProps {
 }
 
 const ReportsTab: React.FC<ReportsTabProps> = ({ absences, stats, isLoading }) => {
+  const { language } = useLanguage();
   const [reportPeriod, setReportPeriod] = useState('monthly');
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
   const [isGeneratingExcel, setIsGeneratingExcel] = useState(false);
+
+  const translateReason = (reason: string): string => {
+    const reasonTranslations: Record<string, { fr: string; en: string }> = {
+      'maladie': { fr: 'Maladie', en: 'Illness' },
+      'urgence-familiale': { fr: 'Urgence familiale', en: 'Family emergency' },
+      'rendez-vous-medical': { fr: 'Rendez-vous médical', en: 'Medical appointment' },
+      'formation': { fr: 'Formation professionnelle', en: 'Professional training' },
+      'conges': { fr: 'Congés', en: 'Leave' },
+      'autre': { fr: 'Autre', en: 'Other' },
+      'medical': { fr: 'Médical', en: 'Medical' },
+      'personal': { fr: 'Personnel', en: 'Personal' },
+      'official': { fr: 'Officiel', en: 'Official' },
+      'emergency': { fr: 'Urgence', en: 'Emergency' },
+      'training': { fr: 'Formation', en: 'Training' },
+      'other': { fr: 'Autre', en: 'Other' }
+    };
+    const translation = reasonTranslations[reason.toLowerCase()];
+    if (translation) {
+      return translation[language as 'fr' | 'en'] || translation.fr;
+    }
+    return reason;
+  };
 
   // Import des dépendances pour PDF et Excel
   const generatePDF = async () => {
@@ -1786,9 +1831,9 @@ const ReportsTab: React.FC<ReportsTabProps> = ({ absences, stats, isLoading }) =
           {filteredAbsences.length === 0 ? (
             <div className="text-center py-8">
               <BarChart3 className="w-12 h-12 text-gray-400 mx-auto mb-3" />
-              <p className="text-gray-600">Aucune absence trouvée pour cette période</p>
+              <p className="text-gray-600">{language === 'fr' ? 'Aucune absence trouvée pour cette période' : 'No absences found for this period'}</p>
               <p className="text-sm text-gray-500 mt-1">
-                Sélectionnez une autre période ou attendez que des absences soient déclarées
+                {language === 'fr' ? 'Sélectionnez une autre période ou attendez que des absences soient déclarées' : 'Select another period or wait for absences to be declared'}
               </p>
             </div>
           ) : (
@@ -1803,13 +1848,13 @@ const ReportsTab: React.FC<ReportsTabProps> = ({ absences, stats, isLoading }) =
                       </Badge>
                     </div>
                     <p className="text-sm text-gray-600">
-                      {new Date(absence.absenceDate).toLocaleDateString('fr-FR')} • {absence.startTime}-{absence.endTime}
+                      {new Date(absence.absenceDate).toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-US')} • {absence.startTime}-{absence.endTime}
                     </p>
-                    <p className="text-xs text-gray-500">{absence.reason}</p>
+                    <p className="text-xs text-gray-500">{translateReason(absence.reason)}</p>
                   </div>
                   <div className="text-right">
                     <Badge variant={absence.isResolved ? "default" : absence.substituteName ? "secondary" : "destructive"}>
-                      {absence.isResolved ? 'Résolue' : absence.substituteName ? 'Remplaçant' : 'En attente'}
+                      {absence.isResolved ? (language === 'fr' ? 'Résolue' : 'Resolved') : absence.substituteName ? (language === 'fr' ? 'Remplaçant' : 'Substitute') : (language === 'fr' ? 'En attente' : 'Pending')}
                     </Badge>
                   </div>
                 </div>
@@ -1817,7 +1862,7 @@ const ReportsTab: React.FC<ReportsTabProps> = ({ absences, stats, isLoading }) =
               
               {filteredAbsences.length > 10 && (
                 <p className="text-sm text-gray-500 text-center pt-2">
-                  ... et {filteredAbsences.length - 10} autres absences
+                  {language === 'fr' ? `... et ${filteredAbsences.length - 10} autres absences` : `... and ${filteredAbsences.length - 10} more absences`}
                 </p>
               )}
             </div>

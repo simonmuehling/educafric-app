@@ -1,5 +1,5 @@
 # Overview
-Educafric is a bilingual, mobile-first EdTech platform designed for the African market. Its core purpose is to provide comprehensive academic management, communication tools, financial services, and offline capabilities to enhance educational access and outcomes across Africa. The project aims for significant market penetration and user growth by leveraging technology to improve educational accessibility and results.
+Educafric is a bilingual, mobile-first EdTech platform designed for the African market. It offers academic management, communication tools, financial services, and offline capabilities to improve educational access and outcomes across Africa. The project aims for significant market penetration and user growth by leveraging technology to transform the educational landscape.
 
 # User Preferences
 - CHANGEMENTS JANVIER 2026 - DEVOIRS BILINGUE: Module FunctionalTeacherAssignments.tsx entièrement bilingue (formulaire, labels, boutons, toasts). Onglets responsives (flex-col sm:flex-row, min-h-[44px]). Profils modifiables pour Teacher/Parent/Commercial via PUT endpoints. Fix WhatsApp password recovery (u.phone pas u.phoneNumber). ParentSubscription avec gestion erreurs. FIX CRITIQUE: fastModuleLoader.ts ligne 100 mapping 'subscription' corrigé vers ParentSubscription (pas SubscriptionStatusCard).
