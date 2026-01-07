@@ -325,15 +325,15 @@ const TeacherAbsenceDeclaration: React.FC = () => {
                   onValueChange={(value) => setDeclaration(prev => ({ ...prev, reason: value }))}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Sélectionner un motif" />
+                    <SelectValue placeholder={language === 'fr' ? 'Sélectionner un motif' : 'Select a reason'} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="maladie">Maladie</SelectItem>
-                    <SelectItem value="urgence-familiale">Urgence familiale</SelectItem>
-                    <SelectItem value="rendez-vous-medical">Rendez-vous médical</SelectItem>
-                    <SelectItem value="formation">Formation professionnelle</SelectItem>
-                    <SelectItem value="conges">Congés</SelectItem>
-                    <SelectItem value="autre">Autre</SelectItem>
+                    <SelectItem value="maladie">{language === 'fr' ? 'Maladie' : 'Illness'}</SelectItem>
+                    <SelectItem value="urgence-familiale">{language === 'fr' ? 'Urgence familiale' : 'Family emergency'}</SelectItem>
+                    <SelectItem value="rendez-vous-medical">{language === 'fr' ? 'Rendez-vous médical' : 'Medical appointment'}</SelectItem>
+                    <SelectItem value="formation">{language === 'fr' ? 'Formation professionnelle' : 'Professional training'}</SelectItem>
+                    <SelectItem value="conges">{language === 'fr' ? 'Congés' : 'Leave'}</SelectItem>
+                    <SelectItem value="autre">{language === 'fr' ? 'Autre' : 'Other'}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -440,7 +440,7 @@ const TeacherAbsenceDeclaration: React.FC = () => {
               <Textarea
                 value={declaration.details}
                 onChange={(e) => setDeclaration(prev => ({ ...prev, details: e.target.value }))}
-                placeholder="Informations supplémentaires pour faciliter la gestion de l'absence..."
+                placeholder={language === 'fr' ? 'Informations supplémentaires pour faciliter la gestion de l\'absence...' : 'Additional information to help manage the absence...'}
                 rows={3}
               />
             </div>
@@ -449,7 +449,7 @@ const TeacherAbsenceDeclaration: React.FC = () => {
               <div className="text-sm text-gray-600">
                 <div className="flex items-center">
                   <AlertTriangle className="w-4 h-4 mr-1 text-orange-500" />
-                  Votre demande sera envoyée directement à la direction
+                  {language === 'fr' ? 'Votre demande sera envoyée directement à la direction' : 'Your request will be sent directly to the administration'}
                 </div>
               </div>
               <Button
