@@ -357,8 +357,6 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
         });
         if (!response.ok) throw new Error('Failed to fetch school settings');
         const data = await response.json();
-        console.log('[BULLETIN_INTERFACE] ✅ School settings loaded:', data);
-        console.log('[BULLETIN_INTERFACE] 📷 Logo URL from API:', data.settings?.school?.logoUrl);
         // Transform to match expected structure for bulletins
         return {
           data: {
@@ -698,9 +696,6 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
   const [schoolLogoUrl, setSchoolLogoUrl] = useState('');
   // Use the existing schoolInfo from line 194 - consolidate real school logo URL
   const realSchoolLogoUrl = schoolInfo?.data?.logoUrl || schoolLogoUrl;
-  
-  // Debug log for logo tracking
-  console.log('[BULLETIN_INTERFACE] 🎯 realSchoolLogoUrl:', realSchoolLogoUrl, '| from schoolInfo:', schoolInfo?.data?.logoUrl, '| from state:', schoolLogoUrl);
 
   // Auto-fill registration number from educafricNumber when school data loads
   React.useEffect(() => {
