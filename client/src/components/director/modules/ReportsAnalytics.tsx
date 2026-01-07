@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { ModernStatsCard } from '@/components/ui/ModernCard';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useQuery } from '@tanstack/react-query';
+import { getCSRFToken } from '@/lib/queryClient';
 import { 
   BarChart3, Download, Calendar, Users, BookOpen, 
   TrendingUp, FileText, PieChart, Activity, Award,
@@ -435,8 +436,10 @@ Source: Système Educafric - École${filtersActive ? ' (Vue Filtrée)' : ' (Vue 
       if (selectedPeriod !== 'all') params.append('period', selectedPeriod);
       if (selectedSubject !== 'all') params.append('subject', selectedSubject);
       
+      const csrfToken = getCSRFToken();
       const response = await fetch(`/api/reports/proces-verbal/export/pdf?${params.toString()}`, {
-        credentials: 'include'
+        credentials: 'include',
+        headers: csrfToken ? { 'X-CSRF-Token': csrfToken } : {}
       });
       
       if (!response.ok) {
