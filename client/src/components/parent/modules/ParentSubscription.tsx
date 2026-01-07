@@ -20,23 +20,37 @@ const ParentSubscription = () => {
   const [subscribingTo, setSubscribingTo] = useState<string | null>(null);
 
   // Fetch dynamic pricing from school settings
-  const { data: pricingData, isLoading: pricingLoading } = useQuery({
+  const { data: pricingData, isLoading: pricingLoading, error: pricingError } = useQuery({
     queryKey: ['/api/parent/pricing', user?.id],
     queryFn: async () => {
-      const response = await apiRequest('GET', '/api/parent/pricing');
-      return response.json();
+      try {
+        const response = await apiRequest('GET', '/api/parent/pricing');
+        return response.json();
+      } catch (err) {
+        console.error('[PARENT_PRICING] Error fetching pricing:', err);
+        return null;
+      }
     },
-    enabled: !!user?.id
+    enabled: !!user?.id,
+    retry: 1,
+    staleTime: 5 * 60 * 1000 // 5 minutes
   });
 
   // Fetch current subscription status
-  const { data: subscriptionData, isLoading: subLoading } = useQuery({
+  const { data: subscriptionData, isLoading: subLoading, error: subError } = useQuery({
     queryKey: ['/api/parent/subscription', user?.id],
     queryFn: async () => {
-      const response = await apiRequest('GET', '/api/parent/subscription');
-      return response.json();
+      try {
+        const response = await apiRequest('GET', '/api/parent/subscription');
+        return response.json();
+      } catch (err) {
+        console.error('[PARENT_SUB] Error fetching subscription:', err);
+        return null;
+      }
     },
-    enabled: !!user?.id
+    enabled: !!user?.id,
+    retry: 1,
+    staleTime: 5 * 60 * 1000 // 5 minutes
   });
 
   // Subscribe mutation
@@ -137,7 +151,19 @@ const ParentSubscription = () => {
 
   const isLoading = pricingLoading || subLoading;
 
-  if (isLoading) {
+  // Default pricing - always available
+  const defaultPricing = {
+    communication: { enabled: true, price: 5000, period: 'annual' },
+    geolocation: { enabled: true, price: 5000, period: 'annual' },
+    discounts: { twoChildren: 20, threePlusChildren: 40 }
+  };
+
+  // Use fetched pricing or fallback to defaults
+  const pricing = pricingData?.pricing || defaultPricing;
+  const childCount = pricingData?.childCount ?? 0;
+
+  // Show loading only briefly, then show default content
+  if (isLoading && !pricingData && !subscriptionData) {
     return (
       <div className="flex items-center justify-center p-12">
         <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
@@ -145,13 +171,6 @@ const ParentSubscription = () => {
       </div>
     );
   }
-
-  const pricing = pricingData?.pricing || {
-    communication: { enabled: true, price: 5000, period: 'annual' },
-    geolocation: { enabled: true, price: 5000, period: 'annual' },
-    discounts: { twoChildren: 20, threePlusChildren: 40 }
-  };
-  const childCount = pricingData?.childCount || 0;
 
   // Calculate discount
   let discountPercent = 0;
