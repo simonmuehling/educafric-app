@@ -94,7 +94,7 @@ class FastModuleLoader {
       'AdministratorManagement': () => import('@/components/director/modules/AdministratorManagementFunctional'),
       
       // Parent modules (matching dashboard IDs exactly)
-      'subscription': () => import('@/components/shared/SubscriptionStatusCard'),
+      'subscription': () => import('@/components/parent/modules/ParentSubscription'),
       'children': () => import('@/components/parent/modules/FunctionalParentChildren'),
       'geolocation': () => import('@/components/parent/modules/ParentGeolocation'),
       'payments': () => import('@/components/parent/modules/FunctionalParentPayments'),
