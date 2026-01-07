@@ -14,7 +14,7 @@ interface PWAUpdateNotificationProps {
 export function PWAUpdateNotification({
   position = 'bottom',
   autoHide = false,
-  autoHideDelay = 10000
+  autoHideDelay = 60000 // 60 seconds instead of 10
 }: PWAUpdateNotificationProps) {
   const { hasUpdate, newVersion, applyUpdate, dismissUpdate } = usePWAUpdate();
   const [visible, setVisible] = useState(false);
