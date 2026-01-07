@@ -5,7 +5,6 @@ import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useQuery } from '@tanstack/react-query';
-import { getCSRFToken } from '@/lib/queryClient';
 import { 
   Users, BookOpen, Award, Download, Printer, Eye,
   GraduationCap, TrendingUp, BarChart3, Star,
@@ -153,10 +152,8 @@ const ClassReports: React.FC = () => {
 
   const handleDownloadClassReport = async (classId: number, className: string) => {
     try {
-      const csrfToken = getCSRFToken();
       const response = await fetch(`/api/director/class-reports/${classId}/pdf`, {
-        credentials: 'include',
-        headers: csrfToken ? { 'X-CSRF-Token': csrfToken } : {}
+        credentials: 'include'
       });
       
       if (response.ok) {
