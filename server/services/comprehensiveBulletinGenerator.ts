@@ -1201,10 +1201,8 @@ export class ComprehensiveBulletinGenerator {
           borderWidth: 1
         });
         
-        // Bilingual title
-        const bilanTitle = options.language === 'fr' 
-          ? 'BILAN ANNUEL / ANNUAL SUMMARY' 
-          : 'ANNUAL SUMMARY / BILAN ANNUEL';
+        // Bilingual title (always both languages)
+        const bilanTitle = 'BILAN ANNUEL / ANNUAL SUMMARY';
         
         drawText(bilanTitle, tableStartX + 5, currentY - 8, {
           font: timesBold,
@@ -1212,51 +1210,62 @@ export class ComprehensiveBulletinGenerator {
           color: textColor
         });
         
-        // Calculate annual data (T1 + T2 + T3 averages if available)
-        const t1Avg = (studentData as any).t1Average || grandTotalAverage;
-        const t2Avg = (studentData as any).t2Average || grandTotalAverage;
+        // Calculate annual data - use real stored averages if available
+        const t1Avg = (studentData as any).t1Average;
+        const t2Avg = (studentData as any).t2Average;
         const t3Avg = grandTotalAverage;
-        const annualAvg = ((t1Avg + t2Avg + t3Avg) / 3);
         
-        // Row with T1, T2, T3 and Annual Average
-        const avgLabelFr = 'Moy. T1:';
-        const avgLabelEn = 'T1 Avg:';
-        const t1Label = options.language === 'fr' ? avgLabelFr : avgLabelEn;
-        const t2Label = options.language === 'fr' ? 'Moy. T2:' : 'T2 Avg:';
-        const t3Label = options.language === 'fr' ? 'Moy. T3:' : 'T3 Avg:';
-        const annualLabel = options.language === 'fr' ? 'MOY. ANNUELLE:' : 'ANNUAL AVG:';
+        // Only calculate annual average if all terms are available
+        const hasAllTerms = t1Avg !== undefined && t1Avg !== null && 
+                           t2Avg !== undefined && t2Avg !== null;
+        const annualAvg = hasAllTerms ? ((t1Avg + t2Avg + t3Avg) / 3) : null;
+        
+        // Bilingual labels (show both FR/EN)
+        const t1Label = 'Moy.T1/T1 Avg:';
+        const t2Label = 'Moy.T2/T2 Avg:';
+        const t3Label = 'Moy.T3/T3 Avg:';
+        const annualLabel = 'MOY. ANNUELLE/ANNUAL AVG:';
+        
+        // Format values - show '--' if data unavailable
+        const t1Display = (t1Avg !== undefined && t1Avg !== null) ? t1Avg.toFixed(2) : '--';
+        const t2Display = (t2Avg !== undefined && t2Avg !== null) ? t2Avg.toFixed(2) : '--';
+        const annualDisplay = annualAvg !== null ? `${annualAvg.toFixed(2)}/20` : '--/--';
         
         // Draw trimester averages in compact row
         let avgX = tableStartX + 5;
-        drawText(`${t1Label} ${t1Avg.toFixed(2)}`, avgX, currentY - 18, {
-          font: helvetica, size: 7, color: textColor
+        drawText(`${t1Label} ${t1Display}`, avgX, currentY - 18, {
+          font: helvetica, size: 6, color: textColor
         });
         
-        avgX += 80;
-        drawText(`${t2Label} ${t2Avg.toFixed(2)}`, avgX, currentY - 18, {
-          font: helvetica, size: 7, color: textColor
+        avgX += 75;
+        drawText(`${t2Label} ${t2Display}`, avgX, currentY - 18, {
+          font: helvetica, size: 6, color: textColor
         });
         
-        avgX += 80;
+        avgX += 75;
         drawText(`${t3Label} ${t3Avg.toFixed(2)}`, avgX, currentY - 18, {
-          font: helvetica, size: 7, color: textColor
+          font: helvetica, size: 6, color: textColor
         });
         
-        avgX += 90;
-        drawText(`${annualLabel} ${annualAvg.toFixed(2)}/20`, avgX, currentY - 18, {
-          font: timesBold, size: 8, color: textColor
+        avgX += 85;
+        drawText(`${annualLabel} ${annualDisplay}`, avgX, currentY - 18, {
+          font: timesBold, size: 7, color: textColor
         });
         
-        // Annual appreciation
-        const annualAppreciation = this.getAcademicAppreciation(annualAvg, options.language);
-        const decisionLabel = options.language === 'fr' ? 'Décision:' : 'Decision:';
-        const passStatus = annualAvg >= 10 
-          ? (options.language === 'fr' ? 'ADMIS(E)' : 'PASSED')
-          : (options.language === 'fr' ? 'REDOUBLE' : 'REPEAT');
-        
-        drawText(`${decisionLabel} ${passStatus} - ${annualAppreciation}`, tableStartX + 380, currentY - 18, {
-          font: helveticaBold, size: 7, color: textColor
-        });
+        // Bilingual decision - only show if all terms available
+        if (annualAvg !== null) {
+          const passStatus = annualAvg >= 10 
+            ? 'ADMIS(E) / PASSED'
+            : 'REDOUBLE / REPEAT';
+          drawText(`Décision/Decision: ${passStatus}`, tableStartX + 380, currentY - 18, {
+            font: helveticaBold, size: 6, color: textColor
+          });
+        } else {
+          // Show insufficient data message
+          drawText('Données incomplètes / Incomplete data', tableStartX + 380, currentY - 18, {
+            font: helvetica, size: 6, color: rgb(0.5, 0.5, 0.5)
+          });
+        }
         
         currentY -= annualSummaryHeight + 4;
         console.log('[COMPREHENSIVE_PDF] ✅ Bilan Annuel section added');
