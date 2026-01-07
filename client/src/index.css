@@ -263,8 +263,12 @@ svg {
   font-size: 6px !important;
 }
 
-.pdf-capture-mode .border-orange-300 {
-  display: none !important;
+/* Keep annual summary visible in PDF capture mode */
+.pdf-capture-mode .annual-summary-print {
+  display: block !important;
+  visibility: visible !important;
+  background: white !important;
+  border: 1px solid #000 !important;
 }
 
 .pdf-capture-mode .no-print,
@@ -523,9 +527,13 @@ svg {
     font-size: 6pt !important;
   }
   
-  /* Hide annual summary section in print for compactness */
-  .bulletin-a4-optimized .border-orange-300 {
-    display: none !important;
+  /* Keep annual summary visible in print - REQUIRED FOR T3 BULLETINS */
+  .bulletin-a4-optimized .annual-summary-print {
+    display: block !important;
+    visibility: visible !important;
+    background: white !important;
+    border: 1px solid #000 !important;
+    page-break-inside: avoid !important;
   }
   
   /* Legacy bulletin-compact support */
