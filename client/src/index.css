@@ -348,25 +348,25 @@ svg {
     top: 0 !important;
     width: 210mm !important;
     max-width: 210mm !important;
-    height: 297mm !important;
-    max-height: 297mm !important;
+    height: auto !important; /* Allow annual summary to print */
+    max-height: none !important; /* Remove restriction for T3 bulletins */
     margin: 0 !important;
     padding: 0 !important;
     transform: none !important;
-    overflow: hidden !important;
+    overflow: visible !important; /* Show annual summary footer */
     background: white !important;
     box-sizing: border-box !important;
   }
   
-  /* A4 Container - Single Page Fit */
+  /* A4 Container - Single Page Fit - Allow annual summary overflow */
   .a4-container {
     width: 198mm !important; /* 210mm - 6mm margins x2 */
-    height: 285mm !important; /* 297mm - 6mm margins x2 */
+    height: auto !important; /* Allow content to determine height */
     max-width: 198mm !important;
-    max-height: 285mm !important;
+    max-height: none !important; /* Remove height restriction for T3 annual summary */
     margin: 0 auto !important;
     padding: 3mm !important;
-    overflow: hidden !important;
+    overflow: visible !important; /* Allow annual summary to show */
     box-sizing: border-box !important;
     transform-origin: top center !important;
   }
@@ -406,14 +406,14 @@ svg {
     width: 100% !important;
     max-width: 198mm !important;
     height: auto !important;
-    max-height: 285mm !important;
+    max-height: none !important; /* Allow T3 annual summary to print fully */
     margin: 0 auto !important;
     padding: 2mm !important;
     font-family: Arial, sans-serif !important;
     font-size: 8pt !important;
     line-height: 1.15 !important;
     color: #000 !important;
-    overflow: hidden !important;
+    overflow: visible !important; /* Allow annual summary footer to show */
     background: white !important;
     box-sizing: border-box !important;
   }
