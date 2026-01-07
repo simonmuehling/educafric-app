@@ -1,5 +1,5 @@
 # Overview
-Educafric is a bilingual, mobile-first EdTech platform tailored for the African market. Its primary goal is to deliver comprehensive academic management, communication tools, financial services, and offline capabilities to enhance educational access and outcomes across Africa. The platform aims for significant market penetration and user growth by addressing critical educational needs on the continent.
+Educafric is a bilingual, mobile-first EdTech platform designed for the African market. It aims to provide comprehensive academic management, communication tools, financial services, and offline capabilities to improve educational access and outcomes across Africa, targeting significant market penetration and user growth. The project's ambition is to enhance educational accessibility and outcomes across Africa by leveraging technology.
 
 # User Preferences
 - EXEMPTION PREMIUM PERMANENTE: Comptes sandbox et @test.educafric.com sont définitivement exemptés de TOUTES restrictions premium. Patterns d'exemption incluent @test.educafric.com, sandbox@, demo@, test@, .sandbox@, .demo@, .test@. Exemptions couvrent : restrictions de fonctionnalités, limites freemium, vérifications d'abonnement. Logs automatiques : [PREMIUM_EXEMPT] et [LIMITS_EXEMPT] pour tracking.
