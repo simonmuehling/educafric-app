@@ -1496,10 +1496,24 @@ router.post('/forgot-password', async (req, res) => {
       }
       identifier = phoneNumber;
       try {
-        // Find user by phone number (WhatsApp number)
-        const allUsers = await storage.getAllUsers();
-        user = allUsers.find((u: any) => u.phoneNumber === phoneNumber || u.whatsappE164 === phoneNumber) || null;
+        // Normalize phone number: add + if missing
+        let normalizedPhone = phoneNumber;
+        if (!normalizedPhone.startsWith('+')) {
+          normalizedPhone = '+' + normalizedPhone;
+        }
+        console.log(`[PASSWORD_RESET] Searching for user with phone: ${normalizedPhone}`);
+        
+        // Use storage method to find by phone (column is 'phone', not 'phoneNumber')
+        user = await storage.getUserByPhone(normalizedPhone);
+        
+        // If not found, try without + prefix
+        if (!user) {
+          user = await storage.getUserByPhone(phoneNumber.replace(/^\+/, ''));
+        }
+        
+        console.log(`[PASSWORD_RESET] User found:`, user ? `ID ${user.id}, phone ${user.phone}` : 'NULL');
       } catch (error) {
+        console.error(`[PASSWORD_RESET] Error finding user by phone:`, error);
         user = null;
       }
     }
