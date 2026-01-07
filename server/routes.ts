@@ -18329,7 +18329,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               phone: schoolData.phone,
               email: schoolData.email,
               website: schoolData.website,
-              logoUrl: schoolData.logo || (req.session as any)?.schoolLogo || null,
+              logoUrl: schoolData.logoUrl || (req.session as any)?.schoolLogo || null,
               description: schoolData.description,
               establishedYear: schoolData.establishedYear,
               principalName: schoolData.principalName,
