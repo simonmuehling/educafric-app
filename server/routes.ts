@@ -9553,14 +9553,56 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.put("/api/teacher/settings", requireAuth, async (req, res) => {
     try {
-      const updatedSettings = req.body;
-      console.log('[TEACHER_SETTINGS_UPDATE] Updating settings:', updatedSettings);
-      res.json({ success: true, message: 'Teacher settings updated successfully' });
-    } catch (error) {
-      if (process.env.NODE_ENV === 'development') {
-        console.error('[TEACHER_SETTINGS_UPDATE] Error:', error);
+      const user = req.user as any;
+      const teacherId = user.id;
+      const { profile, preferences, security } = req.body;
+      
+      console.log(`[TEACHER_SETTINGS_UPDATE] Updating settings for teacher ID: ${teacherId}`);
+      console.log('[TEACHER_SETTINGS_UPDATE] Data received:', JSON.stringify({ profile, preferences, security }));
+      
+      // Build update object for user profile
+      const updateData: any = {};
+      
+      if (profile) {
+        if (profile.firstName !== undefined) updateData.firstName = profile.firstName;
+        if (profile.lastName !== undefined) updateData.lastName = profile.lastName;
+        if (profile.email !== undefined) updateData.email = profile.email;
+        if (profile.phone !== undefined) updateData.phone = profile.phone;
+        if (profile.gender !== undefined) updateData.gender = profile.gender;
+        if (profile.dateOfBirth !== undefined) updateData.dateOfBirth = profile.dateOfBirth ? new Date(profile.dateOfBirth) : null;
+        if (profile.address !== undefined) updateData.address = profile.address;
+        if (profile.emergencyContact !== undefined) updateData.emergencyContact = profile.emergencyContact;
       }
-      res.status(500).json({ success: false, message: 'Failed to update teacher settings' });
+      
+      if (security) {
+        if (security.twoFactorEnabled !== undefined) updateData.twoFactorEnabled = security.twoFactorEnabled;
+      }
+      
+      // Update timestamp
+      updateData.updatedAt = new Date();
+      
+      // Actually update the database
+      if (Object.keys(updateData).length > 1) { // More than just updatedAt
+        const [updatedUser] = await db
+          .update(users)
+          .set(updateData)
+          .where(eq(users.id, teacherId))
+          .returning();
+        
+        console.log(`[TEACHER_SETTINGS_UPDATE] ✅ Updated teacher ${teacherId}:`, Object.keys(updateData).join(', '));
+        
+        res.json({ 
+          success: true, 
+          message: 'Paramètres mis à jour avec succès / Settings updated successfully',
+          updatedFields: Object.keys(updateData).filter(k => k !== 'updatedAt')
+        });
+      } else {
+        console.log('[TEACHER_SETTINGS_UPDATE] No fields to update');
+        res.json({ success: true, message: 'No changes to save' });
+      }
+    } catch (error) {
+      console.error('[TEACHER_SETTINGS_UPDATE] Error:', error);
+      res.status(500).json({ success: false, message: 'Échec de la mise à jour / Failed to update teacher settings' });
     }
   });
 
