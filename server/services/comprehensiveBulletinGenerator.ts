@@ -1035,7 +1035,8 @@ export class ComprehensiveBulletinGenerator {
         
         // Draw subjects in this section
         section.subjects.forEach((subject, index) => {
-          const rowHeight = 14; // Increased height to accommodate teacher name under subject
+          // T3 uses compact rows to fit Bilan Annuel on single page
+          const rowHeight = studentData.term === 'T3' ? 12 : 14;
           const isEvenRow = index % 2 === 0;
           
           // Subtle alternating row background
@@ -1185,7 +1186,81 @@ export class ComprehensiveBulletinGenerator {
         color: textColor
       });
       
-      currentY -= summaryHeight + 8; // Compact spacing
+      currentY -= summaryHeight + 4; // More compact spacing for T3
+      
+      // 6.5. BILAN ANNUEL / ANNUAL SUMMARY - Only for T3 (Third Trimester)
+      if (studentData.term === 'T3') {
+        console.log('[COMPREHENSIVE_PDF] 📊 Generating Bilan Annuel for T3');
+        
+        const annualSummaryHeight = 28; // Compact height for annual summary
+        
+        // Draw annual summary box
+        drawRect(tableStartX, currentY - annualSummaryHeight, tableWidth, annualSummaryHeight, {
+          color: rgb(0.90, 0.95, 0.90), // Light green tint for annual summary
+          borderColor: borderColor,
+          borderWidth: 1
+        });
+        
+        // Bilingual title
+        const bilanTitle = options.language === 'fr' 
+          ? 'BILAN ANNUEL / ANNUAL SUMMARY' 
+          : 'ANNUAL SUMMARY / BILAN ANNUEL';
+        
+        drawText(bilanTitle, tableStartX + 5, currentY - 8, {
+          font: timesBold,
+          size: 8,
+          color: textColor
+        });
+        
+        // Calculate annual data (T1 + T2 + T3 averages if available)
+        const t1Avg = (studentData as any).t1Average || grandTotalAverage;
+        const t2Avg = (studentData as any).t2Average || grandTotalAverage;
+        const t3Avg = grandTotalAverage;
+        const annualAvg = ((t1Avg + t2Avg + t3Avg) / 3);
+        
+        // Row with T1, T2, T3 and Annual Average
+        const avgLabelFr = 'Moy. T1:';
+        const avgLabelEn = 'T1 Avg:';
+        const t1Label = options.language === 'fr' ? avgLabelFr : avgLabelEn;
+        const t2Label = options.language === 'fr' ? 'Moy. T2:' : 'T2 Avg:';
+        const t3Label = options.language === 'fr' ? 'Moy. T3:' : 'T3 Avg:';
+        const annualLabel = options.language === 'fr' ? 'MOY. ANNUELLE:' : 'ANNUAL AVG:';
+        
+        // Draw trimester averages in compact row
+        let avgX = tableStartX + 5;
+        drawText(`${t1Label} ${t1Avg.toFixed(2)}`, avgX, currentY - 18, {
+          font: helvetica, size: 7, color: textColor
+        });
+        
+        avgX += 80;
+        drawText(`${t2Label} ${t2Avg.toFixed(2)}`, avgX, currentY - 18, {
+          font: helvetica, size: 7, color: textColor
+        });
+        
+        avgX += 80;
+        drawText(`${t3Label} ${t3Avg.toFixed(2)}`, avgX, currentY - 18, {
+          font: helvetica, size: 7, color: textColor
+        });
+        
+        avgX += 90;
+        drawText(`${annualLabel} ${annualAvg.toFixed(2)}/20`, avgX, currentY - 18, {
+          font: timesBold, size: 8, color: textColor
+        });
+        
+        // Annual appreciation
+        const annualAppreciation = this.getAcademicAppreciation(annualAvg, options.language);
+        const decisionLabel = options.language === 'fr' ? 'Décision:' : 'Decision:';
+        const passStatus = annualAvg >= 10 
+          ? (options.language === 'fr' ? 'ADMIS(E)' : 'PASSED')
+          : (options.language === 'fr' ? 'REDOUBLE' : 'REPEAT');
+        
+        drawText(`${decisionLabel} ${passStatus} - ${annualAppreciation}`, tableStartX + 380, currentY - 18, {
+          font: helveticaBold, size: 7, color: textColor
+        });
+        
+        currentY -= annualSummaryHeight + 4;
+        console.log('[COMPREHENSIVE_PDF] ✅ Bilan Annuel section added');
+      }
       
       // 7. CONDUCT, ATTENDANCE & STATISTICS - REORGANIZED IN ONE COMPACT ROW
       if ((studentData.conductGrade || studentData.absences !== undefined) || options.includeStatistics) {
@@ -1228,8 +1303,9 @@ export class ComprehensiveBulletinGenerator {
       
       // 8. STATISTICS SECTION MOVED TO COMBINED ROW ABOVE - NO LONGER NEEDED HERE
       
-      // 9. SIGNATURES SECTION - DRASTICALLY COMPRESSED
-      const signaturesY = Math.max(currentY - 25, 100); // DRASTICALLY COMPRESSED: From 60 to 25
+      // 9. SIGNATURES SECTION - DRASTICALLY COMPRESSED (even more for T3)
+      const signatureOffset = studentData.term === 'T3' ? 18 : 25; // More compact for T3
+      const signaturesY = Math.max(currentY - signatureOffset, 80); // Lower minimum for T3
       
       const principalLabel = options.language === 'fr' ? 'Le Directeur' : 'The Principal';
       const teacherLabel = options.language === 'fr' ? 'Le Professeur Principal' : 'Class Teacher';
@@ -1292,9 +1368,10 @@ export class ComprehensiveBulletinGenerator {
       }
       
       // 10. PERFORMANCE LEVELS SECTION - DRASTICALLY COMPRESSED INLINE FORMAT
-      let performanceLevelsY = currentY - 8; // DRASTICALLY COMPRESSED: Start much closer
+      // Skip for T3 to save space for Bilan Annuel
+      let performanceLevelsY = currentY - 8;
       
-      if (options.includePerformanceLevels) {
+      if (options.includePerformanceLevels && studentData.term !== 'T3') {
         console.log('[COMPREHENSIVE_PDF] 📖 Including performance levels text - compact format');
         
         // DRASTIC CHANGE: Use ultra-compact format instead of full text
@@ -1344,13 +1421,15 @@ export class ComprehensiveBulletinGenerator {
       }
       
       // 10.5. CLASS COUNCIL SECTION - CONDITIONAL RENDERING
+      // Skip for T3 since Bilan Annuel contains the decision
       let classCouncilY = performanceLevelsY;
       
-      // Check if any class council options are enabled
-      const hasClassCouncilContent = options.includeClassCouncilDecisions || 
+      // Check if any class council options are enabled (skip for T3)
+      const hasClassCouncilContent = studentData.term !== 'T3' && (
+                                    options.includeClassCouncilDecisions || 
                                     options.includeClassCouncilMentions || 
                                     options.includeOrientationRecommendations || 
-                                    options.includeCouncilDate;
+                                    options.includeCouncilDate);
       
       if (hasClassCouncilContent) {
         console.log('[COMPREHENSIVE_PDF] 📋 Including Class Council section');
