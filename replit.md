@@ -1,5 +1,5 @@
 # Overview
-Educafric is a bilingual, mobile-first EdTech platform designed for the African market. It provides comprehensive academic management, communication tools, financial services, and offline capabilities to enhance educational accessibility and learning outcomes across Africa. The project aims for significant market penetration and user growth by addressing critical educational needs on the continent.
+Educafric is a bilingual, mobile-first EdTech platform tailored for the African market. Its core purpose is to provide comprehensive academic management, communication tools, financial services, and offline capabilities. The platform aims to significantly enhance educational accessibility and learning outcomes across Africa, targeting substantial market penetration and user growth by addressing critical educational needs on the continent.
 
 # User Preferences
 - EXEMPTION PREMIUM PERMANENTE: Comptes sandbox et @test.educafric.com sont définitivement exemptés de TOUTES restrictions premium. Patterns d'exemption incluent @test.educafric.com, sandbox@, demo@, test@, .sandbox@, .demo@, .test@. Exemptions couvrent : restrictions de fonctionnalités, limites freemium, vérifications d'abonnement. Logs automatiques : [PREMIUM_EXEMPT] et [LIMITS_EXEMPT] pour tracking.
@@ -83,7 +83,7 @@ Educafric is a bilingual, mobile-first EdTech platform designed for the African 
   **COMPOSANT**: `client/src/components/academic/ReportCardPreview.tsx` génère les bulletins avec classes CSS appropriées
 
 # System Architecture
-- **UI/UX Decisions**: The platform features an African-themed, mobile-first, PWA-enabled UI, built using Radix UI, Shadcn/UI, and Tailwind CSS. All alert and confirmation dialogs utilize a `bg-white` background for optimal readability. Student ID cards adhere to a standardized template, offering color printing, digital signatures, QR codes, and mobile-friendly rendering. The logo display system incorporates a 4-level fallback mechanism, and school logos within PDFs are restricted to PNG and JPEG formats.
+- **UI/UX Decisions**: The platform features an African-themed, mobile-first, PWA-enabled UI, built using Radix UI, Shadcn/UI, and Tailwind CSS. All alert and confirmation dialogs utilize a `bg-white` background. Student ID cards adhere to a standardized template with color printing, digital signatures, QR codes, and mobile-friendly rendering. The logo display system incorporates a 4-level fallback mechanism, and school logos within PDFs are restricted to PNG and JPEG formats.
 - **Technical Implementations**:
     - **Frontend**: Developed with React (TypeScript), using Wouter for routing and TanStack Query for data fetching, and supporting Progressive Web App capabilities.
     - **Backend**: A RESTful API built on Express.js.
@@ -92,9 +92,9 @@ Educafric is a bilingual, mobile-first EdTech platform designed for the African 
     - **Route Architecture**: Express.js route registration prioritizes internal routes (Settings, API Modules, System Routes) over external routers. Module mappings are strictly separated by dashboard to prevent conflicts.
     - **Cache Management**: `queryClient.ts` employs `serializeQueryKey()` to prevent query key collisions in data fetching.
     - **Document Management**: A centralized system facilitates instant PDF document creation with digital signatures, storing all documents in the `/public/documents/` directory.
-- **Feature Specifications**: Key features include real-time attendance tracking (Present, Late, Absent), flexible timetable management, multi-channel notifications (Email, WhatsApp, PWA), bilingual templates, integrated payment systems, GPS tracking, iCal/ICS export, robust bulk Excel import with immediate data display, Competency-Based Approach (CBA) bulletin generation, and Jitsi Meet integration for online classes. Schools have the flexibility to define custom academic levels. Online course access rules are dynamically determined by subscription types (personal, school, or none), with UI elements always visible but displaying contextual restrictions based on access. Parent subscriptions are dynamic, configurable by Site Admins, and include automatic family discounts.
-- **System Design Choices**:
-    - **Bulletin Generation (T1/T2/T3)**: Bulletins are generated using an adaptive flexbox layout defined in `client/src/index.css`. Specifically, T3 bulletins are mandated to include an "Bilan Annuel / Annual Summary" section. Critical CSS rules are in place to ensure the visibility of essential elements and accurate color printing.
+    - **Bulletin Generation**: Bulletins are generated using an adaptive flexbox layout defined in `client/src/index.css`, ensuring specific rules for T3 bulletins and overall print quality.
+- **Feature Specifications**: Key features include real-time attendance tracking (Present, Late, Absent), flexible timetable management, multi-channel notifications (Email, WhatsApp, PWA), bilingual templates, integrated payment systems, GPS tracking, iCal/ICS export, robust bulk Excel import with immediate data display, Competency-Based Approach (CBA) bulletin generation, and Jitsi Meet integration for online classes. Schools can define custom academic levels. Online course access rules are dynamically determined by subscription types, with UI displaying contextual restrictions. Parent subscriptions are dynamic, configurable by Site Admins, and include automatic family discounts.
+- **System Design Choices**: All storage modules rely exclusively on database queries via Drizzle ORM, with no hardcoded or mock data, ensuring maintainability and consistent behavior across environments.
 
 # External Dependencies
 - **Neon Database**: Serverless PostgreSQL database.
