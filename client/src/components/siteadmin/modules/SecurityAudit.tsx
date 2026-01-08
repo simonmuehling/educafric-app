@@ -146,34 +146,9 @@ export default function SecurityAudit() {
                 <div key={i} className="animate-pulse bg-gray-200 h-16 rounded"></div>
               ))}
             </div>
-          ) : (
+          ) : (auditLogs?.logs && auditLogs.logs.length > 0) ? (
             <div className="space-y-3">
-              {[
-                {
-                  id: 1,
-                  timestamp: '2025-01-26 15:45:32',
-                  user: 'simon.admin@educafric.com',
-                  action: 'LOGIN_SUCCESS',
-                  ip: '127?.0?.0.1',
-                  severity: 'info'
-                },
-                {
-                  id: 2,
-                  timestamp: '2025-01-26 15:44:15',
-                  user: 'director.demo@test?.educafric?.com',
-                  action: 'BACKUP_INITIATED',
-                  ip: '10?.81?.5.69',
-                  severity: 'low'
-                },
-                {
-                  id: 3,
-                  timestamp: '2025-01-26 15:42:08',
-                  user: 'commercial.demo@test?.educafric?.com',
-                  action: 'DATA_ACCESS',
-                  ip: '10?.81?.7.29',
-                  severity: 'medium'
-                }
-              ].map((log) => (
+              {auditLogs.logs.map((log: any) => (
                 <div key={log.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                   <div className="flex items-center space-x-3">
                     <Badge variant={log.severity === 'info' ? 'default' : log.severity === 'low' ? 'secondary' : 'destructive'}>
@@ -187,6 +162,12 @@ export default function SecurityAudit() {
                   <span className="text-xs text-gray-500">{log.timestamp}</span>
                 </div>
               ))}
+            </div>
+          ) : (
+            <div className="text-center py-8 text-gray-500">
+              <FileSearch className="w-12 h-12 mx-auto mb-3 opacity-50" />
+              <p>Aucun log d'audit disponible</p>
+              <p className="text-sm">No audit logs available</p>
             </div>
           )}
         </ModernCard>

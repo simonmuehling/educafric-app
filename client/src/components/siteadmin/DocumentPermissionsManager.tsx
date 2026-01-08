@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -10,7 +11,7 @@ import { Switch } from '@/components/ui/switch';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Users, Settings, Eye, Download, Share2, Search, Filter, Plus, FileText, User, Shield, Check, X, Edit } from 'lucide-react';
+import { Users, Settings, Eye, Download, Share2, Search, Filter, Plus, FileText, User, Shield, Check, X, Edit, Loader2 } from 'lucide-react';
 
 interface Document {
   id: number;
@@ -151,198 +152,23 @@ const DocumentPermissionsManager: React.FC = () => {
 
   const t = text[language as keyof typeof text];
 
-  // Utilisateurs commerciaux
-  const commercialUsers: CommercialUser[] = [
-    {
-      id: 'carine-nguetsop',
-      name: 'Nguetsop Carine',
-      email: 'nguetsop.carine@educafric.com',
-      role: 'COO',
-      isActive: true,
-      lastLogin: '2025-08-12 06:30:00',
-      permissions: {
-        1: { canView: true, canDownload: true, canShare: true },
-        2: { canView: true, canDownload: true, canShare: true },
-        3: { canView: true, canDownload: true, canShare: true },
-        9: { canView: true, canDownload: true, canShare: true },
-        13: { canView: true, canDownload: true, canShare: true },
-        14: { canView: true, canDownload: true, canShare: true },
-        17: { canView: true, canDownload: true, canShare: true },
-        18: { canView: true, canDownload: true, canShare: true },
-        19: { canView: true, canDownload: true, canShare: true },
-        20: { canView: true, canDownload: true, canShare: true }
-      }
-    },
-    {
-      id: 'demo-commercial',
-      name: 'Demo Commercial',
-      email: 'commercial.demo@test.educafric.com',
-      role: 'Commercial',
-      isActive: true,
-      lastLogin: '2025-08-12 06:39:23',
-      permissions: {
-        2: { canView: true, canDownload: true, canShare: false },
-        3: { canView: true, canDownload: true, canShare: false },
-        9: { canView: true, canDownload: true, canShare: false },
-        13: { canView: true, canDownload: true, canShare: false },
-        14: { canView: true, canDownload: true, canShare: false },
-        17: { canView: true, canDownload: false, canShare: false },
-        18: { canView: true, canDownload: true, canShare: false },
-        19: { canView: true, canDownload: true, canShare: false }
-      }
-    },
-    {
-      id: 'commercial-team-1',
-      name: 'Sophie Mballa',
-      email: 'sophie.mballa@educafric.com',
-      role: 'Commercial',
-      isActive: true,
-      lastLogin: '2025-08-11 14:20:00',
-      permissions: {
-        2: { canView: true, canDownload: true, canShare: false },
-        3: { canView: true, canDownload: true, canShare: false },
-        14: { canView: true, canDownload: true, canShare: false },
-        18: { canView: true, canDownload: true, canShare: false }
-      }
-    },
-    {
-      id: 'commercial-team-2',
-      name: 'Jean-Paul Atangana',
-      email: 'jeanpaul.atangana@educafric.com',
-      role: 'Commercial',
-      isActive: true,
-      lastLogin: '2025-08-10 16:45:00',
-      permissions: {
-        2: { canView: true, canDownload: false, canShare: false },
-        14: { canView: true, canDownload: true, canShare: false },
-        17: { canView: true, canDownload: false, canShare: false }
-      }
-    }
-  ];
+  // Fetch commercial users from API
+  const { data: commercialUsersData, isLoading: loadingUsers } = useQuery({
+    queryKey: ['/api/admin/commercial-users'],
+    queryFn: () => fetch('/api/admin/commercial-users', { credentials: 'include' }).then(res => res.json())
+  });
 
-  // Documents (repris de DocumentManagement.tsx)
-  const documents: Document[] = [
-    {
-      id: 1,
-      title: 'Guide des Notifications EDUCAFRIC',
-      type: 'technical',
-      language: 'fr',
-      size: '89 KB',
-      lastModified: '2025-01-26 18:10',
-      accessLevel: 'public',
-      sharedWith: [],
-      downloadCount: 45,
-      description: 'Guide non-technique bilingue expliquant le système de notifications SMS et application'
-    },
-    {
-      id: 2,
-      title: 'Tarifs et Plans d\'Abonnement - Français',
-      type: 'pricing',
-      language: 'fr',
-      size: '156 KB',
-      lastModified: '2025-01-24 18:30',
-      accessLevel: 'commercial',
-      sharedWith: ['commercial@educafric.com'],
-      downloadCount: 12,
-      description: 'Document non-technique des tarifs et plans pour l\'équipe commerciale - Version française'
-    },
-    {
-      id: 3,
-      title: 'Pricing Plans & Subscription Summary - English',
-      type: 'pricing',
-      language: 'en',
-      size: '148 KB',
-      lastModified: '2025-01-24 18:30',
-      accessLevel: 'commercial',
-      sharedWith: ['commercial@educafric.com'],
-      downloadCount: 8,
-      description: 'Non-technical pricing and plans document for commercial team - English version'
-    },
-    {
-      id: 9,
-      title: 'Plans d\'Abonnement Complets',
-      type: 'pricing',
-      language: 'fr',
-      size: '245 KB',
-      lastModified: '2025-07-24 21:06',
-      accessLevel: 'commercial',
-      sharedWith: ['commercial@educafric.com'],
-      downloadCount: 28,
-      description: 'Document détaillé des plans d\'abonnement et tarifications'
-    },
-    {
-      id: 13,
-      title: 'Plans d\'Abonnement Détaillés',
-      type: 'pricing',
-      language: 'fr',
-      size: '245 KB',
-      lastModified: '2025-01-24 18:30',
-      accessLevel: 'commercial',
-      sharedWith: ['commercial@educafric.com'],
-      downloadCount: 18,
-      description: 'Version détaillée des plans d\'abonnement'
-    },
-    {
-      id: 14,
-      title: 'Information Freemium pour Écoles Africaines',
-      type: 'commercial',
-      language: 'fr',
-      size: '198 KB',
-      lastModified: '2025-01-25 14:30',
-      accessLevel: 'commercial',
-      sharedWith: ['commercial@educafric.com'],
-      downloadCount: 34,
-      description: 'Document informatif sur l\'offre freemium pour les écoles africaines'
-    },
-    {
-      id: 17,
-      title: 'Économies Financières pour Écoles Africaines',
-      type: 'commercial',
-      language: 'fr',
-      size: '234 KB',
-      lastModified: '2025-01-25 15:20',
-      accessLevel: 'commercial',
-      sharedWith: ['commercial@educafric.com'],
-      downloadCount: 22,
-      description: 'Analyse des économies réalisables par les écoles africaines'
-    },
-    {
-      id: 18,
-      title: 'Brochure Commerciale Persuasive',
-      type: 'commercial',
-      language: 'fr',
-      size: '412 KB',
-      lastModified: '2025-01-26 11:30',
-      accessLevel: 'commercial',
-      sharedWith: ['commercial@educafric.com'],
-      downloadCount: 45,
-      description: 'Brochure commerciale pour la présentation aux prospects'
-    },
-    {
-      id: 19,
-      title: 'Document Commercial Master',
-      type: 'commercial',
-      language: 'fr',
-      size: '270 KB',
-      lastModified: '2025-08-09 22:02',
-      accessLevel: 'commercial',
-      sharedWith: ['commercial@educafric.com'],
-      downloadCount: 8,
-      description: 'Document commercial principal pour les équipes de vente'
-    },
-    {
-      id: 20,
-      title: 'Présentation Master EDUCAFRIC',
-      type: 'commercial',
-      language: 'fr',
-      size: '17.7 MB',
-      lastModified: '2025-08-09 22:00',
-      accessLevel: 'commercial',
-      sharedWith: ['commercial@educafric.com'],
-      downloadCount: 15,
-      description: 'Présentation master complète de la plateforme EDUCAFRIC'
-    }
-  ];
+  // Use API data or empty array
+  const commercialUsers: CommercialUser[] = commercialUsersData?.users || [];
+
+  // Fetch documents from API
+  const { data: documentsData, isLoading: loadingDocuments } = useQuery({
+    queryKey: ['/api/admin/documents'],
+    queryFn: () => fetch('/api/admin/documents', { credentials: 'include' }).then(res => res.json())
+  });
+
+  // Use API data or empty array
+  const documents: Document[] = documentsData?.documents || [];
 
   // Fonctions de gestion des permissions
   const togglePermission = (userId: string, documentId: number, permission: 'canView' | 'canDownload' | 'canShare') => {
@@ -374,7 +200,7 @@ const DocumentPermissionsManager: React.FC = () => {
   const filteredUsers = selectedUser === 'all' ? commercialUsers : commercialUsers.filter(u => u.id === selectedUser);
 
   // Vérifier que l'utilisateur est bien site admin
-  if (user?.role !== 'siteadmin') {
+  if (user?.role !== 'SiteAdmin') {
     return (
       <div className="min-h-screen bg-gradient-to-br from-red-50 via-white to-red-50 p-6">
         <div className="max-w-7xl mx-auto">
