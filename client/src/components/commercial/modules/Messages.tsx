@@ -1,15 +1,46 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { MessageSquare, Search, Send, Plus, User, Phone, Mail, Calendar, Clock } from 'lucide-react';
+import { MessageSquare, Search, Send, Plus, User, Phone, Mail, Calendar, Clock, MessagesSquare } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+
+interface ConversationData {
+  id: number;
+  type: string;
+  name: string;
+  participants?: string[];
+  role?: string;
+  lastMessage: string;
+  lastMessageTime: string;
+  unreadCount: number;
+  status: string;
+  category: string;
+}
+
+interface MessageData {
+  id: number;
+  sender: string;
+  content: string;
+  time: string;
+  type: string;
+  isOwn: boolean;
+}
 
 const Messages = () => {
   const { language } = useLanguage();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedConversation, setSelectedConversation] = useState<number | null>(null);
+
+  // Fetch data from API - no mock data
+  const { data: conversationsResponse, isLoading } = useQuery<{ success: boolean; data: ConversationData[] }>({
+    queryKey: ['/api/commercial/messages']
+  });
+
+  const conversations: ConversationData[] = conversationsResponse?.data || [];
+  const messages: MessageData[] = []; // No mock messages - will show empty state
 
   const text = {
     fr: {
@@ -29,7 +60,12 @@ const Messages = () => {
       success: 'Succès',
       meeting: 'Réunion',
       urgent: 'Urgent',
-      general: 'Général'
+      general: 'Général',
+      loading: 'Chargement...',
+      noConversations: 'Aucune conversation',
+      noConversationsDesc: 'Les conversations avec vos clients apparaîtront ici',
+      noMessages: 'Aucun message',
+      noMessagesDesc: 'Sélectionnez une conversation pour voir les messages'
     },
     en: {
       title: 'Team Messages',
@@ -48,87 +84,16 @@ const Messages = () => {
       success: 'Success',
       meeting: 'Meeting',
       urgent: 'Urgent',
-      general: 'General'
+      general: 'General',
+      loading: 'Loading...',
+      noConversations: 'No conversations',
+      noConversationsDesc: 'Conversations with your clients will appear here',
+      noMessages: 'No messages',
+      noMessagesDesc: 'Select a conversation to view messages'
     }
   };
 
   const t = text[language as keyof typeof text];
-
-  // Mock conversations data
-  const conversations = [
-    {
-      id: 1,
-      type: 'team',
-      name: 'Équipe Commerciale',
-      participants: ['Marc Dupont', 'Sophie Martin', 'Jean Kouassi', 'Carine Nguetsop'],
-      lastMessage: 'Nouvelle lead École Internationale Abidjan - très intéressée',
-      lastMessageTime: '14:30',
-      unreadCount: 3,
-      status: 'active',
-      category: 'general'
-    },
-    {
-      id: 2,
-      type: 'client',
-      name: 'Sarah Nkomo',
-      role: 'École Primaire Bilingue Yaoundé',
-      lastMessage: 'Merci pour la présentation, nous validons l\'extension premium',
-      lastMessageTime: '13:45',
-      unreadCount: 1,
-      status: 'online',
-      category: 'success'
-    },
-    {
-      id: 3,
-      type: 'team',
-      name: 'Réunion Hebdomadaire',
-      participants: ['Sophie Martin', 'Marc Dupont'],
-      lastMessage: 'Planning de la semaine prochaine à valider',
-      lastMessageTime: '12:20',
-      unreadCount: 0,
-      status: 'active',
-      category: 'meeting'
-    },
-    {
-      id: 4,
-      type: 'client',
-      name: 'Paul Mbarga',
-      role: 'Lycée Excellence Douala',
-      lastMessage: 'Question sur les modalités de paiement annuel',
-      lastMessageTime: '11:15',
-      unreadCount: 2,
-      status: 'offline',
-      category: 'urgent'
-    }
-  ];
-
-  // Mock messages for selected conversation
-  const messages = [
-    {
-      id: 1,
-      sender: 'Marc Dupont',
-      content: 'Nouvelle lead École Internationale Abidjan - très intéressée par notre solution',
-      time: '14:30',
-      type: 'text',
-      isOwn: false
-    },
-    {
-      id: 2,
-      sender: 'Sophie Martin',
-      content: 'Excellente nouvelle ! Quel est leur budget approximatif ?',
-      time: '14:32',
-      type: 'text',
-      isOwn: false
-    },
-    {
-      id: 3,
-      sender: 'Vous',
-      content: 'Je prépare un RDV pour demain, ils ont 800 élèves',
-      time: '14:35',
-      type: 'text',
-      isOwn: true
-    }
-  ];
 
   const getCategoryColor = (category: string) => {
     switch (category) {
@@ -194,8 +159,20 @@ const Messages = () => {
               <h3 className="font-semibold">{language === 'fr' ? 'Conversations' : 'Conversations'}</h3>
             </CardHeader>
             <CardContent className="p-0">
+              {isLoading ? (
+                <div className="flex items-center justify-center py-12">
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-cyan-600"></div>
+                  <span className="ml-3 text-gray-600">{t.loading}</span>
+                </div>
+              ) : filteredConversations.length === 0 ? (
+                <div className="text-center py-12 px-4">
+                  <MessagesSquare className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                  <p className="text-gray-600 font-medium">{t.noConversations}</p>
+                  <p className="text-gray-500 text-sm">{t.noConversationsDesc}</p>
+                </div>
+              ) : (
               <div className="space-y-1 max-h-80 overflow-y-auto">
-                {(Array.isArray(filteredConversations) ? filteredConversations : []).map((conv) => (
+                {filteredConversations.map((conv) => (
                   <div
                     key={conv.id}
                     className="p-4 hover:bg-gray-50 cursor-pointer border-b"
@@ -235,6 +212,7 @@ const Messages = () => {
                   </div>
                 ))}
               </div>
+              )}
             </CardContent>
           </Card>
         </div>

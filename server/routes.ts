@@ -13892,6 +13892,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json({ success: true, message: 'Commercial appointments endpoint', data: [] });
   });
 
+  // TODO: Implement commercial_messages table for real persistence
+  app.get('/api/commercial/messages', requireAuth, requireAnyRole(['Commercial', 'SiteAdmin', 'Admin']), (req, res) => {
+    console.log('[COMMERCIAL_API] Messages requested - returning empty array (no mock data)');
+    res.json({ success: true, message: 'Commercial messages endpoint', data: [] });
+  });
+
   // TODO: Implement commercial_school_relationships table for real persistence  
   app.get('/api/commercial/schools', requireAuth, requireAnyRole(['Commercial', 'SiteAdmin', 'Admin']), (req, res) => {
     console.log('[COMMERCIAL_API] Schools requested - returning empty array (no mock data)');
