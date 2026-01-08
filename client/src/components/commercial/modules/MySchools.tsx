@@ -1,14 +1,37 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { Building2, Search, Phone, Mail, MapPin, Users, TrendingUp, Calendar, Plus } from 'lucide-react';
+import { Building2, Search, Phone, Mail, MapPin, Users, TrendingUp, Calendar, Plus, School } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+
+interface SchoolData {
+  id: number;
+  name: string;
+  type: string;
+  location?: string;
+  city?: string;
+  director?: string;
+  phone?: string;
+  email?: string;
+  status: string;
+  students: number;
+  revenue?: string;
+  lastContact?: string;
+  partnership?: string;
+}
 
 const MySchools = () => {
   const { language } = useLanguage();
   const [searchTerm, setSearchTerm] = useState('');
+
+  const { data: schoolsResponse, isLoading } = useQuery<{ success: boolean; data: SchoolData[] }>({
+    queryKey: ['/api/commercial/schools']
+  });
+
+  const schools = schoolsResponse?.data || [];
 
   const text = {
     fr: {
@@ -30,7 +53,10 @@ const MySchools = () => {
       inactive: 'Inactif',
       viewDetails: 'Voir Détails',
       contact: 'Contacter',
-      scheduleVisit: 'Planifier Visite'
+      scheduleVisit: 'Planifier Visite',
+      loading: 'Chargement des écoles...',
+      noSchools: 'Aucune école partenaire',
+      noSchoolsDesc: 'Les écoles que vous gérez apparaîtront ici'
     },
     en: {
       title: 'My Schools',
@@ -51,71 +77,14 @@ const MySchools = () => {
       inactive: 'Inactive',
       viewDetails: 'View Details',
       contact: 'Contact',
-      scheduleVisit: 'Schedule Visit'
+      scheduleVisit: 'Schedule Visit',
+      loading: 'Loading schools...',
+      noSchools: 'No partner schools',
+      noSchoolsDesc: 'Schools you manage will appear here'
     }
   };
 
   const t = text[language as keyof typeof text];
-
-  // Mock schools data
-  const schools = [
-    {
-      id: 1,
-      name: 'École Primaire Bilingue Yaoundé',
-      type: 'École Primaire',
-      location: 'Yaoundé, Cameroun',
-      director: 'Mme Sarah Nkomo',
-      phone: '+237 656 123 456',
-      email: 'direction@epby.cm',
-      status: 'active',
-      students: 450,
-      revenue: '2,500,000 CFA',
-      lastContact: '2024-01-20',
-      partnership: 'Premium'
-    },
-    {
-      id: 2,
-      name: 'Lycée Excellence Douala',
-      type: 'Lycée',
-      location: 'Douala, Cameroun',
-      director: 'M. Paul Mbarga',
-      phone: '+237 675 987 654',
-      email: 'admin@led.cm',
-      status: 'pending',
-      students: 680,
-      revenue: '3,200,000 CFA',
-      lastContact: '2024-01-18',
-      partnership: 'Standard'
-    },
-    {
-      id: 3,
-      name: 'Collège Moderne Bafoussam',
-      type: 'Collège',
-      location: 'Bafoussam, Cameroun',
-      director: 'Mme Marie Fotso',
-      phone: '+237 694 555 777',
-      email: 'contact@cmb.cm',
-      status: 'prospect',
-      students: 320,
-      revenue: '0 CFA',
-      lastContact: '2024-01-15',
-      partnership: 'Prospect'
-    },
-    {
-      id: 4,
-      name: 'Institut Technique Garoua',
-      type: 'Institut Technique',
-      location: 'Garoua, Cameroun',
-      director: 'M. Ahmadou Bello',
-      phone: '+237 677 333 888',
-      email: 'direction@itg.cm',
-      status: 'active',
-      students: 280,
-      revenue: '1,800,000 CFA',
-      lastContact: '2024-01-22',
-      partnership: 'Standard'
-    }
-  ];
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -174,8 +143,22 @@ const MySchools = () => {
       </div>
 
       {/* Schools Grid */}
+      {isLoading ? (
+        <div className="flex items-center justify-center py-12">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+          <span className="ml-3 text-gray-600">{t.loading}</span>
+        </div>
+      ) : filteredSchools.length === 0 ? (
+        <Card className="col-span-full">
+          <CardContent className="text-center py-12">
+            <School className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+            <p className="text-gray-600 font-medium">{t.noSchools}</p>
+            <p className="text-gray-500 text-sm">{t.noSchoolsDesc}</p>
+          </CardContent>
+        </Card>
+      ) : (
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {(Array.isArray(filteredSchools) ? filteredSchools : []).map((school) => (
+        {filteredSchools.map((school) => (
           <Card key={school.id} className="hover:shadow-lg transition-shadow">
             <CardHeader>
               <div className="flex items-start justify-between">
@@ -254,6 +237,7 @@ const MySchools = () => {
           </Card>
         ))}
       </div>
+      )}
 
       {/* Summary Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
