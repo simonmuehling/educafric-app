@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { Plus, Smartphone, Watch, Tablet, MapPin, Wifi, Battery, Signal, Settings, CheckCircle, AlertTriangle } from 'lucide-react';
 import { ModernCard } from '@/components/ui/ModernCard';
 import { Button } from '@/components/ui/button';
@@ -10,16 +11,130 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 
+interface Device {
+  id: number;
+  name: string;
+  type: string;
+  student: string;
+  status: string;
+  battery: number;
+  signal: number;
+  lastSeen: string;
+  location: string;
+}
+
 export default function DeviceConfiguration() {
+  const { language } = useLanguage();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState('devices');
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [selectedDeviceType, setSelectedDeviceType] = useState('');
 
-  const { data: devices } = useQuery({
+  const t = {
+    title: language === 'fr' ? 'Ajouter Appareil' : 'Add Device',
+    subtitle: language === 'fr' ? 'Configuration des appareils connectés pour le suivi des élèves' : 'Configure connected devices for student tracking',
+    addDevice: language === 'fr' ? 'Ajouter Appareil' : 'Add Device',
+    devices: language === 'fr' ? 'Appareils' : 'Devices',
+    setup: language === 'fr' ? 'Configuration' : 'Setup',
+    gpsTracking: language === 'fr' ? 'Suivi GPS' : 'GPS Tracking',
+    connectivity: language === 'fr' ? 'Connectivité' : 'Connectivity',
+    online: language === 'fr' ? 'En ligne' : 'Online',
+    offline: language === 'fr' ? 'Hors ligne' : 'Offline',
+    locate: language === 'fr' ? 'Localiser' : 'Locate',
+    configure: language === 'fr' ? 'Configurer' : 'Configure',
+    lastPosition: language === 'fr' ? 'Dernière position:' : 'Last position:',
+    lastActivity: language === 'fr' ? 'Dernière activité:' : 'Last activity:',
+    deviceTypeLabel: language === 'fr' ? "Type d'appareil" : 'Device type',
+    deviceName: language === 'fr' ? "Nom de l'appareil" : 'Device name',
+    assignedStudent: language === 'fr' ? 'Élève assigné' : 'Assigned student',
+    uniqueId: language === 'fr' ? 'Identifiant unique (IMEI/MAC)' : 'Unique ID (IMEI/MAC)',
+    cancel: language === 'fr' ? 'Annuler' : 'Cancel',
+    addNewDevice: language === 'fr' ? 'Ajouter un Nouvel Appareil' : 'Add New Device',
+    selectDeviceType: language === 'fr' ? "Choisir le type d'appareil" : 'Choose device type',
+    selectStudent: language === 'fr' ? 'Sélectionner un élève' : 'Select a student',
+    deviceAdded: language === 'fr' ? 'Appareil ajouté' : 'Device added',
+    deviceAddedDesc: language === 'fr' ? "L'appareil a été configuré avec succès" : 'Device configured successfully',
+    error: language === 'fr' ? 'Erreur' : 'Error',
+    errorDesc: language === 'fr' ? "Impossible d'ajouter l'appareil" : 'Unable to add device',
+    noDevices: language === 'fr' ? 'Aucun appareil configuré' : 'No devices configured',
+    noDevicesDesc: language === 'fr' ? 'Ajoutez des appareils pour suivre vos élèves.' : 'Add devices to track your students.',
+    configGuide: language === 'fr' ? 'Guide de Configuration des Appareils' : 'Device Configuration Guide',
+    features: language === 'fr' ? 'Fonctionnalités:' : 'Features:',
+    configInstructions: language === 'fr' ? 'Instructions de Configuration' : 'Configuration Instructions',
+    gpsSettings: language === 'fr' ? 'Paramètres de Suivi GPS' : 'GPS Tracking Settings',
+    locationFrequency: language === 'fr' ? 'Fréquence de localisation' : 'Location frequency',
+    everyMinute: language === 'fr' ? 'Toutes les minutes' : 'Every minute',
+    every5Min: language === 'fr' ? 'Toutes les 5 minutes' : 'Every 5 minutes',
+    every15Min: language === 'fr' ? 'Toutes les 15 minutes' : 'Every 15 minutes',
+    every30Min: language === 'fr' ? 'Toutes les 30 minutes' : 'Every 30 minutes',
+    defaultSafeZone: language === 'fr' ? 'Zone de sécurité par défaut' : 'Default safe zone',
+    alertRadius: language === 'fr' ? 'Rayon d\'alerte (mètres)' : 'Alert radius (meters)',
+    autoNotifications: language === 'fr' ? 'Notifications automatiques' : 'Automatic notifications',
+    schoolEntry: language === 'fr' ? 'Entrée dans l\'école' : 'School entry',
+    schoolExit: language === 'fr' ? 'Sortie de l\'école' : 'School exit',
+    safeZoneExit: language === 'fr' ? 'Sortie de zone sécurisée' : 'Safe zone exit',
+    lowBattery: language === 'fr' ? 'Batterie faible (<20%)' : 'Low battery (<20%)',
+    emergencyButton: language === 'fr' ? 'Bouton d\'urgence' : 'Emergency button',
+    immediateParentAlert: language === 'fr' ? 'Alerte parents immédiate' : 'Immediate parent alert',
+    schoolNotification: language === 'fr' ? 'Notification école' : 'School notification',
+    autoSecurityCall: language === 'fr' ? 'Appel automatique sécurité' : 'Automatic security call',
+    saveConfig: language === 'fr' ? 'Sauvegarder Configuration' : 'Save Configuration',
+    connectivityStatus: language === 'fr' ? 'État de la Connectivité' : 'Connectivity Status',
+    wifiSchool: language === 'fr' ? 'WiFi École' : 'School WiFi',
+    connected: language === 'fr' ? 'Connecté - Signal fort' : 'Connected - Strong signal',
+    devicesConnected: (n: number) => language === 'fr' ? `${n} appareils connectés` : `${n} devices connected`,
+    mobileNetwork: language === 'fr' ? 'Réseau Mobile' : 'Mobile Network',
+    available: language === 'fr' ? 'Disponible' : 'Available',
+    optimalCoverage: language === 'fr' ? 'Couverture optimale' : 'Optimal coverage',
+    gpsSatellites: language === 'fr' ? 'GPS Satellites' : 'GPS Satellites',
+    satellitesDetected: (n: number) => language === 'fr' ? `${n} satellites détectés` : `${n} satellites detected`,
+    precision: language === 'fr' ? 'Précision: ±3 mètres' : 'Precision: ±3 meters',
+    networkConfig: language === 'fr' ? 'Configuration Réseau' : 'Network Configuration',
+    mainWifi: language === 'fr' ? 'Réseau WiFi principal' : 'Main WiFi Network',
+    test: language === 'fr' ? 'Tester' : 'Test',
+    mobileProvider: language === 'fr' ? 'Fournisseur de données mobiles' : 'Mobile data provider',
+    geoServer: language === 'fr' ? 'Serveur de géolocalisation' : 'Geolocation server',
+    updateConfig: language === 'fr' ? 'Mettre à Jour Configuration' : 'Update Configuration',
+    smartwatch: language === 'fr' ? 'Montre connectée' : 'Smartwatch',
+    smartwatchDesc: language === 'fr' ? 'Montre connectée pour élèves' : 'Connected watch for students',
+    smartphone: language === 'fr' ? 'Smartphone' : 'Smartphone',
+    smartphoneDesc: language === 'fr' ? 'Téléphone intelligent des élèves' : 'Student smartphone',
+    tablet: language === 'fr' ? 'Tablette' : 'Tablet',
+    tabletDesc: language === 'fr' ? 'Tablette pour usage scolaire' : 'Tablet for school use',
+    gpsTracker: language === 'fr' ? 'Traceur GPS' : 'GPS Tracker',
+    gpsTrackerDesc: language === 'fr' ? 'Dispositif GPS dédié' : 'Dedicated GPS device',
+    smartwatchFeatures: language === 'fr' 
+      ? ['GPS intégré', 'Appel d\'urgence', 'Géofencing', 'Suivi activité']
+      : ['Built-in GPS', 'Emergency call', 'Geofencing', 'Activity tracking'],
+    smartphoneFeatures: language === 'fr'
+      ? ['Localisation précise', 'Communication', 'Applications éducatives', 'Contrôle parental']
+      : ['Precise location', 'Communication', 'Educational apps', 'Parental control'],
+    tabletFeatures: language === 'fr'
+      ? ['Grand écran', 'Applications éducatives', 'Partage d\'écran', 'Mode classe']
+      : ['Large screen', 'Educational apps', 'Screen sharing', 'Class mode'],
+    gpsTrackerFeatures: language === 'fr'
+      ? ['Longue autonomie', 'Résistant à l\'eau', 'Bouton SOS', 'Historique de trajets']
+      : ['Long battery life', 'Water resistant', 'SOS button', 'Trip history'],
+    smartwatchInstructions: language === 'fr'
+      ? ['1. Télécharger l\'application EDUCAFRIC sur l\'appareil', '2. Créer un compte avec l\'email de l\'élève', '3. Activer la géolocalisation et les notifications', '4. Synchroniser avec le compte parent/école']
+      : ['1. Download the EDUCAFRIC app on the device', '2. Create an account with the student email', '3. Enable geolocation and notifications', '4. Sync with parent/school account'],
+    tabletInstructions: language === 'fr'
+      ? ['1. Installer EDUCAFRIC depuis le Play Store/App Store', '2. Configurer le mode "Classe" pour usage partagé', '3. Définir les applications autorisées', '4. Activer le contrôle de présence automatique']
+      : ['1. Install EDUCAFRIC from Play Store/App Store', '2. Configure "Class" mode for shared use', '3. Set allowed applications', '4. Enable automatic attendance control'],
+    gpsTrackerInstructions: language === 'fr'
+      ? ['1. Charger complètement l\'appareil avant premier usage', '2. Insérer la carte SIM fournie par l\'école', '3. Enregistrer l\'IMEI dans le système EDUCAFRIC', '4. Tester la localisation et les alertes d\'urgence']
+      : ['1. Fully charge the device before first use', '2. Insert the SIM card provided by the school', '3. Register the IMEI in the EDUCAFRIC system', '4. Test location and emergency alerts']
+  };
+
+  const { data: devices = [], isLoading } = useQuery<Device[]>({
     queryKey: ['/api/devices'],
     queryFn: () => fetch('/api/devices', { credentials: 'include' }).then(res => res.json())
+  });
+
+  const { data: students = [] } = useQuery({
+    queryKey: ['/api/director/students'],
+    queryFn: () => fetch('/api/director/students', { credentials: 'include' }).then(res => res.json())
   });
 
   const addDeviceMutation = useMutation({
@@ -28,92 +143,56 @@ export default function DeviceConfiguration() {
     },
     onSuccess: () => {
       toast({
-        title: "Appareil ajouté",
-        description: "L'appareil a été configuré avec succès",
+        title: t.deviceAdded,
+        description: t.deviceAddedDesc,
       });
       queryClient.invalidateQueries({ queryKey: ['/api/devices'] });
       setIsAddDialogOpen(false);
     },
     onError: () => {
       toast({
-        title: "Erreur",
-        description: "Impossible d'ajouter l'appareil",
+        title: t.error,
+        description: t.errorDesc,
         variant: "destructive",
       });
     }
   });
 
   const tabs = [
-    { id: 'devices', label: 'Appareils', icon: <Smartphone className="w-4 h-4" /> },
-    { id: 'setup', label: 'Configuration', icon: <Settings className="w-4 h-4" /> },
-    { id: 'tracking', label: 'Suivi GPS', icon: <MapPin className="w-4 h-4" /> },
-    { id: 'network', label: 'Connectivité', icon: <Wifi className="w-4 h-4" /> }
+    { id: 'devices', label: t.devices, icon: <Smartphone className="w-4 h-4" /> },
+    { id: 'setup', label: t.setup, icon: <Settings className="w-4 h-4" /> },
+    { id: 'tracking', label: t.gpsTracking, icon: <MapPin className="w-4 h-4" /> },
+    { id: 'network', label: t.connectivity, icon: <Wifi className="w-4 h-4" /> }
   ];
 
   const deviceTypes = [
     {
       type: 'smartwatch',
-      name: 'Smartwatch',
+      name: t.smartwatch,
       icon: <Watch className="w-8 h-8 text-blue-500" />,
-      description: 'Montre connectée pour élèves',
-      features: ['GPS intégré', 'Appel d\'urgence', 'Géofencing', 'Suivi activité']
+      description: t.smartwatchDesc,
+      features: t.smartwatchFeatures
     },
     {
       type: 'smartphone',
-      name: 'Smartphone',
+      name: t.smartphone,
       icon: <Smartphone className="w-8 h-8 text-green-500" />,
-      description: 'Téléphone intelligent des élèves',
-      features: ['Localisation précise', 'Communication', 'Applications éducatives', 'Contrôle parental']
+      description: t.smartphoneDesc,
+      features: t.smartphoneFeatures
     },
     {
       type: 'tablet',
-      name: 'Tablette',
+      name: t.tablet,
       icon: <Tablet className="w-8 h-8 text-purple-500" />,
-      description: 'Tablette pour usage scolaire',
-      features: ['Grand écran', 'Applications éducatives', 'Partage d\'écran', 'Mode classe']
+      description: t.tabletDesc,
+      features: t.tabletFeatures
     },
     {
       type: 'gps_tracker',
-      name: 'Traceur GPS',
+      name: t.gpsTracker,
       icon: <MapPin className="w-8 h-8 text-red-500" />,
-      description: 'Dispositif GPS dédié',
-      features: ['Longue autonomie', 'Résistant à l\'eau', 'Bouton SOS', 'Historique de trajets']
-    }
-  ];
-
-  const mockDevices = [
-    {
-      id: 1,
-      name: 'Smartwatch Junior Kamga',
-      type: 'smartwatch',
-      student: 'Junior Kamga',
-      status: 'online',
-      battery: 85,
-      signal: 4,
-      lastSeen: '2025-01-26 15:45',
-      location: 'École Excellence Yaoundé'
-    },
-    {
-      id: 2,
-      name: 'Tablette Terminal C',
-      type: 'tablet',
-      student: 'Salle Terminal C',
-      status: 'online',
-      battery: 92,
-      signal: 5,
-      lastSeen: '2025-01-26 15:50',
-      location: 'Salle 12'
-    },
-    {
-      id: 3,
-      name: 'GPS Tracker Sophie',
-      type: 'gps_tracker',
-      student: 'Sophie Nkomo',
-      status: 'offline',
-      battery: 23,
-      signal: 2,
-      lastSeen: '2025-01-26 14:30',
-      location: 'En route vers école'
+      description: t.gpsTrackerDesc,
+      features: t.gpsTrackerFeatures
     }
   ];
 
@@ -136,23 +215,24 @@ export default function DeviceConfiguration() {
     }
   };
 
+  const displayDevices = Array.isArray(devices) ? devices : [];
+  const displayStudents = Array.isArray(students) ? students : [];
+
   return (
     <div className="p-6 space-y-6">
-      {/* Header */}
       <div className="flex justify-between items-start">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Ajouter Appareil</h2>
-          <p className="text-gray-600">Configuration des appareils connectés pour le suivi des élèves</p>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">{t.title}</h2>
+          <p className="text-gray-600">{t.subtitle}</p>
         </div>
         <Button onClick={() => setIsAddDialogOpen(true)}>
           <Plus className="w-4 h-4 mr-2" />
-          Ajouter Appareil
+          {t.addDevice}
         </Button>
       </div>
 
-      {/* Navigation Tabs */}
       <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg">
-        {(Array.isArray(tabs) ? tabs : []).map((tab) => (
+        {tabs.map((tab) => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
@@ -168,71 +248,87 @@ export default function DeviceConfiguration() {
         ))}
       </div>
 
-      {/* Devices Tab */}
       {activeTab === 'devices' && (
         <div className="space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-            {(Array.isArray(mockDevices) ? mockDevices : []).map((device) => (
-              <ModernCard key={device.id} className="p-6">
-                <div className="space-y-4">
-                  <div className="flex justify-between items-start">
-                    <div className="flex items-center space-x-3">
-                      <div className="p-2 bg-blue-100 rounded-lg">
-                        {getDeviceIcon(device.type)}
+          {isLoading ? (
+            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="animate-pulse bg-gray-200 rounded-xl h-48"></div>
+              ))}
+            </div>
+          ) : displayDevices.length === 0 ? (
+            <div className="text-center py-12 bg-gray-50 rounded-xl">
+              <Smartphone className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-gray-600 mb-2">{t.noDevices}</h3>
+              <p className="text-gray-500 mb-4">{t.noDevicesDesc}</p>
+              <Button onClick={() => setIsAddDialogOpen(true)}>
+                <Plus className="w-4 h-4 mr-2" />
+                {t.addDevice}
+              </Button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+              {displayDevices.map((device) => (
+                <ModernCard key={device.id} className="p-6">
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-start">
+                      <div className="flex items-center space-x-3">
+                        <div className="p-2 bg-blue-100 rounded-lg">
+                          {getDeviceIcon(device.type)}
+                        </div>
+                        <div>
+                          <h3 className="font-semibold">{device.name || ''}</h3>
+                          <p className="text-sm text-gray-600">{device.student}</p>
+                        </div>
                       </div>
-                      <div>
-                        <h3 className="font-semibold">{device.name || ''}</h3>
-                        <p className="text-sm text-gray-600">{device.student}</p>
+                      <Badge className={getStatusColor(device.status)}>
+                        {device.status === 'online' ? t.online : t.offline}
+                      </Badge>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="flex items-center space-x-2">
+                        <Battery className="w-4 h-4 text-green-500" />
+                        <span className="text-sm">{device.battery}%</span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Signal className="w-4 h-4 text-blue-500" />
+                        <span className="text-sm">{device.signal}/5</span>
                       </div>
                     </div>
-                    <Badge className={getStatusColor(device.status)}>
-                      {device.status === 'online' ? 'En ligne' : 'Hors ligne'}
-                    </Badge>
-                  </div>
 
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="flex items-center space-x-2">
-                      <Battery className="w-4 h-4 text-green-500" />
-                      <span className="text-sm">{device.battery}%</span>
+                    <div className="space-y-2">
+                      <p className="text-sm">
+                        <span className="font-medium">{t.lastPosition}</span> {device.location}
+                      </p>
+                      <p className="text-sm">
+                        <span className="font-medium">{t.lastActivity}</span> {device.lastSeen}
+                      </p>
                     </div>
-                    <div className="flex items-center space-x-2">
-                      <Signal className="w-4 h-4 text-blue-500" />
-                      <span className="text-sm">{device.signal}/5</span>
+
+                    <div className="flex space-x-2">
+                      <Button variant="outline" size="sm" className="flex-1">
+                        {t.locate}
+                      </Button>
+                      <Button variant="outline" size="sm" className="flex-1">
+                        {t.configure}
+                      </Button>
                     </div>
                   </div>
-
-                  <div className="space-y-2">
-                    <p className="text-sm">
-                      <span className="font-medium">Dernière position:</span> {device.location}
-                    </p>
-                    <p className="text-sm">
-                      <span className="font-medium">Dernière activité:</span> {device.lastSeen}
-                    </p>
-                  </div>
-
-                  <div className="flex space-x-2">
-                    <Button variant="outline" size="sm" className="flex-1">
-                      Localiser
-                    </Button>
-                    <Button variant="outline" size="sm" className="flex-1">
-                      Configurer
-                    </Button>
-                  </div>
-                </div>
-              </ModernCard>
-            ))}
-          </div>
+                </ModernCard>
+              ))}
+            </div>
+          )}
         </div>
       )}
 
-      {/* Setup Tab */}
       {activeTab === 'setup' && (
         <div className="space-y-6">
           <ModernCard className="p-6">
-            <h3 className="text-lg font-semibold mb-4">Guide de Configuration des Appareils</h3>
+            <h3 className="text-lg font-semibold mb-4">{t.configGuide}</h3>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {(Array.isArray(deviceTypes) ? deviceTypes : []).map((deviceType) => (
+              {deviceTypes.map((deviceType) => (
                 <div key={deviceType.type} className="p-4 border rounded-lg">
                   <div className="flex items-center space-x-3 mb-3">
                     {deviceType.icon}
@@ -243,7 +339,7 @@ export default function DeviceConfiguration() {
                   </div>
                   
                   <div className="space-y-2 mb-4">
-                    <p className="text-sm font-medium">Fonctionnalités:</p>
+                    <p className="text-sm font-medium">{t.features}</p>
                     <ul className="text-sm text-gray-600 space-y-1">
                       {deviceType.features.map((feature, index) => (
                         <li key={index} className="flex items-center space-x-2">
@@ -263,7 +359,7 @@ export default function DeviceConfiguration() {
                       setIsAddDialogOpen(true);
                     }}
                   >
-                    Configurer {deviceType.name || ''}
+                    {t.configure} {deviceType.name || ''}
                   </Button>
                 </div>
               ))}
@@ -271,36 +367,33 @@ export default function DeviceConfiguration() {
           </ModernCard>
 
           <ModernCard className="p-6">
-            <h3 className="text-lg font-semibold mb-4">Instructions de Configuration</h3>
+            <h3 className="text-lg font-semibold mb-4">{t.configInstructions}</h3>
             
             <div className="space-y-4">
               <div className="p-4 bg-blue-50 rounded-lg">
-                <h4 className="font-medium text-blue-900 mb-2">📱 Smartwatch / Smartphone</h4>
+                <h4 className="font-medium text-blue-900 mb-2">📱 {t.smartwatch} / {t.smartphone}</h4>
                 <ol className="text-sm text-blue-800 space-y-1">
-                  <li>1. Télécharger l'application EDUCAFRIC sur l'appareil</li>
-                  <li>2. Créer un compte avec l'email de l'élève</li>
-                  <li>3. Activer la géolocalisation et les notifications</li>
-                  <li>4. Synchroniser avec le compte parent/école</li>
+                  {t.smartwatchInstructions.map((step, i) => (
+                    <li key={i}>{step}</li>
+                  ))}
                 </ol>
               </div>
 
               <div className="p-4 bg-green-50 rounded-lg">
-                <h4 className="font-medium text-green-900 mb-2">📱 Tablette</h4>
+                <h4 className="font-medium text-green-900 mb-2">📱 {t.tablet}</h4>
                 <ol className="text-sm text-green-800 space-y-1">
-                  <li>1. Installer EDUCAFRIC depuis le Play Store/App Store</li>
-                  <li>2. Configurer le mode "Classe" pour usage partagé</li>
-                  <li>3. Définir les applications autorisées</li>
-                  <li>4. Activer le contrôle de présence automatique</li>
+                  {t.tabletInstructions.map((step, i) => (
+                    <li key={i}>{step}</li>
+                  ))}
                 </ol>
               </div>
 
               <div className="p-4 bg-purple-50 rounded-lg">
-                <h4 className="font-medium text-purple-900 mb-2">🗺️ Traceur GPS</h4>
+                <h4 className="font-medium text-purple-900 mb-2">🗺️ {t.gpsTracker}</h4>
                 <ol className="text-sm text-purple-800 space-y-1">
-                  <li>1. Charger complètement l'appareil avant premier usage</li>
-                  <li>2. Insérer la carte SIM fournie par l'école</li>
-                  <li>3. Enregistrer l'IMEI dans le système EDUCAFRIC</li>
-                  <li>4. Tester la localisation et les alertes d'urgence</li>
+                  {t.gpsTrackerInstructions.map((step, i) => (
+                    <li key={i}>{step}</li>
+                  ))}
                 </ol>
               </div>
             </div>
@@ -308,41 +401,40 @@ export default function DeviceConfiguration() {
         </div>
       )}
 
-      {/* Tracking Tab */}
       {activeTab === 'tracking' && (
         <div className="space-y-6">
           <ModernCard className="p-6">
-            <h3 className="text-lg font-semibold mb-4">Paramètres de Suivi GPS</h3>
+            <h3 className="text-lg font-semibold mb-4">{t.gpsSettings}</h3>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Fréquence de localisation
+                    {t.locationFrequency}
                   </label>
                   <Select defaultValue="5min">
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="1min">Toutes les minutes</SelectItem>
-                      <SelectItem value="5min">Toutes les 5 minutes</SelectItem>
-                      <SelectItem value="15min">Toutes les 15 minutes</SelectItem>
-                      <SelectItem value="30min">Toutes les 30 minutes</SelectItem>
+                      <SelectItem value="1min">{t.everyMinute}</SelectItem>
+                      <SelectItem value="5min">{t.every5Min}</SelectItem>
+                      <SelectItem value="15min">{t.every15Min}</SelectItem>
+                      <SelectItem value="30min">{t.every30Min}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Zone de sécurité par défaut
+                    {t.defaultSafeZone}
                   </label>
-                  <Input placeholder="Ex: École Excellence Yaoundé" />
+                  <Input placeholder="Ex: School Name" />
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Rayon d'alerte (mètres)
+                    {t.alertRadius}
                   </label>
                   <Input type="number" defaultValue="100" />
                 </div>
@@ -350,41 +442,41 @@ export default function DeviceConfiguration() {
 
               <div className="space-y-4">
                 <div>
-                  <h4 className="font-medium mb-2">Notifications automatiques</h4>
+                  <h4 className="font-medium mb-2">{t.autoNotifications}</h4>
                   <div className="space-y-2">
                     <label className="flex items-center space-x-2">
                       <input type="checkbox" defaultChecked className="rounded" />
-                      <span className="text-sm">Entrée dans l'école</span>
+                      <span className="text-sm">{t.schoolEntry}</span>
                     </label>
                     <label className="flex items-center space-x-2">
                       <input type="checkbox" defaultChecked className="rounded" />
-                      <span className="text-sm">Sortie de l'école</span>
+                      <span className="text-sm">{t.schoolExit}</span>
                     </label>
                     <label className="flex items-center space-x-2">
                       <input type="checkbox" className="rounded" />
-                      <span className="text-sm">Sortie de zone sécurisée</span>
+                      <span className="text-sm">{t.safeZoneExit}</span>
                     </label>
                     <label className="flex items-center space-x-2">
                       <input type="checkbox" defaultChecked className="rounded" />
-                      <span className="text-sm">Batterie faible (&lt;20%)</span>
+                      <span className="text-sm">{t.lowBattery}</span>
                     </label>
                   </div>
                 </div>
 
                 <div>
-                  <h4 className="font-medium mb-2">Bouton d'urgence</h4>
+                  <h4 className="font-medium mb-2">{t.emergencyButton}</h4>
                   <div className="space-y-2">
                     <label className="flex items-center space-x-2">
                       <input type="checkbox" defaultChecked className="rounded" />
-                      <span className="text-sm">Alerte parents immédiate</span>
+                      <span className="text-sm">{t.immediateParentAlert}</span>
                     </label>
                     <label className="flex items-center space-x-2">
                       <input type="checkbox" defaultChecked className="rounded" />
-                      <span className="text-sm">Notification école</span>
+                      <span className="text-sm">{t.schoolNotification}</span>
                     </label>
                     <label className="flex items-center space-x-2">
                       <input type="checkbox" className="rounded" />
-                      <span className="text-sm">Appel automatique sécurité</span>
+                      <span className="text-sm">{t.autoSecurityCall}</span>
                     </label>
                   </div>
                 </div>
@@ -392,59 +484,58 @@ export default function DeviceConfiguration() {
             </div>
 
             <div className="flex justify-end mt-6">
-              <Button>Sauvegarder Configuration</Button>
+              <Button>{t.saveConfig}</Button>
             </div>
           </ModernCard>
         </div>
       )}
 
-      {/* Network Tab */}
       {activeTab === 'network' && (
         <div className="space-y-6">
           <ModernCard className="p-6">
-            <h3 className="text-lg font-semibold mb-4">État de la Connectivité</h3>
+            <h3 className="text-lg font-semibold mb-4">{t.connectivityStatus}</h3>
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="text-center p-4 bg-green-50 rounded-lg">
                 <Wifi className="w-8 h-8 text-green-500 mx-auto mb-2" />
-                <h4 className="font-medium text-green-900">WiFi École</h4>
-                <p className="text-sm text-green-700">Connecté - Signal fort</p>
-                <p className="text-xs text-green-600 mt-1">15 appareils connectés</p>
+                <h4 className="font-medium text-green-900">{t.wifiSchool}</h4>
+                <p className="text-sm text-green-700">{t.connected}</p>
+                <p className="text-xs text-green-600 mt-1">{t.devicesConnected(15)}</p>
               </div>
 
               <div className="text-center p-4 bg-blue-50 rounded-lg">
                 <Signal className="w-8 h-8 text-blue-500 mx-auto mb-2" />
-                <h4 className="font-medium text-blue-900">Réseau Mobile</h4>
-                <p className="text-sm text-blue-700">4G/LTE Disponible</p>
-                <p className="text-xs text-blue-600 mt-1">Couverture optimale</p>
+                <h4 className="font-medium text-blue-900">{t.mobileNetwork}</h4>
+                <p className="text-sm text-blue-700">4G/LTE {t.available}</p>
+                <p className="text-xs text-blue-600 mt-1">{t.optimalCoverage}</p>
               </div>
 
               <div className="text-center p-4 bg-yellow-50 rounded-lg">
                 <AlertTriangle className="w-8 h-8 text-yellow-500 mx-auto mb-2" />
-                <h4 className="font-medium text-yellow-900">GPS Satellites</h4>
-                <p className="text-sm text-yellow-700">12 satellites détectés</p>
-                <p className="text-xs text-yellow-600 mt-1">Précision: ±3 mètres</p>
+                <h4 className="font-medium text-yellow-900">{t.gpsSatellites}</h4>
+                <p className="text-sm text-yellow-700">{t.satellitesDetected(12)}</p>
+                <p className="text-xs text-yellow-600 mt-1">{t.precision}</p>
               </div>
             </div>
           </ModernCard>
 
           <ModernCard className="p-6">
-            <h3 className="text-lg font-semibold mb-4">Configuration Réseau</h3>
+            <h3 className="text-lg font-semibold mb-4">{t.networkConfig}</h3>
             
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Réseau WiFi principal
+                  {t.mainWifi}
                 </label>
                 <div className="flex space-x-2">
-                  <Input placeholder="Nom du réseau WiFi" defaultValue="EDUCAFRIC-School" />
-                  <Button variant="outline">Tester</Button>
+                  <Input placeholder="WiFi network name" defaultValue="EDUCAFRIC-School" />
+                  <Button variant="outline">{t.test}</Button>
                 </div>
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Fournisseur de données mobiles
+                  {t.mobileProvider}
                 </label>
                 <Select defaultValue="orange">
                   <SelectTrigger>
@@ -460,79 +551,80 @@ export default function DeviceConfiguration() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Serveur de géolocalisation
+                  {t.geoServer}
                 </label>
-                <Input defaultValue="gps?.educafric?.com" />
+                <Input defaultValue="gps.educafric.com" />
               </div>
 
               <div className="flex justify-end">
-                <Button>Mettre à Jour Configuration</Button>
+                <Button>{t.updateConfig}</Button>
               </div>
             </div>
           </ModernCard>
         </div>
       )}
 
-      {/* Add Device Dialog */}
       <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
         <DialogContent className="bg-white">
           <DialogHeader>
-            <DialogTitle>Ajouter un Nouvel Appareil</DialogTitle>
+            <DialogTitle>{t.addNewDevice}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Type d'appareil
+                {t.deviceTypeLabel}
               </label>
               <Select value={selectedDeviceType} onValueChange={setSelectedDeviceType}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Choisir le type d'appareil" />
+                  <SelectValue placeholder={t.selectDeviceType} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="smartwatch">Smartwatch</SelectItem>
-                  <SelectItem value="smartphone">Smartphone</SelectItem>
-                  <SelectItem value="tablet">Tablette</SelectItem>
-                  <SelectItem value="gps_tracker">Traceur GPS</SelectItem>
+                  <SelectItem value="smartwatch">{t.smartwatch}</SelectItem>
+                  <SelectItem value="smartphone">{t.smartphone}</SelectItem>
+                  <SelectItem value="tablet">{t.tablet}</SelectItem>
+                  <SelectItem value="gps_tracker">{t.gpsTracker}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Nom de l'appareil
+                {t.deviceName}
               </label>
-              <Input placeholder="Ex: Smartwatch Junior Kamga" />
+              <Input placeholder="Ex: Smartwatch Student Name" />
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Élève assigné
+                {t.assignedStudent}
               </label>
               <Select>
                 <SelectTrigger>
-                  <SelectValue placeholder="Sélectionner un élève" />
+                  <SelectValue placeholder={t.selectStudent} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="junior-kamga">Junior Kamga</SelectItem>
-                  <SelectItem value="sophie-nkomo">Sophie Nkomo</SelectItem>
-                  <SelectItem value="paul-essomba">Paul Essomba</SelectItem>
+                  {displayStudents.map((student: any) => (
+                    <SelectItem key={student.id} value={student.id?.toString()}>
+                      {student.firstName} {student.lastName}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Identifiant unique (IMEI/MAC)
+                {t.uniqueId}
               </label>
               <Input placeholder="Ex: 123456789012345" />
             </div>
 
             <div className="flex justify-end space-x-2">
               <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
-                Annuler
+                {t.cancel}
               </Button>
               <Button onClick={() => addDeviceMutation.mutate({})}>
-                Ajouter Appareil
+                {t.addDevice}
               </Button>
             </div>
           </div>

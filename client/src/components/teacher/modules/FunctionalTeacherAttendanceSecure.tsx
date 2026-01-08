@@ -9,6 +9,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useEducafricSubmit } from '@/hooks/useSingleSubmit';
 import { useTeacherMultiSchool } from '@/contexts/TeacherMultiSchoolContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import SchoolSelector from '@/components/shared/SchoolSelector';
 
 interface Student {
@@ -29,6 +30,7 @@ interface AttendanceData {
 }
 
 export default function FunctionalTeacherAttendanceSecure() {
+  const { language } = useLanguage();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { wrap, submitting, getIdempotencyKey } = useEducafricSubmit();
@@ -37,6 +39,36 @@ export default function FunctionalTeacherAttendanceSecure() {
   const [selectedClass, setSelectedClass] = useState<number | null>(null);
   const [attendanceDate, setAttendanceDate] = useState(new Date().toISOString().split('T')[0]);
   const [attendanceData, setAttendanceData] = useState<Record<number, boolean>>({});
+
+  const t = {
+    secureAttendance: language === 'fr' ? 'Prise de Présence Sécurisée' : 'Secure Attendance',
+    secureDesc: language === 'fr' ? 'Système anti-duplication activé • Protection contre les soumissions multiples' : 'Anti-duplication system active • Protection against multiple submissions',
+    configuration: language === 'fr' ? 'Configuration' : 'Configuration',
+    class: language === 'fr' ? 'Classe' : 'Class',
+    date: language === 'fr' ? 'Date' : 'Date',
+    selectClass: language === 'fr' ? 'Sélectionner une classe' : 'Select a class',
+    students: language === 'fr' ? 'Élèves' : 'Students',
+    present: language === 'fr' ? 'présents' : 'present',
+    absent: language === 'fr' ? 'absents' : 'absent',
+    allPresent: language === 'fr' ? 'Tous présents' : 'All present',
+    allAbsent: language === 'fr' ? 'Tous absents' : 'All absent',
+    recordAttendance: language === 'fr' ? 'Enregistrer les Présences' : 'Record Attendance',
+    recording: language === 'fr' ? 'Enregistrement en cours...' : 'Recording...',
+    protectionActive: language === 'fr' ? 'Protection anti-duplication active • Veuillez patienter' : 'Anti-duplication protection active • Please wait',
+    attendanceRecorded: language === 'fr' ? '✅ Présences enregistrées' : '✅ Attendance recorded',
+    attendanceSaved: (date: string) => language === 'fr' ? `Présences du ${date} sauvegardées avec succès` : `Attendance for ${date} saved successfully`,
+    operationInProgress: language === 'fr' ? '⏳ Opération en cours' : '⏳ Operation in progress',
+    alreadyRecording: language === 'fr' ? 'Les présences sont déjà en cours d\'enregistrement pour cette classe' : 'Attendance is already being recorded for this class',
+    error: language === 'fr' ? '❌ Erreur' : '❌ Error',
+    recordError: language === 'fr' ? 'Impossible d\'enregistrer les présences. Veuillez réessayer.' : 'Unable to record attendance. Please try again.',
+    classNotSelected: language === 'fr' ? '⚠️ Classe non sélectionnée' : '⚠️ Class not selected',
+    selectClassFirst: language === 'fr' ? 'Veuillez sélectionner une classe' : 'Please select a class',
+    noStudents: language === 'fr' ? '⚠️ Aucun élève' : '⚠️ No students',
+    noStudentsFound: language === 'fr' ? 'Aucun élève trouvé dans cette classe' : 'No students found in this class',
+    allMarkedPresent: language === 'fr' ? '✅ Tous marqués présents' : '✅ All marked present',
+    allMarkedAbsent: language === 'fr' ? '❌ Tous marqués absents' : '❌ All marked absent',
+    studentsUpdated: (count: number) => language === 'fr' ? `${count} élèves mis à jour` : `${count} students updated`
+  };
   
   // Requête pour récupérer les classes de l'enseignant
   const { data: classes, isLoading: loadingClasses } = useQuery({
@@ -67,8 +99,8 @@ export default function FunctionalTeacherAttendanceSecure() {
     },
     onSuccess: (response) => {
       toast({
-        title: "✅ Présences enregistrées",
-        description: `Présences du ${attendanceDate} sauvegardées avec succès`,
+        title: t.attendanceRecorded,
+        description: t.attendanceSaved(attendanceDate),
       });
       
       // Invalider le cache pour recharger les données
@@ -83,14 +115,14 @@ export default function FunctionalTeacherAttendanceSecure() {
       
       if (error.message?.includes('already in progress')) {
         toast({
-          title: "⏳ Opération en cours",
-          description: "Les présences sont déjà en cours d'enregistrement pour cette classe",
+          title: t.operationInProgress,
+          description: t.alreadyRecording,
           variant: "destructive",
         });
       } else {
         toast({
-          title: "❌ Erreur",
-          description: "Impossible d'enregistrer les présences. Veuillez réessayer.",
+          title: t.error,
+          description: t.recordError,
           variant: "destructive",
         });
       }
@@ -101,8 +133,8 @@ export default function FunctionalTeacherAttendanceSecure() {
   const handleSubmitAttendance = wrap(async () => {
     if (!selectedClass) {
       toast({
-        title: "⚠️ Classe non sélectionnée",
-        description: "Veuillez sélectionner une classe",
+        title: t.classNotSelected,
+        description: t.selectClassFirst,
         variant: "destructive",
       });
       return;
@@ -110,8 +142,8 @@ export default function FunctionalTeacherAttendanceSecure() {
     
     if (!students || !Array.isArray(students) || students.length === 0) {
       toast({
-        title: "⚠️ Aucun élève",
-        description: "Aucun élève trouvé dans cette classe",
+        title: t.noStudents,
+        description: t.noStudentsFound,
         variant: "destructive",
       });
       return;
@@ -152,8 +184,8 @@ export default function FunctionalTeacherAttendanceSecure() {
     setAttendanceData(newData);
     
     toast({
-      title: present ? "✅ Tous marqués présents" : "❌ Tous marqués absents",
-      description: `${students.length} élèves mis à jour`,
+      title: present ? t.allMarkedPresent : t.allMarkedAbsent,
+      description: t.studentsUpdated(students.length),
     });
   };
   
@@ -164,41 +196,39 @@ export default function FunctionalTeacherAttendanceSecure() {
     <div className="space-y-6">
       <SchoolSelector />
       
-      {/* En-tête avec statut de sécurité */}
       <Card className="border-green-200 bg-green-50 dark:bg-green-950">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-green-800 dark:text-green-200">
             <CheckCircle className="w-5 h-5" />
-            Prise de Présence Sécurisée
+            {t.secureAttendance}
           </CardTitle>
           <CardDescription className="text-green-600 dark:text-green-300">
-            Système anti-duplication activé • Protection contre les soumissions multiples
+            {t.secureDesc}
           </CardDescription>
         </CardHeader>
       </Card>
       
-      {/* Sélection de classe et date */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Calendar className="w-5 h-5" />
-            Configuration
+            {t.configuration}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium mb-2">Classe</label>
+              <label className="block text-sm font-medium mb-2">{t.class}</label>
               <select
                 value={selectedClass || ''}
                 onChange={(e) => {
                   setSelectedClass(e.target.value ? parseInt(e.target.value) : null);
-                  setAttendanceData({}); // Réinitialiser les données
+                  setAttendanceData({});
                 }}
                 className="w-full p-2 border border-gray-300 rounded-md"
                 disabled={submitting}
               >
-                <option value="">Sélectionner une classe</option>
+                <option value="">{t.selectClass}</option>
                 {(classes as any[])?.map((cls: any) => (
                   <option key={cls.id} value={cls.id}>
                     {cls.name} - {cls.level}
@@ -208,7 +238,7 @@ export default function FunctionalTeacherAttendanceSecure() {
             </div>
             
             <div>
-              <label className="block text-sm font-medium mb-2">Date</label>
+              <label className="block text-sm font-medium mb-2">{t.date}</label>
               <input
                 type="date"
                 value={attendanceDate}
@@ -228,20 +258,19 @@ export default function FunctionalTeacherAttendanceSecure() {
             <CardTitle className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Users className="w-5 h-5" />
-                Élèves ({totalStudents})
+                {t.students} ({totalStudents})
               </div>
               <div className="flex items-center gap-2">
                 <Badge variant="outline" className="bg-green-100 text-green-800">
-                  {presentCount} présents
+                  {presentCount} {t.present}
                 </Badge>
                 <Badge variant="outline" className="bg-red-100 text-red-800">
-                  {totalStudents - presentCount} absents
+                  {totalStudents - presentCount} {t.absent}
                 </Badge>
               </div>
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            {/* Boutons de sélection rapide */}
             <div className="flex gap-2">
               <Button
                 variant="outline"
@@ -250,7 +279,7 @@ export default function FunctionalTeacherAttendanceSecure() {
                 disabled={submitting}
                 className="bg-green-50 hover:bg-green-100"
               >
-                Tous présents
+                {t.allPresent}
               </Button>
               <Button
                 variant="outline"
@@ -259,7 +288,7 @@ export default function FunctionalTeacherAttendanceSecure() {
                 disabled={submitting}
                 className="bg-red-50 hover:bg-red-100"
               >
-                Tous absents
+                {t.allAbsent}
               </Button>
             </div>
             
@@ -298,7 +327,6 @@ export default function FunctionalTeacherAttendanceSecure() {
               ))}
             </div>
             
-            {/* Bouton d'enregistrement sécurisé */}
             <div className="flex justify-center pt-4">
               <Button
                 onClick={handleSubmitAttendance}
@@ -309,24 +337,23 @@ export default function FunctionalTeacherAttendanceSecure() {
                 {submitting ? (
                   <div className="flex items-center gap-2">
                     <Clock className="w-4 h-4 animate-spin" />
-                    Enregistrement en cours...
+                    {t.recording}
                   </div>
                 ) : (
                   <div className="flex items-center gap-2">
                     <CheckCircle className="w-4 h-4" />
-                    Enregistrer les Présences
+                    {t.recordAttendance}
                   </div>
                 )}
               </Button>
             </div>
             
-            {/* Statut de protection */}
             {submitting && (
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
                 <div className="flex items-center gap-2 text-blue-800">
                   <Clock className="w-4 h-4 animate-spin" />
                   <span className="text-sm font-medium">
-                    Protection anti-duplication active • Veuillez patienter
+                    {t.protectionActive}
                   </span>
                 </div>
               </div>

@@ -16,6 +16,73 @@ import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import { useAuth } from '@/contexts/AuthContext';
 import { useStableCallback } from '@/hooks/useStableCallback';
+import { useLanguage } from '@/contexts/LanguageContext';
+
+const getTranslations = (lang: 'fr' | 'en') => ({
+  title: lang === 'fr' ? 'Mes Demandes' : 'My Requests',
+  subtitle: lang === 'fr' ? 'Gérez vos demandes auprès des écoles' : 'Manage your requests to schools',
+  newRequest: lang === 'fr' ? 'Nouvelle Demande' : 'New Request',
+  all: lang === 'fr' ? 'Tous' : 'All',
+  pending: lang === 'fr' ? 'En attente' : 'Pending',
+  approved: lang === 'fr' ? 'Approuvée' : 'Approved',
+  declined: lang === 'fr' ? 'Refusée' : 'Declined',
+  inProgress: lang === 'fr' ? 'En cours' : 'In Progress',
+  noRequests: lang === 'fr' ? 'Aucune demande' : 'No requests',
+  noRequestsDesc: lang === 'fr' ? 'Vous n\'avez pas encore de demandes.' : 'You have no requests yet.',
+  createFirst: lang === 'fr' ? 'Créer ma première demande' : 'Create my first request',
+  type: lang === 'fr' ? 'Type' : 'Type',
+  category: lang === 'fr' ? 'Catégorie' : 'Category',
+  subject: lang === 'fr' ? 'Sujet' : 'Subject',
+  description: lang === 'fr' ? 'Description' : 'Description',
+  priority: lang === 'fr' ? 'Priorité' : 'Priority',
+  student: lang === 'fr' ? 'Élève concerné' : 'Student',
+  date: lang === 'fr' ? 'Date souhaitée' : 'Requested date',
+  submit: lang === 'fr' ? 'Envoyer la demande' : 'Submit request',
+  sending: lang === 'fr' ? 'Envoi en cours...' : 'Sending...',
+  success: lang === 'fr' ? 'Demande envoyée' : 'Request sent',
+  successDesc: lang === 'fr' ? 'Votre demande a été transmise à l\'école.' : 'Your request has been sent to the school.',
+  error: lang === 'fr' ? 'Erreur' : 'Error',
+  errorDesc: lang === 'fr' ? 'Impossible d\'envoyer la demande.' : 'Unable to send request.',
+  low: lang === 'fr' ? 'Faible' : 'Low',
+  medium: lang === 'fr' ? 'Moyen' : 'Medium',
+  high: lang === 'fr' ? 'Élevé' : 'High',
+  urgent: lang === 'fr' ? 'Urgent' : 'Urgent',
+  absenceRequest: lang === 'fr' ? 'Demande d\'absence' : 'Absence request',
+  permission: lang === 'fr' ? 'Autorisation' : 'Permission',
+  complaint: lang === 'fr' ? 'Réclamation' : 'Complaint',
+  information: lang === 'fr' ? 'Demande d\'information' : 'Information request',
+  meeting: lang === 'fr' ? 'Demande de rendez-vous' : 'Meeting request',
+  document: lang === 'fr' ? 'Demande de document' : 'Document request',
+  schoolEnrollment: lang === 'fr' ? 'Inscription école' : 'School enrollment',
+  other: lang === 'fr' ? 'Autre' : 'Other',
+  academic: lang === 'fr' ? 'Académique' : 'Academic',
+  administrative: lang === 'fr' ? 'Administratif' : 'Administrative',
+  health: lang === 'fr' ? 'Santé' : 'Health',
+  disciplinary: lang === 'fr' ? 'Discipline' : 'Disciplinary',
+  transportation: lang === 'fr' ? 'Transport' : 'Transportation',
+  enrollment: lang === 'fr' ? 'Inscription' : 'Enrollment',
+  selectType: lang === 'fr' ? 'Sélectionner le type' : 'Select type',
+  selectCategory: lang === 'fr' ? 'Sélectionner la catégorie' : 'Select category',
+  selectPriority: lang === 'fr' ? 'Sélectionner la priorité' : 'Select priority',
+  selectStudent: lang === 'fr' ? 'Sélectionner un élève' : 'Select a student',
+  subjectRequired: lang === 'fr' ? 'Le sujet est requis' : 'Subject is required',
+  subjectTooLong: lang === 'fr' ? 'Le sujet est trop long' : 'Subject is too long',
+  descriptionMin: lang === 'fr' ? 'La description doit contenir au moins 10 caractères' : 'Description must be at least 10 characters',
+  descriptionMax: lang === 'fr' ? 'La description est trop longue' : 'Description is too long',
+  allFieldsRequired: lang === 'fr' ? 'Tous les champs sont requis pour une demande d\'adhésion école' : 'All fields are required for school enrollment request',
+  searchSchool: lang === 'fr' ? 'Rechercher une école' : 'Search for a school',
+  schoolCode: lang === 'fr' ? 'Code école' : 'School code',
+  childFirstName: lang === 'fr' ? 'Prénom de l\'enfant' : 'Child\'s first name',
+  childLastName: lang === 'fr' ? 'Nom de l\'enfant' : 'Child\'s last name',
+  childDob: lang === 'fr' ? 'Date de naissance' : 'Date of birth',
+  relationship: lang === 'fr' ? 'Lien de parenté' : 'Relationship',
+  phone: lang === 'fr' ? 'Téléphone de contact' : 'Contact phone',
+  parent: lang === 'fr' ? 'Parent' : 'Parent',
+  guardian: lang === 'fr' ? 'Tuteur légal' : 'Legal guardian',
+  tutor: lang === 'fr' ? 'Tuteur' : 'Tutor',
+  loading: lang === 'fr' ? 'Chargement...' : 'Loading...',
+  filterStatus: lang === 'fr' ? 'Filtrer par statut' : 'Filter by status'
+});
 
 // Schema de base pour la validation des demandes
 const baseRequestSchema = z.object({
@@ -54,6 +121,8 @@ interface ParentRequestManagerProps {}
 
 const ParentRequestManager: React.FC<ParentRequestManagerProps> = () => {
   const { user } = useAuth();
+  const { language } = useLanguage();
+  const t = getTranslations(language);
   const [isNewRequestOpen, setIsNewRequestOpen] = useState(false);
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
   const [schoolSearchQuery, setSchoolSearchQuery] = useState('');
@@ -190,8 +259,8 @@ const ParentRequestManager: React.FC<ParentRequestManagerProps> = () => {
     },
     onError: (error: any) => {
       toast({
-        title: 'Erreur',
-        description: error.message || 'Impossible d\'envoyer la demande.',
+        title: t.error,
+        description: error.message || t.errorDesc,
         variant: 'destructive',
       });
     },
@@ -213,7 +282,7 @@ const ParentRequestManager: React.FC<ParentRequestManagerProps> = () => {
     setSchoolSearchQuery(school.name);
     
     toast({
-      title: 'École sélectionnée',
+      title: language === 'fr' ? 'École sélectionnée' : 'School selected',
       description: `${school.name} - ${school.city}, ${school.country}`,
     });
   };
@@ -228,47 +297,46 @@ const ParentRequestManager: React.FC<ParentRequestManagerProps> = () => {
     }
   };
 
-  // Types de demandes avec leurs icônes et descriptions
   const requestTypes = {
     absence_request: { 
-      label: 'Demande d\'absence', 
+      label: t.absenceRequest, 
       icon: Calendar, 
-      description: 'Demander une autorisation d\'absence pour votre enfant' 
+      description: language === 'fr' ? 'Demander une autorisation d\'absence pour votre enfant' : 'Request absence permission for your child'
     },
     permission: { 
-      label: 'Autorisation', 
+      label: t.permission, 
       icon: FileText, 
-      description: 'Demander une autorisation spéciale' 
+      description: language === 'fr' ? 'Demander une autorisation spéciale' : 'Request special permission'
     },
     complaint: { 
-      label: 'Réclamation', 
+      label: t.complaint, 
       icon: AlertCircle, 
-      description: 'Signaler un problème ou faire une réclamation' 
+      description: language === 'fr' ? 'Signaler un problème ou faire une réclamation' : 'Report an issue or file a complaint'
     },
     information: { 
-      label: 'Information', 
+      label: t.information, 
       icon: MessageSquare, 
-      description: 'Demander des informations sur la scolarité' 
+      description: language === 'fr' ? 'Demander des informations sur la scolarité' : 'Request information about schooling'
     },
     meeting: { 
-      label: 'Rendez-vous', 
+      label: t.meeting, 
       icon: Calendar, 
-      description: 'Demander un rendez-vous avec l\'administration' 
+      description: language === 'fr' ? 'Demander un rendez-vous avec l\'administration' : 'Request a meeting with administration'
     },
     document: { 
-      label: 'Document', 
+      label: t.document, 
       icon: FileText, 
-      description: 'Demander un certificat ou document officiel' 
+      description: language === 'fr' ? 'Demander un certificat ou document officiel' : 'Request a certificate or official document'
     },
     school_enrollment: { 
-      label: 'Demande d\'Adhésion École', 
+      label: t.schoolEnrollment, 
       icon: GraduationCap, 
-      description: 'Demander l\'inscription de votre enfant à une école partenaire Educafric' 
+      description: language === 'fr' ? 'Demander l\'inscription de votre enfant à une école partenaire Educafric' : 'Request enrollment of your child in an Educafric partner school'
     },
     other: { 
-      label: 'Autre', 
+      label: t.other, 
       icon: MessageSquare, 
-      description: 'Autre type de demande' 
+      description: language === 'fr' ? 'Autre type de demande' : 'Other type of request'
     },
   };
 
@@ -296,11 +364,11 @@ const ParentRequestManager: React.FC<ParentRequestManagerProps> = () => {
 
   const getStatusLabel = (status: string) => {
     switch (status) {
-      case 'pending': return 'En attente';
-      case 'in_progress': return 'En cours';
-      case 'approved': return 'Approuvée';
-      case 'rejected': return 'Rejetée';
-      case 'resolved': return 'Résolue';
+      case 'pending': return t.pending;
+      case 'in_progress': return t.inProgress;
+      case 'approved': return t.approved;
+      case 'rejected': return language === 'fr' ? 'Rejetée' : 'Rejected';
+      case 'resolved': return language === 'fr' ? 'Résolue' : 'Resolved';
       default: return status;
     }
   };
@@ -316,7 +384,7 @@ const ParentRequestManager: React.FC<ParentRequestManagerProps> = () => {
     return (
       <Card className="p-6">
         <div className="space-y-4">
-          <h3 className="text-lg font-semibold">Chargement des demandes...</h3>
+          <h3 className="text-lg font-semibold">{t.loading}</h3>
           <div className="animate-pulse space-y-4">
             <div className="h-4 bg-gray-200 rounded w-1/4"></div>
             <div className="space-y-2">
@@ -334,9 +402,9 @@ const ParentRequestManager: React.FC<ParentRequestManagerProps> = () => {
       {/* Header avec bouton nouvelle demande */}
       <div className="flex justify-between items-center">
         <div>
-          <h3 className="text-lg font-semibold text-gray-900">Mes Demandes</h3>
+          <h3 className="text-lg font-semibold text-gray-900">{t.title}</h3>
           <p className="text-sm text-gray-600">
-            Gérez vos demandes à l'administration scolaire
+            {t.subtitle}
           </p>
         </div>
         
@@ -344,13 +412,13 @@ const ParentRequestManager: React.FC<ParentRequestManagerProps> = () => {
           <DialogTrigger asChild>
             <Button className="bg-blue-600 hover:bg-blue-700">
               <Plus className="w-4 h-4 mr-2" />
-              Nouvelle Demande
+              {t.newRequest}
             </Button>
           </DialogTrigger>
           
           <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>Nouvelle Demande</DialogTitle>
+              <DialogTitle>{t.newRequest}</DialogTitle>
             </DialogHeader>
             
             <Form {...form}>
@@ -362,11 +430,11 @@ const ParentRequestManager: React.FC<ParentRequestManagerProps> = () => {
                     name="studentId"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Enfant concerné</FormLabel>
+                        <FormLabel>{t.student}</FormLabel>
                         <Select onValueChange={(value) => field.onChange(parseInt(value))} defaultValue={field.value?.toString()}>
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder="Sélectionnez un enfant" />
+                              <SelectValue placeholder={t.selectStudent} />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
@@ -389,11 +457,11 @@ const ParentRequestManager: React.FC<ParentRequestManagerProps> = () => {
                   name="type"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Type de demande</FormLabel>
+                      <FormLabel>{t.type}</FormLabel>
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger className="bg-white text-gray-900 border border-gray-300">
-                            <SelectValue placeholder="Sélectionnez le type de demande" />
+                            <SelectValue placeholder={t.selectType} />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent className="bg-white text-gray-900 border border-gray-300 shadow-lg z-50">
@@ -418,21 +486,21 @@ const ParentRequestManager: React.FC<ParentRequestManagerProps> = () => {
                   name="category"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Catégorie</FormLabel>
+                      <FormLabel>{t.category}</FormLabel>
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger className="bg-white text-gray-900 border border-gray-300">
-                            <SelectValue placeholder="Sélectionnez une catégorie" />
+                            <SelectValue placeholder={t.selectCategory} />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent className="bg-white text-gray-900 border border-gray-300 shadow-lg z-50">
-                          <SelectItem value="academic" className="cursor-pointer hover:bg-gray-100">Académique</SelectItem>
-                          <SelectItem value="administrative" className="cursor-pointer hover:bg-gray-100">Administrative</SelectItem>
-                          <SelectItem value="health" className="cursor-pointer hover:bg-gray-100">Santé</SelectItem>
-                          <SelectItem value="disciplinary" className="cursor-pointer hover:bg-gray-100">Disciplinaire</SelectItem>
-                          <SelectItem value="transportation" className="cursor-pointer hover:bg-gray-100">Transport</SelectItem>
-                          <SelectItem value="enrollment" className="cursor-pointer hover:bg-gray-100">Inscription/Adhésion</SelectItem>
-                          <SelectItem value="other" className="cursor-pointer hover:bg-gray-100">Autre</SelectItem>
+                          <SelectItem value="academic" className="cursor-pointer hover:bg-gray-100">{t.academic}</SelectItem>
+                          <SelectItem value="administrative" className="cursor-pointer hover:bg-gray-100">{t.administrative}</SelectItem>
+                          <SelectItem value="health" className="cursor-pointer hover:bg-gray-100">{t.health}</SelectItem>
+                          <SelectItem value="disciplinary" className="cursor-pointer hover:bg-gray-100">{t.disciplinary}</SelectItem>
+                          <SelectItem value="transportation" className="cursor-pointer hover:bg-gray-100">{t.transportation}</SelectItem>
+                          <SelectItem value="enrollment" className="cursor-pointer hover:bg-gray-100">{t.enrollment}</SelectItem>
+                          <SelectItem value="other" className="cursor-pointer hover:bg-gray-100">{t.other}</SelectItem>
                         </SelectContent>
                       </Select>
                       <FormMessage />
@@ -446,18 +514,18 @@ const ParentRequestManager: React.FC<ParentRequestManagerProps> = () => {
                   name="priority"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Priorité</FormLabel>
+                      <FormLabel>{t.priority}</FormLabel>
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger className="bg-white text-gray-900 border border-gray-300">
-                            <SelectValue placeholder="Sélectionnez la priorité" />
+                            <SelectValue placeholder={t.selectPriority} />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent className="bg-white text-gray-900 border border-gray-300 shadow-lg z-50">
-                          <SelectItem value="low" className="cursor-pointer hover:bg-gray-100">Faible</SelectItem>
-                          <SelectItem value="medium" className="cursor-pointer hover:bg-gray-100">Moyenne</SelectItem>
-                          <SelectItem value="high" className="cursor-pointer hover:bg-gray-100">Élevée</SelectItem>
-                          <SelectItem value="urgent" className="cursor-pointer hover:bg-gray-100">Urgente</SelectItem>
+                          <SelectItem value="low" className="cursor-pointer hover:bg-gray-100">{t.low}</SelectItem>
+                          <SelectItem value="medium" className="cursor-pointer hover:bg-gray-100">{t.medium}</SelectItem>
+                          <SelectItem value="high" className="cursor-pointer hover:bg-gray-100">{t.high}</SelectItem>
+                          <SelectItem value="urgent" className="cursor-pointer hover:bg-gray-100">{t.urgent}</SelectItem>
                         </SelectContent>
                       </Select>
                       <FormMessage />
@@ -471,11 +539,11 @@ const ParentRequestManager: React.FC<ParentRequestManagerProps> = () => {
                   name="subject"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Sujet</FormLabel>
+                      <FormLabel>{t.subject}</FormLabel>
                       <FormControl>
                         <Input 
                           {...field} 
-                          placeholder="Résumé en quelques mots de votre demande"
+                          placeholder={language === 'fr' ? 'Résumé en quelques mots de votre demande' : 'Brief summary of your request'}
                           maxLength={200}
                         />
                       </FormControl>
@@ -782,12 +850,12 @@ const ParentRequestManager: React.FC<ParentRequestManagerProps> = () => {
                     {createRequestMutation.isPending ? (
                       <>
                         <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                        Envoi...
+                        {t.sending}
                       </>
                     ) : (
                       <>
                         <Send className="w-4 h-4 mr-2" />
-                        Envoyer la demande
+                        {t.submit}
                       </>
                     )}
                   </Button>
@@ -805,28 +873,28 @@ const ParentRequestManager: React.FC<ParentRequestManagerProps> = () => {
           size="sm"
           onClick={() => setSelectedStatus('all')}
         >
-          Toutes
+          {t.all}
         </Button>
         <Button
           variant={selectedStatus === 'pending' ? 'default' : 'outline'}
           size="sm"
           onClick={() => setSelectedStatus('pending')}
         >
-          En attente
+          {t.pending}
         </Button>
         <Button
           variant={selectedStatus === 'in_progress' ? 'default' : 'outline'}
           size="sm"
           onClick={() => setSelectedStatus('in_progress')}
         >
-          En cours
+          {t.inProgress}
         </Button>
         <Button
           variant={selectedStatus === 'approved' ? 'default' : 'outline'}
           size="sm"
           onClick={() => setSelectedStatus('approved')}
         >
-          Approuvées
+          {t.approved}
         </Button>
       </div>
 
@@ -836,11 +904,11 @@ const ParentRequestManager: React.FC<ParentRequestManagerProps> = () => {
           <Card className="p-8 text-center">
             <div className="text-gray-500">
               <MessageSquare className="w-12 h-12 mx-auto mb-4 opacity-50" />
-              <p className="text-lg font-medium mb-2">Aucune demande</p>
+              <p className="text-lg font-medium mb-2">{t.noRequests}</p>
               <p className="text-sm">
                 {selectedStatus === 'all' 
-                  ? "Vous n'avez encore fait aucune demande."
-                  : `Aucune demande avec le statut "${getStatusLabel(selectedStatus)}".`
+                  ? t.noRequestsDesc
+                  : (language === 'fr' ? `Aucune demande avec le statut "${getStatusLabel(selectedStatus)}".` : `No requests with status "${getStatusLabel(selectedStatus)}".`)
                 }
               </p>
             </div>
@@ -881,29 +949,28 @@ const ParentRequestManager: React.FC<ParentRequestManagerProps> = () => {
                   
                   <div className="flex items-center justify-between text-xs text-gray-500">
                     <div className="flex items-center space-x-4">
-                      <span>Créée le {new Date(request.createdAt).toLocaleDateString('fr-FR')}</span>
+                      <span>{language === 'fr' ? 'Créée le' : 'Created on'} {new Date(request.createdAt).toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-US')}</span>
                       {request.priority !== 'medium' && (
                         <Badge variant="outline" className={
                           request.priority === 'urgent' ? 'text-red-600 border-red-200' :
                           request.priority === 'high' ? 'text-orange-600 border-orange-200' :
                           'text-gray-600 border-gray-200'
                         }>
-                          {request.priority === 'urgent' ? 'Urgent' :
-                           request.priority === 'high' ? 'Priorité élevée' :
-                           request.priority === 'low' ? 'Priorité faible' : request.priority}
+                          {request.priority === 'urgent' ? t.urgent :
+                           request.priority === 'high' ? t.high :
+                           request.priority === 'low' ? t.low : request.priority}
                         </Badge>
                       )}
                     </div>
                     
                     {request.responseDate && (
-                      <span>Réponse le {new Date(request.responseDate).toLocaleDateString('fr-FR')}</span>
+                      <span>{language === 'fr' ? 'Réponse le' : 'Response on'} {new Date(request.responseDate).toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-US')}</span>
                     )}
                   </div>
 
-                  {/* Réponse de l'administration si disponible */}
                   {request.adminResponse && (
                     <div className="mt-4 p-3 bg-gray-50 rounded-lg border-l-4 border-blue-500">
-                      <p className="text-sm font-medium text-gray-900 mb-1">Réponse de l'administration:</p>
+                      <p className="text-sm font-medium text-gray-900 mb-1">{language === 'fr' ? 'Réponse de l\'administration:' : 'Administration response:'}</p>
                       <p className="text-sm text-gray-700">{request.adminResponse}</p>
                     </div>
                   )}

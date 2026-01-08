@@ -4,12 +4,10 @@ import { Button } from '@/components/ui/button';
 import { Calendar, MapPin, Users, Clock, Euro } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
+import { useLanguage } from '@/contexts/LanguageContext';
 
-interface EventsModuleProps {
-  language?: 'fr' | 'en';
-}
-
-const EventsModule: React.FC<EventsModuleProps> = ({ language = 'fr' }) => {
+const EventsModule: React.FC = () => {
+  const { language } = useLanguage();
   const { toast } = useToast();
   const [events, setEvents] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
@@ -30,7 +28,12 @@ const EventsModule: React.FC<EventsModuleProps> = ({ language = 'fr' }) => {
       deadline: 'Date limite',
       free: 'Gratuit',
       parentConsent: 'Autorisation parentale requise',
-      loading: 'Chargement...'
+      loading: 'Chargement...',
+      error: 'Erreur',
+      errorLoadEvents: 'Impossible de charger les événements',
+      registrationSuccess: 'Inscription réussie',
+      confirmationCode: 'Code de confirmation',
+      errorRegister: 'Impossible de s\'inscrire à l\'événement'
     },
     en: {
       title: 'School Events',
@@ -46,7 +49,12 @@ const EventsModule: React.FC<EventsModuleProps> = ({ language = 'fr' }) => {
       deadline: 'Deadline',
       free: 'Free',
       parentConsent: 'Parent consent required',
-      loading: 'Loading...'
+      loading: 'Loading...',
+      error: 'Error',
+      errorLoadEvents: 'Unable to load events',
+      registrationSuccess: 'Registration successful',
+      confirmationCode: 'Confirmation code',
+      errorRegister: 'Unable to register for event'
     }
   };
 
@@ -64,8 +72,8 @@ const EventsModule: React.FC<EventsModuleProps> = ({ language = 'fr' }) => {
     } catch (error) {
       console.error('Error loading events:', error);
       toast({
-        title: 'Erreur',
-        description: 'Impossible de charger les événements',
+        title: t.error,
+        description: t.errorLoadEvents,
         variant: 'destructive'
       });
     } finally {
@@ -84,16 +92,16 @@ const EventsModule: React.FC<EventsModuleProps> = ({ language = 'fr' }) => {
       if (response.ok) {
         const result = await response.json();
         toast({
-          title: 'Inscription réussie',
-          description: `Code de confirmation: ${result.registration.confirmationCode}`,
+          title: t.registrationSuccess,
+          description: `${t.confirmationCode}: ${result.registration.confirmationCode}`,
           variant: 'default'
         });
       }
     } catch (error) {
       console.error('Error registering for event:', error);
       toast({
-        title: 'Erreur',
-        description: 'Impossible de s\'inscrire à l\'événement',
+        title: t.error,
+        description: t.errorRegister,
         variant: 'destructive'
       });
     } finally {

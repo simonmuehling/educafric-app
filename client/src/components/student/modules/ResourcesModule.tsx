@@ -5,12 +5,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { BookOpen, Video, FileText, ExternalLink, Eye, Download } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
+import { useLanguage } from '@/contexts/LanguageContext';
 
-interface ResourcesModuleProps {
-  language?: 'fr' | 'en';
-}
-
-const ResourcesModule: React.FC<ResourcesModuleProps> = ({ language = 'fr' }) => {
+const ResourcesModule: React.FC = () => {
+  const { language } = useLanguage();
   const { toast } = useToast();
   const [resources, setResources] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
@@ -45,7 +43,11 @@ const ResourcesModule: React.FC<ResourcesModuleProps> = ({ language = 'fr' }) =>
         'Seconde': 'Seconde',
         'Première': 'Première',
         'Terminale': 'Terminale'
-      }
+      },
+      error: 'Erreur',
+      errorLoadResources: 'Impossible de charger les ressources',
+      accessRecorded: 'Accès enregistré',
+      accessRecordedDesc: 'Votre accès à la ressource a été enregistré'
     },
     en: {
       title: 'Educational Resources',
@@ -74,7 +76,11 @@ const ResourcesModule: React.FC<ResourcesModuleProps> = ({ language = 'fr' }) =>
         'Seconde': 'Grade 10',
         'Première': 'Grade 11',
         'Terminale': 'Grade 12'
-      }
+      },
+      error: 'Error',
+      errorLoadResources: 'Unable to load resources',
+      accessRecorded: 'Access recorded',
+      accessRecordedDesc: 'Your access to the resource has been recorded'
     }
   };
 
@@ -96,8 +102,8 @@ const ResourcesModule: React.FC<ResourcesModuleProps> = ({ language = 'fr' }) =>
     } catch (error) {
       console.error('Error loading resources:', error);
       toast({
-        title: 'Erreur',
-        description: 'Impossible de charger les ressources',
+        title: t.error,
+        description: t.errorLoadResources,
         variant: 'destructive'
       });
     } finally {
@@ -114,8 +120,8 @@ const ResourcesModule: React.FC<ResourcesModuleProps> = ({ language = 'fr' }) =>
       
       if (response.ok) {
         toast({
-          title: 'Accès enregistré',
-          description: 'Votre accès à la ressource a été enregistré',
+          title: t.accessRecorded,
+          description: t.accessRecordedDesc,
           variant: 'default'
         });
       }
