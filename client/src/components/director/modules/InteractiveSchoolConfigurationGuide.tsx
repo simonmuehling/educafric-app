@@ -10,7 +10,6 @@ import {
   BookOpen, 
   Calendar, 
   MessageSquare,
-  MapPin,
   Shield,
   CreditCard,
   FileText,
@@ -214,24 +213,6 @@ const InteractiveSchoolConfigurationGuide = () => {
       benefits: {
         fr: ['Suivi automatique', 'Alertes précoces d\'absentéisme'],
         en: ['Automatic tracking', 'Early absenteeism alerts']
-      }
-    },
-    {
-      id: 'geolocation',
-      titleFr: 'Géolocalisation',
-      titleEn: 'Geolocation',
-      descriptionFr: 'Configurez le suivi géographique (optionnel)',
-      descriptionEn: 'Configure geographic tracking (optional)',
-      priority: 'Utile',
-      estimatedTime: '20 min',
-      icon: <MapPin className="w-5 h-5" />,
-      status: 'pending',
-      module: 'GeolocationManagement',
-      action: () => dispatchNavigationEvent('switchToGeolocation'),
-      requirements: ['Zones sécurisées', 'Appareils tracking', 'Permissions parents'],
-      benefits: {
-        fr: ['Sécurité renforcée', 'Localisation temps réel'],
-        en: ['Enhanced security', 'Real-time location']
       }
     },
     {

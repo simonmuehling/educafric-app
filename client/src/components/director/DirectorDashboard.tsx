@@ -142,8 +142,7 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
   useEffect(() => {
     const eventTypes = [
       'switchToTimetable', 'switchToTeacherManagement', 'switchToClassManagement', 'switchToCommunications',
-      'switchToSettings', 'switchToAdministrators', 'switchToStudent-management', 'switchToAttendance-management',
-      'switchToGeolocation'
+      'switchToSettings', 'switchToAdministrators', 'switchToStudent-management', 'switchToAttendance-management'
     ];
     
     eventTypes.forEach(eventType => {
@@ -170,7 +169,6 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
       communications: 'Communications',
       teacherAbsence: 'Absences Profs',
       parentRequests: 'Demandes Parents',
-      geolocation: 'Géolocalisation',
       bulletins: 'Bulletins',
       notifications: 'Notifications',
       schoolAdministrators: 'Administrateurs Délégués',
