@@ -3362,5 +3362,49 @@ export function registerSiteAdminRoutes(app: Express, requireAuth: any) {
     }
   });
 
+  // Admin documents for permissions management (alias for compatibility)
+  app.get('/api/admin/documents', requireAuth, requireSiteAdminAccess, async (req, res) => {
+    try {
+      // Fetch documents from database or return empty array
+      res.json({ documents: [] });
+    } catch (error) {
+      console.error('[SITE_ADMIN_API] Error fetching admin documents:', error);
+      res.status(500).json({ error: 'Failed to fetch documents' });
+    }
+  });
+
+  // Commercial users for permissions management
+  app.get('/api/admin/commercial-users', requireAuth, requireSiteAdminAccess, async (req, res) => {
+    try {
+      // Fetch commercial users from database
+      const commercialUsers = await db.select({
+        id: users.id,
+        firstName: users.firstName,
+        lastName: users.lastName,
+        email: users.email,
+        role: users.role,
+        isActive: users.isActive,
+        lastLoginAt: users.lastLoginAt
+      })
+      .from(users)
+      .where(eq(users.role, 'Commercial'));
+
+      const formattedUsers = commercialUsers.map(u => ({
+        id: `user-${u.id}`,
+        name: `${u.firstName || ''} ${u.lastName || ''}`.trim() || u.email,
+        email: u.email || '',
+        role: u.role,
+        isActive: u.isActive ?? true,
+        lastLogin: u.lastLoginAt ? new Date(u.lastLoginAt).toLocaleString('fr-FR') : 'Jamais',
+        permissions: {}
+      }));
+
+      res.json({ users: formattedUsers });
+    } catch (error) {
+      console.error('[SITE_ADMIN_API] Error fetching commercial users:', error);
+      res.status(500).json({ error: 'Failed to fetch commercial users' });
+    }
+  });
+
   console.log('[SITE_ADMIN_API] ✅ Site Admin routes registered successfully');
 }
