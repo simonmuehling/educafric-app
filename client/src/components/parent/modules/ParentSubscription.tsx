@@ -382,7 +382,7 @@ const ParentSubscription = () => {
             </div>
             <Button
               variant="outline"
-              onClick={() => window.open('https://wa.me/237699999999?text=Bonjour, j\'ai besoin d\'aide avec mon abonnement Educafric', '_blank')}
+              onClick={() => window.open('https://wa.me/237656200472?text=Bonjour, j\'ai besoin d\'aide avec mon abonnement Educafric', '_blank')}
               data-testid="button-contact-whatsapp"
             >
               WhatsApp

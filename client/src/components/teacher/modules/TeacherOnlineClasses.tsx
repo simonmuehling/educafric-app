@@ -882,7 +882,7 @@ const TeacherOnlineClasses: React.FC = () => {
                       size="sm"
                       variant="outline"
                       className="border-green-500 text-green-700 hover:bg-green-100"
-                      onClick={() => window.open('https://wa.me/237699999999?text=' + encodeURIComponent(language === 'fr' ? 'Bonjour Educafric, je souhaite activer le module Cours en Ligne pour mon école.' : 'Hello Educafric, I would like to activate the Online Classes module for my school.'), '_blank')}
+                      onClick={() => window.open('https://wa.me/237656200472?text=' + encodeURIComponent(language === 'fr' ? 'Bonjour Educafric, je souhaite activer le module Cours en Ligne pour mon école.' : 'Hello Educafric, I would like to activate the Online Classes module for my school.'), '_blank')}
                     >
                       <MessageCircle className="w-4 h-4 mr-2" />
                       {language === 'fr' ? 'Contacter via WhatsApp' : 'Contact via WhatsApp'}
