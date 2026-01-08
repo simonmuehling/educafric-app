@@ -1,18 +1,43 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useToast } from '@/hooks/use-toast';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { MapPin, Plus, Settings, Smartphone, CheckCircle, Shield, AlertTriangle, Edit, TrendingUp, FileText } from 'lucide-react';
+import { MapPin, Plus, Settings, Smartphone, CheckCircle, Shield, AlertTriangle, Edit, TrendingUp, FileText, Loader2 } from 'lucide-react';
 import { CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import MobileActionsOverlay from '@/components/mobile/MobileActionsOverlay';
+import { useQuery } from '@tanstack/react-query';
+
+interface GeolocationDevice {
+  id: number;
+  name: string;
+  studentName: string;
+  type: 'smartphone' | 'smartwatch' | 'tablet';
+  status: 'active' | 'inactive';
+  lastSeen: string;
+  battery: string;
+  location: { lat: number; lng: number } | null;
+}
 
 const GeolocationManagement: React.FC = () => {
   const { language } = useLanguage();
   const { toast } = useToast();
-  const [selectedDevice, setSelectedDevice] = useState<any>(null);
+  const [selectedDevice, setSelectedDevice] = useState<GeolocationDevice | null>(null);
   const [showAddDeviceModal, setShowAddDeviceModal] = useState(false);
+
+  // Fetch real data from API
+  const { data: devicesResponse, isLoading } = useQuery<{ success: boolean; data: GeolocationDevice[] }>({
+    queryKey: ['/api/director/geolocation/devices']
+  });
+  
+  const { data: statsResponse } = useQuery<{ success: boolean; data: { safeZones: number; activeAlerts: number } }>({
+    queryKey: ['/api/director/geolocation/stats']
+  });
+
+  const devices: GeolocationDevice[] = devicesResponse?.data || [];
+  const safeZonesCount = statsResponse?.data?.safeZones || 0;
+  const activeAlertsCount = statsResponse?.data?.activeAlerts || 0;
 
   const text = {
     fr: {
@@ -38,7 +63,10 @@ const GeolocationManagement: React.FC = () => {
       smartwatch: 'Smartwatch',
       tablet: 'Tablette',
       deviceAdded: 'Appareil ajouté avec succès!',
-      zonesConfigured: 'Zones configurées!'
+      zonesConfigured: 'Zones configurées!',
+      loading: 'Chargement...',
+      noDevices: 'Aucun appareil enregistré',
+      noDevicesDesc: 'Les appareils de géolocalisation des élèves apparaîtront ici'
     },
     en: {
       title: 'Geolocation Management',
@@ -63,45 +91,14 @@ const GeolocationManagement: React.FC = () => {
       smartwatch: 'Smartwatch',
       tablet: 'Tablet',
       deviceAdded: 'Device added successfully!',
-      zonesConfigured: 'Zones configured!'
+      zonesConfigured: 'Zones configured!',
+      loading: 'Loading...',
+      noDevices: 'No devices registered',
+      noDevicesDesc: 'Student geolocation devices will appear here'
     }
   };
 
   const t = text[language as keyof typeof text];
-
-  // Mock data for demonstration
-  const devices = [
-    {
-      id: 1,
-      name: 'iPhone Junior Kamga',
-      studentName: 'Junior Kamga',
-      type: 'smartphone',
-      status: 'active',
-      lastSeen: 'École Excellence - il y a 5 min',
-      battery: '85%',
-      location: { lat: 3.8667, lng: 11.5167 }
-    },
-    {
-      id: 2,
-      name: 'Apple Watch Marie',
-      studentName: 'Marie Nkomo',
-      type: 'smartwatch',
-      status: 'active',
-      lastSeen: 'Domicile - il y a 2h',
-      battery: '42%',
-      location: { lat: 3.8480, lng: 11.5021 }
-    },
-    {
-      id: 3,
-      name: 'Tablette Paul',
-      studentName: 'Paul Essomba',
-      type: 'tablet',
-      status: 'inactive',
-      lastSeen: 'Hors ligne depuis 1 jour',
-      battery: '0%',
-      location: null
-    }
-  ];
 
   const handleAddDevice = () => {
     toast({
@@ -203,7 +200,7 @@ const GeolocationManagement: React.FC = () => {
               </div>
               <div>
                 <p className="text-sm text-gray-600">{t.safeZones}</p>
-                <p className="text-2xl font-bold">5</p>
+                <p className="text-2xl font-bold">{safeZonesCount}</p>
               </div>
             </div>
           </Card>
@@ -214,7 +211,7 @@ const GeolocationManagement: React.FC = () => {
               </div>
               <div>
                 <p className="text-sm text-gray-600">{t.activeAlerts}</p>
-                <p className="text-2xl font-bold">2</p>
+                <p className="text-2xl font-bold">{activeAlertsCount}</p>
               </div>
             </div>
           </Card>
@@ -275,6 +272,18 @@ const GeolocationManagement: React.FC = () => {
 
         {/* Devices Table */}
         <Card className="bg-white border-gray-200">
+          {isLoading ? (
+            <div className="flex items-center justify-center py-16">
+              <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
+              <span className="ml-3 text-gray-600">{t.loading}</span>
+            </div>
+          ) : devices.length === 0 ? (
+            <div className="text-center py-16">
+              <Smartphone className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+              <p className="text-gray-600 font-medium">{t.noDevices}</p>
+              <p className="text-gray-500 text-sm">{t.noDevicesDesc}</p>
+            </div>
+          ) : (
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead className="border-b bg-gray-50">
@@ -289,7 +298,7 @@ const GeolocationManagement: React.FC = () => {
                 </tr>
               </thead>
               <tbody>
-                {(Array.isArray(devices) ? devices : []).map((device) => (
+                {devices.map((device) => (
                   <tr key={device.id} className="border-b hover:bg-gray-50">
                     <td className="p-4">
                       <div className="flex items-center gap-2">
@@ -333,6 +342,7 @@ const GeolocationManagement: React.FC = () => {
               </tbody>
             </table>
           </div>
+          )}
         </Card>
       </div>
     </div>
