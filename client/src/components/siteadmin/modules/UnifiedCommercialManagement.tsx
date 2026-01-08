@@ -690,10 +690,16 @@ const UnifiedCommercialManagement: React.FC = () => {
               {loadingActivities ? (
                 <div className="flex items-center justify-center py-8">
                   <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
-                  <span className="ml-2">Chargement des activités...</span>
+                  <span className="ml-2">Chargement des activités... / Loading activities...</span>
                 </div>
               ) : activities.length === 0 ? (
-                <p className="text-center text-gray-500 py-8">Aucune activité trouvée</p>
+                <div className="text-center py-12">
+                  <Activity className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                  <p className="text-gray-600 font-medium">Aucune activité commerciale enregistrée</p>
+                  <p className="text-gray-500 text-sm">No commercial activities recorded</p>
+                  <p className="text-gray-400 text-xs mt-2">Les activités apparaîtront ici lorsque les commerciaux les enregistreront</p>
+                  <p className="text-gray-400 text-xs">Activities will appear here when commercials record them</p>
+                </div>
               ) : (
                 <div className="space-y-4">
                   {activities.map((activity: CommercialActivity) => (
@@ -764,10 +770,16 @@ const UnifiedCommercialManagement: React.FC = () => {
               {loadingAppointments ? (
                 <div className="flex items-center justify-center py-8">
                   <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
-                  <span className="ml-2">Chargement des rendez-vous...</span>
+                  <span className="ml-2">Chargement des rendez-vous... / Loading appointments...</span>
                 </div>
               ) : appointments.length === 0 ? (
-                <p className="text-center text-gray-500 py-8">Aucun rendez-vous trouvé</p>
+                <div className="text-center py-12">
+                  <Calendar className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                  <p className="text-gray-600 font-medium">Aucun rendez-vous programmé</p>
+                  <p className="text-gray-500 text-sm">No scheduled appointments</p>
+                  <p className="text-gray-400 text-xs mt-2">Les rendez-vous apparaîtront ici lorsqu'ils seront créés</p>
+                  <p className="text-gray-400 text-xs">Appointments will appear here when created</p>
+                </div>
               ) : (
                 <div className="space-y-4">
                   {appointments.map((appointment: CommercialAppointment) => (
