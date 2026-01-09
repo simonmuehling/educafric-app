@@ -94,6 +94,7 @@ import teachersStandalone from "./routes/teachers";
 import studentsStandalone from "./routes/students";
 import currencyRoutes from "./routes/currency";
 import stripeRoutes from "./routes/stripe";
+import chatRoutes from "./routes/chatRoutes";
 import manualPaymentRoutes from "./routes/manual-payments";
 import mtnPaymentRoutes from "./routes/mtnPayments";
 import orangeMoneyRoutes from "./routes/orangeMoneyPayments";
@@ -13857,6 +13858,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // app.use('/api/grade-review', checkSubscriptionFeature('advanced_grade_management'), gradeReviewRoutes); // REMOVED - using unified comprehensive bulletin system
   app.use('/api/currency', currencyRoutes);
   app.use('/api/stripe', stripeRoutes);
+  app.use('/api/chat', chatRoutes); // Instant messaging between teachers and parents
   app.use('/api/manual-payments', manualPaymentRoutes);
   app.use('/api/mtn-payments', mtnPaymentRoutes);
   app.use('/api/payments/orange-money', orangeMoneyRoutes);
