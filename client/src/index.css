@@ -2428,3 +2428,313 @@ button[role="combobox"] span[data-placeholder] {
     margin: 10mm; /* Standard A4 margin for centered printing */
   }
 }
+
+/* ===== MODERN DASHBOARD DESIGN SYSTEM ===== */
+/* Purple accent color palette inspired by modern fintech dashboards */
+
+.modern-dashboard {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  background-color: #F3F5F7;
+  min-height: 100vh;
+}
+
+.modern-card {
+  background-color: #FFFFFF;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.modern-card-hover:hover {
+  box-shadow: 0 4px 12px rgba(124, 92, 252, 0.1);
+  transition: box-shadow 0.3s ease;
+}
+
+.modern-header {
+  color: #1A202C;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.modern-subtext {
+  color: #90A3BF;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.modern-value {
+  color: #1A202C;
+  font-weight: 700;
+  font-size: 28px;
+  line-height: 1.2;
+}
+
+.modern-currency {
+  color: #90A3BF;
+  font-size: 14px;
+  font-weight: 600;
+  margin-left: 8px;
+}
+
+.modern-trend-up {
+  color: #7FB519;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.modern-trend-down {
+  color: #FF4423;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.modern-btn-primary {
+  background-color: #7C5CFC;
+  color: white;
+  padding: 16px 24px;
+  border-radius: 12px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  transition: background-color 0.2s ease;
+}
+
+.modern-btn-primary:hover {
+  background-color: #6B4CE0;
+}
+
+.modern-btn-secondary {
+  background-color: white;
+  color: #7C5CFC;
+  padding: 16px 24px;
+  border-radius: 12px;
+  font-weight: 600;
+  border: 2px solid #7C5CFC;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  transition: all 0.2s ease;
+}
+
+.modern-btn-secondary:hover {
+  background-color: rgba(124, 92, 252, 0.05);
+}
+
+.modern-search {
+  display: flex;
+  align-items: center;
+  padding: 12px 24px;
+  border: 1px solid #C3D4E9;
+  border-radius: 50px;
+  background: #FFFFFF;
+  gap: 16px;
+}
+
+.modern-search input {
+  border: none;
+  outline: none;
+  width: 100%;
+  font-size: 14px;
+  background: transparent;
+}
+
+.modern-notification {
+  border: 1px solid #C3D4E9;
+  background-color: transparent;
+  position: relative;
+  height: 44px;
+  width: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.modern-notification:hover {
+  background-color: #F3F5F7;
+}
+
+.modern-notification-badge {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  background-color: #FF4423;
+  border-radius: 50%;
+  top: -2px;
+  right: 3px;
+}
+
+.modern-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #7C5CFC 0%, #5CAFFC 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 700;
+}
+
+.modern-table th {
+  font-weight: 500;
+  font-size: 12px;
+  color: #90A3BF;
+  text-transform: uppercase;
+  padding-bottom: 16px;
+  text-align: left;
+}
+
+.modern-table td {
+  font-weight: 600;
+  font-size: 14px;
+  color: #596780;
+  padding: 12px 0;
+  border-bottom: 1px solid #F3F5F7;
+}
+
+.modern-table tr:last-child td {
+  border-bottom: none;
+}
+
+.modern-badge {
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.modern-badge-success {
+  background-color: #E8F5E9;
+  color: #2E7D32;
+}
+
+.modern-badge-warning {
+  background-color: #FFF8E1;
+  color: #F57C00;
+}
+
+.modern-badge-error {
+  background-color: #FFEBEE;
+  color: #C62828;
+}
+
+.modern-badge-info {
+  background-color: #E3F2FD;
+  color: #1565C0;
+}
+
+.modern-tabs {
+  display: flex;
+  gap: 8px;
+  padding: 4px;
+  background-color: #F3F5F7;
+  border-radius: 12px;
+}
+
+.modern-tab {
+  padding: 10px 20px;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 14px;
+  color: #596780;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.modern-tab:hover {
+  color: #1A202C;
+}
+
+.modern-tab-active {
+  background-color: white;
+  color: #7C5CFC;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.modern-stat-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modern-stat-icon-purple {
+  background-color: rgba(124, 92, 252, 0.1);
+  color: #7C5CFC;
+}
+
+.modern-stat-icon-blue {
+  background-color: rgba(92, 175, 252, 0.1);
+  color: #5CAFFC;
+}
+
+.modern-stat-icon-pink {
+  background-color: rgba(204, 111, 248, 0.1);
+  color: #CC6FF8;
+}
+
+.modern-stat-icon-coral {
+  background-color: rgba(235, 124, 166, 0.1);
+  color: #EB7CA6;
+}
+
+.modern-stat-icon-green {
+  background-color: rgba(127, 181, 25, 0.1);
+  color: #7FB519;
+}
+
+/* Pie chart legend colors */
+.modern-legend-purple { background-color: #7C5CFC; }
+.modern-legend-blue { background-color: #5CAFFC; }
+.modern-legend-pink { background-color: #CC6FF8; }
+.modern-legend-coral { background-color: #EB7CA6; }
+.modern-legend-lavender { background-color: #A1A9FE; }
+.modern-legend-rose { background-color: #FFACC8; }
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .modern-card {
+    padding: 16px;
+  }
+  
+  .modern-value {
+    font-size: 24px;
+  }
+  
+  .modern-btn-primary,
+  .modern-btn-secondary {
+    padding: 12px 20px;
+    font-size: 14px;
+  }
+}
+
+/* Animation for cards */
+@keyframes modernFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.modern-animate-in {
+  animation: modernFadeIn 0.3s ease-out forwards;
+}
