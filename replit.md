@@ -1,5 +1,5 @@
 # Overview
-Educafric is a bilingual, mobile-first EdTech platform designed to improve educational access and outcomes across Africa. It provides an integrated ecosystem covering academic management, communication, financial services, and offline capabilities. The project aims for significant market penetration and user growth by offering a comprehensive and accessible educational solution.
+Educafric is a bilingual, mobile-first EdTech platform designed to enhance educational access and outcomes across Africa. It offers an integrated ecosystem for academic management, communication, financial services, and offline capabilities, aiming for substantial market penetration and user growth.
 
 # User Preferences
 - Module FunctionalTeacherAssignments.tsx entièrement bilingue (formulaire, labels, boutons, toasts). Onglets responsives (flex-col sm:flex-row, min-h-[44px]). Profils modifiables pour Teacher/Parent/Commercial via PUT endpoints. Fix WhatsApp password recovery (u.phone pas u.phoneNumber). ParentSubscription avec gestion erreurs. FIX CRITIQUE: fastModuleLoader.ts ligne 100 mapping 'subscription' corrigé vers ParentSubscription (pas SubscriptionStatusCard).
@@ -90,7 +90,7 @@ Educafric is a bilingual, mobile-first EdTech platform designed to improve educa
   - COMPOSANT: `client/src/components/academic/ReportCardPreview.tsx` génère les bulletins avec classes CSS appropriées
 
 # System Architecture
-- **UI/UX Decisions**: The platform features an African-themed, mobile-first, PWA-enabled UI, built with Radix UI, Shadcn/UI, and Tailwind CSS. All alert/confirmation dialogs have a `bg-white` background for optimal readability. Student ID cards adhere to a standardized official template (85.6mm x 54mm) supporting color printing, digital signatures, QR codes, and mobile-friendly printing. A 4-level fallback system ensures logo display, and school logos for PDF generation are restricted to PNG and JPEG formats. Online course interfaces for teachers are always visible, with access rules dynamically enforced based on subscription types.
+- **UI/UX Decisions**: The platform features an African-themed, mobile-first, PWA-enabled UI, built with Radix UI, Shadcn/UI, and Tailwind CSS. All alert/confirmation dialogs have a `bg-white` background. Student ID cards adhere to a standardized official template (85.6mm x 54mm) supporting color printing, digital signatures, QR codes, and mobile-friendly printing. A 4-level fallback system ensures logo display, and school logos for PDF generation are restricted to PNG and JPEG formats. Online course interfaces for teachers are always visible, with access rules dynamically enforced based on subscription types.
 - **Technical Implementations**:
     - **Frontend**: React (TypeScript), Wouter for routing, TanStack Query for data fetching, and PWA capabilities.
     - **Backend**: RESTful API built with Express.js.

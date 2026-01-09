@@ -101,6 +101,7 @@ const PWANotificationTest = lazy(() => import("@/pages/PWANotificationTest"));
 const TeacherActivationPurchase = lazy(() => import("@/pages/TeacherActivationPurchase"));
 const CanteenPage = lazy(() => import("@/pages/CanteenPage"));
 const BusTrackingPage = lazy(() => import("@/pages/BusTrackingPage"));
+const ModernModuleDemo = lazy(() => import("@/pages/ModernModuleDemo"));
 
 // System components - Optimisés pour 3500+ utilisateurs
 import InactivityMonitor from "@/components/auth/InactivityMonitor";
@@ -253,6 +254,7 @@ function Router() {
       <Route path="/pwa-analytics" component={PWAAnalyticsDemo} />
       <Route path="/educational-connections" component={EducationalConnections} />
       <Route path="/subscription" component={SubscriptionManagement} />
+      <Route path="/modern-module-demo" component={ModernModuleDemo} />
       
       {/* Protected Routes */}
       
