@@ -1514,23 +1514,23 @@ const TeacherOnlineClasses: React.FC = () => {
       {/* This includes: school-only access OR no access at all */}
       {!hasPersonalSubscription && (
         <Tabs value={activeTab} onValueChange={(value: any) => setActiveTab(value)} className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="my-courses" className="flex items-center gap-2">
-              <BookOpen className="w-4 h-4" />
-              {t.myCoursesTab}
+          <TabsList className="grid w-full grid-cols-3 h-auto p-1.5 bg-[#F3F5F7] rounded-xl gap-1">
+            <TabsTrigger value="my-courses" className="flex items-center justify-center gap-2 min-h-[44px] px-2 py-2 text-xs sm:text-sm data-[state=active]:bg-white data-[state=active]:text-[#7C5CFC] data-[state=active]:shadow-sm">
+              <BookOpen className="w-4 h-4 flex-shrink-0" />
+              <span className="hidden sm:inline truncate">{t.myCoursesTab}</span>
             </TabsTrigger>
-            <TabsTrigger value="upcoming-sessions" className="flex items-center gap-2">
-              <Calendar className="w-4 h-4" />
-              {t.upcomingSessionsTab}
+            <TabsTrigger value="upcoming-sessions" className="flex items-center justify-center gap-2 min-h-[44px] px-2 py-2 text-xs sm:text-sm data-[state=active]:bg-white data-[state=active]:text-[#7C5CFC] data-[state=active]:shadow-sm">
+              <Calendar className="w-4 h-4 flex-shrink-0" />
+              <span className="hidden sm:inline truncate">{t.upcomingSessionsTab}</span>
               {(schoolSessionsData?.sessions?.length || 0) > 0 && (
                 <Badge className="ml-2 bg-purple-500 text-white" data-testid="school-sessions-count">
                   {schoolSessionsData.sessions.length}
                 </Badge>
               )}
             </TabsTrigger>
-            <TabsTrigger value="create-course" className="flex items-center gap-2">
-              <Plus className="w-4 h-4" />
-              {t.createCourseTab}
+            <TabsTrigger value="create-course" className="flex items-center justify-center gap-2 min-h-[44px] px-2 py-2 text-xs sm:text-sm data-[state=active]:bg-white data-[state=active]:text-[#7C5CFC] data-[state=active]:shadow-sm">
+              <Plus className="w-4 h-4 flex-shrink-0" />
+              <span className="hidden sm:inline truncate">{t.createCourseTab}</span>
             </TabsTrigger>
           </TabsList>
           
@@ -1608,23 +1608,23 @@ const TeacherOnlineClasses: React.FC = () => {
           {/* Tabbed Interface for existing courses */}
           {step === 'course-management' && (
             <Tabs value={activeTab} onValueChange={(value: any) => setActiveTab(value)} className="w-full">
-              <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="my-courses" className="flex items-center gap-2">
-                  <BookOpen className="w-4 h-4" />
-                  {t.myCoursesTab}
+              <TabsList className="grid w-full grid-cols-3 h-auto p-1.5 bg-[#F3F5F7] rounded-xl gap-1">
+                <TabsTrigger value="my-courses" className="flex items-center justify-center gap-2 min-h-[44px] px-2 py-2 text-xs sm:text-sm data-[state=active]:bg-white data-[state=active]:text-[#7C5CFC] data-[state=active]:shadow-sm">
+                  <BookOpen className="w-4 h-4 flex-shrink-0" />
+                  <span className="hidden sm:inline truncate">{t.myCoursesTab}</span>
                 </TabsTrigger>
-                <TabsTrigger value="upcoming-sessions" className="flex items-center gap-2">
-                  <Calendar className="w-4 h-4" />
-                  {t.upcomingSessionsTab}
+                <TabsTrigger value="upcoming-sessions" className="flex items-center justify-center gap-2 min-h-[44px] px-2 py-2 text-xs sm:text-sm data-[state=active]:bg-white data-[state=active]:text-[#7C5CFC] data-[state=active]:shadow-sm">
+                  <Calendar className="w-4 h-4 flex-shrink-0" />
+                  <span className="hidden sm:inline truncate">{t.upcomingSessionsTab}</span>
                   {(schoolSessionsData?.sessions?.length || 0) > 0 && (
                     <Badge className="ml-2 bg-purple-500 text-white" data-testid="school-sessions-count">
                       {schoolSessionsData.sessions.length}
                     </Badge>
                   )}
                 </TabsTrigger>
-                <TabsTrigger value="create-course" className="flex items-center gap-2">
-                  <Plus className="w-4 h-4" />
-                  {t.createCourseTab}
+                <TabsTrigger value="create-course" className="flex items-center justify-center gap-2 min-h-[44px] px-2 py-2 text-xs sm:text-sm data-[state=active]:bg-white data-[state=active]:text-[#7C5CFC] data-[state=active]:shadow-sm">
+                  <Plus className="w-4 h-4 flex-shrink-0" />
+                  <span className="hidden sm:inline truncate">{t.createCourseTab}</span>
                 </TabsTrigger>
               </TabsList>
               

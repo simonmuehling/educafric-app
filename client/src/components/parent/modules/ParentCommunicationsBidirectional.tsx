@@ -242,19 +242,19 @@ const ParentCommunicationsBidirectional = () => {
 
         {/* Onglets principaux */}
         <Tabs value={selectedTab} onValueChange={setSelectedTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="inbox" className="flex items-center gap-2">
-              <Mail className="w-5 h-5 sm:w-6 sm:h-6" />
-              {t.inbox}
-              <Badge variant="destructive" className="ml-1">2</Badge>
+          <TabsList className="grid w-full grid-cols-3 h-auto p-1.5 bg-[#F3F5F7] rounded-xl gap-1">
+            <TabsTrigger value="inbox" className="flex items-center justify-center gap-2 min-h-[44px] px-2 py-2 text-xs sm:text-sm data-[state=active]:bg-white data-[state=active]:text-[#7C5CFC] data-[state=active]:shadow-sm">
+              <Mail className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
+              <span className="hidden sm:inline truncate">{t.inbox}</span>
+              <Badge variant="destructive" className="ml-1 text-xs">2</Badge>
             </TabsTrigger>
-            <TabsTrigger value="compose" className="flex items-center gap-2">
-              <Edit3 className="w-5 h-5 sm:w-6 sm:h-6" />
-              {t.compose}
+            <TabsTrigger value="compose" className="flex items-center justify-center gap-2 min-h-[44px] px-2 py-2 text-xs sm:text-sm data-[state=active]:bg-white data-[state=active]:text-[#7C5CFC] data-[state=active]:shadow-sm">
+              <Edit3 className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
+              <span className="hidden sm:inline truncate">{t.compose}</span>
             </TabsTrigger>
-            <TabsTrigger value="sent" className="flex items-center gap-2">
-              <Send className="w-5 h-5 sm:w-6 sm:h-6" />
-              {t.sent}
+            <TabsTrigger value="sent" className="flex items-center justify-center gap-2 min-h-[44px] px-2 py-2 text-xs sm:text-sm data-[state=active]:bg-white data-[state=active]:text-[#7C5CFC] data-[state=active]:shadow-sm">
+              <Send className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
+              <span className="hidden sm:inline truncate">{t.sent}</span>
             </TabsTrigger>
           </TabsList>
 

@@ -471,26 +471,26 @@ const StudentCommunications: React.FC = () => {
         <CardContent>
           {/* Filter Tabs */}
           <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-4">
-            <TabsList className="grid w-full grid-cols-4">
-              <TabsTrigger value="all" className="flex items-center gap-1">
-                <Inbox className="w-4 h-4" />
-                <span className="hidden sm:inline">{t.allMessages}</span>
-                <Badge variant="secondary" className="ml-1">{allMessages.length}</Badge>
+            <TabsList className="grid w-full grid-cols-4 h-auto p-1.5 bg-[#F3F5F7] rounded-xl gap-1">
+              <TabsTrigger value="all" className="flex items-center justify-center gap-1 min-h-[44px] px-2 py-2 text-xs sm:text-sm data-[state=active]:bg-white data-[state=active]:text-[#7C5CFC] data-[state=active]:shadow-sm">
+                <Inbox className="w-4 h-4 flex-shrink-0" />
+                <span className="hidden sm:inline truncate">{t.allMessages}</span>
+                <Badge variant="secondary" className="ml-1 text-xs">{allMessages.length}</Badge>
               </TabsTrigger>
-              <TabsTrigger value="parents" className="flex items-center gap-1">
-                <Heart className="w-4 h-4 text-pink-500" />
-                <span className="hidden sm:inline">{t.fromParents}</span>
-                <Badge variant="secondary" className="ml-1">{parentMessages.length}</Badge>
+              <TabsTrigger value="parents" className="flex items-center justify-center gap-1 min-h-[44px] px-2 py-2 text-xs sm:text-sm data-[state=active]:bg-white data-[state=active]:text-[#7C5CFC] data-[state=active]:shadow-sm">
+                <Heart className="w-4 h-4 text-pink-500 flex-shrink-0" />
+                <span className="hidden sm:inline truncate">{t.fromParents}</span>
+                <Badge variant="secondary" className="ml-1 text-xs">{parentMessages.length}</Badge>
               </TabsTrigger>
-              <TabsTrigger value="teachers" className="flex items-center gap-1">
-                <GraduationCap className="w-4 h-4 text-blue-500" />
-                <span className="hidden sm:inline">{t.fromTeachers}</span>
-                <Badge variant="secondary" className="ml-1">{teacherMessages.length}</Badge>
+              <TabsTrigger value="teachers" className="flex items-center justify-center gap-1 min-h-[44px] px-2 py-2 text-xs sm:text-sm data-[state=active]:bg-white data-[state=active]:text-[#7C5CFC] data-[state=active]:shadow-sm">
+                <GraduationCap className="w-4 h-4 text-blue-500 flex-shrink-0" />
+                <span className="hidden sm:inline truncate">{t.fromTeachers}</span>
+                <Badge variant="secondary" className="ml-1 text-xs">{teacherMessages.length}</Badge>
               </TabsTrigger>
-              <TabsTrigger value="school" className="flex items-center gap-1">
-                <Building2 className="w-4 h-4 text-purple-500" />
-                <span className="hidden sm:inline">{t.fromSchool}</span>
-                <Badge variant="secondary" className="ml-1">{schoolMessages.length}</Badge>
+              <TabsTrigger value="school" className="flex items-center justify-center gap-1 min-h-[44px] px-2 py-2 text-xs sm:text-sm data-[state=active]:bg-white data-[state=active]:text-[#7C5CFC] data-[state=active]:shadow-sm">
+                <Building2 className="w-4 h-4 text-purple-500 flex-shrink-0" />
+                <span className="hidden sm:inline truncate">{t.fromSchool}</span>
+                <Badge variant="secondary" className="ml-1 text-xs">{schoolMessages.length}</Badge>
               </TabsTrigger>
             </TabsList>
           </Tabs>

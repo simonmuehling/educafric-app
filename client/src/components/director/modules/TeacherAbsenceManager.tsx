@@ -878,22 +878,22 @@ const TeacherAbsenceManager: React.FC = () => {
 
       {/* Main Content Tabs */}
       <Tabs value={selectedTab} onValueChange={setSelectedTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="current" className="flex items-center space-x-2">
-            <AlertTriangle className="w-4 h-4" />
-            <span>{t.current} ({currentAbsences.length})</span>
+        <TabsList className="grid w-full grid-cols-4 h-auto p-1.5 bg-[#F3F5F7] rounded-xl gap-1">
+          <TabsTrigger value="current" className="flex items-center justify-center gap-2 min-h-[44px] px-2 py-2 text-xs sm:text-sm data-[state=active]:bg-white data-[state=active]:text-[#7C5CFC] data-[state=active]:shadow-sm">
+            <AlertTriangle className="w-4 h-4 flex-shrink-0" />
+            <span className="hidden sm:inline truncate">{t.current} ({currentAbsences.length})</span>
           </TabsTrigger>
-          <TabsTrigger value="resolved" className="flex items-center space-x-2">
-            <CheckCircle className="w-4 h-4" />
-            <span>{t.resolved} ({resolvedAbsences.length})</span>
+          <TabsTrigger value="resolved" className="flex items-center justify-center gap-2 min-h-[44px] px-2 py-2 text-xs sm:text-sm data-[state=active]:bg-white data-[state=active]:text-[#7C5CFC] data-[state=active]:shadow-sm">
+            <CheckCircle className="w-4 h-4 flex-shrink-0" />
+            <span className="hidden sm:inline truncate">{t.resolved} ({resolvedAbsences.length})</span>
           </TabsTrigger>
-          <TabsTrigger value="analytics" className="flex items-center space-x-2">
-            <TrendingUp className="w-4 h-4" />
-            <span>{t.analytics}</span>
+          <TabsTrigger value="analytics" className="flex items-center justify-center gap-2 min-h-[44px] px-2 py-2 text-xs sm:text-sm data-[state=active]:bg-white data-[state=active]:text-[#7C5CFC] data-[state=active]:shadow-sm">
+            <TrendingUp className="w-4 h-4 flex-shrink-0" />
+            <span className="hidden sm:inline truncate">{t.analytics}</span>
           </TabsTrigger>
-          <TabsTrigger value="reports" className="flex items-center space-x-2">
-            <FileText className="w-4 h-4" />
-            <span>{t.reports}</span>
+          <TabsTrigger value="reports" className="flex items-center justify-center gap-2 min-h-[44px] px-2 py-2 text-xs sm:text-sm data-[state=active]:bg-white data-[state=active]:text-[#7C5CFC] data-[state=active]:shadow-sm">
+            <FileText className="w-4 h-4 flex-shrink-0" />
+            <span className="hidden sm:inline truncate">{t.reports}</span>
           </TabsTrigger>
         </TabsList>
 

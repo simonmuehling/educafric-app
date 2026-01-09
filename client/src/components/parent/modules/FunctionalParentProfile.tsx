@@ -13,7 +13,7 @@ import { Switch } from '@/components/ui/switch';
 import { 
   User, Mail, Phone, Calendar, MapPin, Users, 
   Bell, Shield, CreditCard, Edit, Save, X, Heart,
-  Smartphone, MessageSquare, DollarSign, Lock
+  Smartphone, MessageSquare, DollarSign, Lock, Settings
 } from 'lucide-react';
 
 interface ParentProfile {
@@ -261,10 +261,19 @@ const FunctionalParentProfile: React.FC = () => {
         </div>
 
         <Tabs defaultValue="personal" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="personal">{t.personalInfo}</TabsTrigger>
-            <TabsTrigger value="preferences">{t.preferences}</TabsTrigger>
-            <TabsTrigger value="subscription">{t.subscription}</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-3 h-auto p-1.5 bg-[#F3F5F7] rounded-xl gap-1">
+            <TabsTrigger value="personal" className="flex items-center justify-center gap-2 min-h-[44px] px-2 py-2 text-xs sm:text-sm data-[state=active]:bg-white data-[state=active]:text-[#7C5CFC] data-[state=active]:shadow-sm">
+              <User className="w-4 h-4 flex-shrink-0" />
+              <span className="hidden sm:inline truncate">{t.personalInfo}</span>
+            </TabsTrigger>
+            <TabsTrigger value="preferences" className="flex items-center justify-center gap-2 min-h-[44px] px-2 py-2 text-xs sm:text-sm data-[state=active]:bg-white data-[state=active]:text-[#7C5CFC] data-[state=active]:shadow-sm">
+              <Settings className="w-4 h-4 flex-shrink-0" />
+              <span className="hidden sm:inline truncate">{t.preferences}</span>
+            </TabsTrigger>
+            <TabsTrigger value="subscription" className="flex items-center justify-center gap-2 min-h-[44px] px-2 py-2 text-xs sm:text-sm data-[state=active]:bg-white data-[state=active]:text-[#7C5CFC] data-[state=active]:shadow-sm">
+              <CreditCard className="w-4 h-4 flex-shrink-0" />
+              <span className="hidden sm:inline truncate">{t.subscription}</span>
+            </TabsTrigger>
           </TabsList>
 
           {/* Personal Information Tab */}
