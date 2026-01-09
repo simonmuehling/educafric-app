@@ -467,9 +467,10 @@ export default function Login() {
             <div className="relative">
               <div className="w-24 h-24 bg-gradient-to-br from-orange-400 via-pink-500 to-purple-600 rounded-3xl flex items-center justify-center shadow-2xl transform hover:scale-105 transition-transform duration-300 overflow-hidden">
                 <img 
-                  src={`${import.meta.env.BASE_URL || '/'}educafric-logo-128.png`} 
+                  src="/educafric-logo-128.png" 
                   alt={language === 'fr' ? 'Logo Educafric' : 'Educafric Logo'} 
                   className="w-20 h-20 object-contain rounded-2xl"
+                  onError={(e) => { e.currentTarget.src = '/favicon.ico'; }}
                 />
               </div>
               <div className="absolute -top-2 -right-2 w-8 h-8 bg-gradient-to-br from-green-400 to-emerald-500 rounded-full flex items-center justify-center shadow-lg animate-pulse">

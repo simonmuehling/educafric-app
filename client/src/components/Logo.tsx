@@ -2,11 +2,10 @@ import { useState } from 'react';
 import { Link } from 'wouter';
 import { GraduationCap } from 'lucide-react';
 
-const baseUrl = import.meta.env.BASE_URL || '/';
 const LOGO_SOURCES = [
-  `${baseUrl}educafric-logo-128.png`,
-  `${baseUrl}educafric-logo-512.png`,
-  `${baseUrl}favicon.ico`
+  '/educafric-logo-128.png',
+  '/educafric-logo-512.png',
+  '/favicon.ico'
 ];
 
 interface LogoProps {
