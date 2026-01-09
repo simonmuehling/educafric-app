@@ -231,6 +231,12 @@ const TeacherDashboard = ({ stats, activeModule }: TeacherDashboardProps) => {
       color: 'bg-red-500'
     },
     {
+      id: 'teacher-instant-chat',
+      label: language === 'fr' ? 'Chat Parents' : 'Parent Chat',
+      icon: <Mail className="w-5 h-5 sm:w-6 sm:h-6" />,
+      color: 'bg-teal-500'
+    },
+    {
       id: 'teacher-online-classes',
       label: t.onlineClasses,
       icon: <Video className="w-5 h-5 sm:w-6 sm:h-6" />,
