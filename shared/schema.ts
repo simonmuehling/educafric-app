@@ -540,6 +540,55 @@ export const locationTracking = pgTable("location_tracking", {
   createdAt: timestamp("created_at").defaultNow()
 });
 
+// ===== INSTANT CHAT SYSTEM (Teacher-Parent Real-time Messaging) =====
+// Chat conversations between teachers and parents
+export const chatConversations = pgTable("chat_conversations", {
+  id: serial("id").primaryKey(),
+  participantOneId: integer("participant_one_id").notNull(), // Teacher or Parent
+  participantOneRole: text("participant_one_role").notNull(), // 'Teacher' | 'Parent'
+  participantTwoId: integer("participant_two_id").notNull(), // Teacher or Parent
+  participantTwoRole: text("participant_two_role").notNull(), // 'Teacher' | 'Parent'
+  studentId: integer("student_id"), // Optional: student being discussed
+  schoolId: integer("school_id").notNull(),
+  lastMessageAt: timestamp("last_message_at").defaultNow(),
+  lastMessagePreview: text("last_message_preview"),
+  participantOneUnread: integer("participant_one_unread").default(0),
+  participantTwoUnread: integer("participant_two_unread").default(0),
+  status: text("status").default("active"), // 'active' | 'archived' | 'blocked'
+  createdAt: timestamp("created_at").defaultNow()
+});
+
+// Individual chat messages
+export const chatMessages = pgTable("chat_messages", {
+  id: serial("id").primaryKey(),
+  conversationId: integer("conversation_id").notNull(),
+  senderId: integer("sender_id").notNull(),
+  senderName: text("sender_name"),
+  senderRole: text("sender_role"),
+  content: text("content").notNull(),
+  messageType: text("message_type").default("text"), // 'text' | 'image' | 'file' | 'voice'
+  attachmentUrl: text("attachment_url"),
+  attachmentName: text("attachment_name"),
+  isRead: boolean("is_read").default(false),
+  readAt: timestamp("read_at"),
+  isEdited: boolean("is_edited").default(false),
+  editedAt: timestamp("edited_at"),
+  isDeleted: boolean("is_deleted").default(false),
+  deletedAt: timestamp("deleted_at"),
+  replyToId: integer("reply_to_id"), // For threaded replies
+  metadata: jsonb("metadata"), // For additional data (reactions, etc.)
+  createdAt: timestamp("created_at").defaultNow()
+});
+
+// Typing indicators (transient, used by WebSocket)
+export const chatTypingIndicators = pgTable("chat_typing_indicators", {
+  id: serial("id").primaryKey(),
+  conversationId: integer("conversation_id").notNull(),
+  userId: integer("user_id").notNull(),
+  isTyping: boolean("is_typing").default(false),
+  lastTypingAt: timestamp("last_typing_at").defaultNow()
+});
+
 // Notification Preferences Table - PWA notification settings per user
 export const notificationPreferences = pgTable("notification_preferences", {
   id: serial("id").primaryKey(),
@@ -590,6 +639,10 @@ export const insertParentRequestSchema = createInsertSchema(parentRequests);
 export const insertEmailPreferencesSchema = createInsertSchema(emailPreferences);
 export const insertNotificationPreferencesSchema = createInsertSchema(notificationPreferences);
 
+// Chat system schemas
+export const insertChatConversationSchema = createInsertSchema(chatConversations);
+export const insertChatMessageSchema = createInsertSchema(chatMessages);
+
 // Insert types
 export type InsertBusinessPartner = z.infer<typeof insertBusinessPartnerSchema>;
 export type InsertSchoolPartnershipAgreement = z.infer<typeof insertSchoolPartnershipAgreementSchema>;
@@ -632,6 +685,10 @@ export type NotificationPreferences = typeof notificationPreferences.$inferSelec
 export type CommunicationLog = typeof communicationLogs.$inferSelect;
 export type TimetableSlot = typeof timetableSlots.$inferSelect;
 export type ParentStudentRelation = typeof parentStudentRelations.$inferSelect;
+export type ChatConversation = typeof chatConversations.$inferSelect;
+export type ChatMessage = typeof chatMessages.$inferSelect;
+export type InsertChatConversation = z.infer<typeof insertChatConversationSchema>;
+export type InsertChatMessage = z.infer<typeof insertChatMessageSchema>;
 
 // Daily connection tracking for analytics and reporting
 export const dailyConnections = pgTable("daily_connections", {
