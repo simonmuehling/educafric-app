@@ -112,6 +112,40 @@ export interface TimetableNotification extends RealTimeEvent {
   };
 }
 
+// ===== INSTANT CHAT TYPES =====
+export interface ChatMessageEvent extends RealTimeEvent {
+  type: 'CHAT_NEW_MESSAGE';
+  payload: {
+    messageId: number;
+    conversationId: number;
+    senderId: number;
+    senderName: string;
+    senderRole: string;
+    content: string;
+    messageType: string;
+    createdAt: Date;
+  };
+}
+
+export interface ChatTypingEvent extends RealTimeEvent {
+  type: 'CHAT_TYPING';
+  payload: {
+    conversationId: number;
+    userId: number;
+    userName: string;
+    isTyping: boolean;
+  };
+}
+
+export interface ChatReadReceiptEvent extends RealTimeEvent {
+  type: 'CHAT_READ_RECEIPT';
+  payload: {
+    conversationId: number;
+    userId: number;
+    readAt: Date;
+  };
+}
+
 // Connected user session management
 interface UserSession {
   userId: number;
@@ -282,6 +316,19 @@ export class RealTimeService {
             timestamp: new Date(),
             eventId: this.generateEventId()
           });
+          break;
+
+        // ===== INSTANT CHAT HANDLERS =====
+        case 'CHAT_TYPING':
+          await this.handleChatTyping(sessionId, message.payload);
+          break;
+
+        case 'CHAT_MESSAGE_SENT':
+          await this.handleChatMessageSent(sessionId, message.payload);
+          break;
+
+        case 'CHAT_MESSAGES_READ':
+          await this.handleChatMessagesRead(sessionId, message.payload);
           break;
 
         default:
@@ -668,6 +715,141 @@ export class RealTimeService {
         });
         break;
     }
+  }
+
+  // ===== INSTANT CHAT HANDLERS =====
+
+  // Handle typing indicator
+  private async handleChatTyping(sessionId: string, payload: any): Promise<void> {
+    const session = connectedUsers.get(sessionId);
+    if (!session) return;
+
+    const { conversationId, isTyping, recipientId } = payload;
+
+    const event: ChatTypingEvent = {
+      type: 'CHAT_TYPING',
+      payload: {
+        conversationId,
+        userId: session.userId,
+        userName: session.userName,
+        isTyping
+      },
+      userId: session.userId,
+      schoolId: session.schoolId,
+      timestamp: new Date(),
+      eventId: this.generateEventId()
+    };
+
+    // Send to the other participant only
+    if (recipientId) {
+      this.sendToSpecificUser(recipientId, event);
+    }
+
+    console.log(`[REALTIME] 💬 Typing indicator: ${session.userName} ${isTyping ? 'is typing' : 'stopped typing'} in conv ${conversationId}`);
+  }
+
+  // Handle new message sent (broadcast to recipient)
+  private async handleChatMessageSent(sessionId: string, payload: any): Promise<void> {
+    const session = connectedUsers.get(sessionId);
+    if (!session) return;
+
+    const { conversationId, messageId, content, messageType, recipientId, createdAt } = payload;
+
+    const event: ChatMessageEvent = {
+      type: 'CHAT_NEW_MESSAGE',
+      payload: {
+        messageId,
+        conversationId,
+        senderId: session.userId,
+        senderName: session.userName,
+        senderRole: session.userRole,
+        content,
+        messageType: messageType || 'text',
+        createdAt: createdAt || new Date()
+      },
+      userId: session.userId,
+      schoolId: session.schoolId,
+      timestamp: new Date(),
+      eventId: this.generateEventId()
+    };
+
+    // Send to the recipient
+    if (recipientId) {
+      this.sendToSpecificUser(recipientId, event);
+    }
+
+    console.log(`[REALTIME] 💬 New message in conv ${conversationId} from ${session.userName}`);
+  }
+
+  // Handle messages read (send receipt to sender)
+  private async handleChatMessagesRead(sessionId: string, payload: any): Promise<void> {
+    const session = connectedUsers.get(sessionId);
+    if (!session) return;
+
+    const { conversationId, senderId } = payload;
+
+    const event: ChatReadReceiptEvent = {
+      type: 'CHAT_READ_RECEIPT',
+      payload: {
+        conversationId,
+        userId: session.userId,
+        readAt: new Date()
+      },
+      userId: session.userId,
+      schoolId: session.schoolId,
+      timestamp: new Date(),
+      eventId: this.generateEventId()
+    };
+
+    // Notify the sender that their messages were read
+    if (senderId) {
+      this.sendToSpecificUser(senderId, event);
+    }
+
+    console.log(`[REALTIME] ✅ Messages read in conv ${conversationId} by ${session.userName}`);
+  }
+
+  // Public method to broadcast chat message (called from API route)
+  public broadcastChatMessage(recipientId: number, messageData: {
+    messageId: number;
+    conversationId: number;
+    senderId: number;
+    senderName: string;
+    senderRole: string;
+    content: string;
+    messageType: string;
+    createdAt: Date;
+  }): void {
+    const event: ChatMessageEvent = {
+      type: 'CHAT_NEW_MESSAGE',
+      payload: messageData,
+      userId: messageData.senderId,
+      schoolId: 0, // Not school-specific for chat
+      timestamp: new Date(),
+      eventId: this.generateEventId()
+    };
+
+    this.sendToSpecificUser(recipientId, event);
+    console.log(`[REALTIME] 💬 Broadcasted message ${messageData.messageId} to user ${recipientId}`);
+  }
+
+  // Public method to broadcast typing indicator
+  public broadcastChatTyping(recipientId: number, typingData: {
+    conversationId: number;
+    userId: number;
+    userName: string;
+    isTyping: boolean;
+  }): void {
+    const event: ChatTypingEvent = {
+      type: 'CHAT_TYPING',
+      payload: typingData,
+      userId: typingData.userId,
+      schoolId: 0,
+      timestamp: new Date(),
+      eventId: this.generateEventId()
+    };
+
+    this.sendToSpecificUser(recipientId, event);
   }
 
   // === UTILITY METHODS ===
