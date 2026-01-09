@@ -1,5 +1,5 @@
 # Overview
-Educafric is a bilingual, mobile-first EdTech platform designed to enhance educational access and quality across Africa. It provides tools for academic administration, communication, financial transactions, and offers offline capabilities. The platform aims to foster engaged educational communities, reduce disparities, and empower stakeholders through technology to improve educational outcomes and contribute to societal development.
+Educafric is a bilingual, mobile-first EdTech platform designed to enhance educational access and quality across Africa. It provides tools for academic administration, communication, and financial transactions, featuring offline capabilities to foster engaged educational communities and reduce disparities. The platform aims to empower stakeholders through technology, improving educational outcomes and contributing to societal development.
 
 # User Preferences
 - Module FunctionalTeacherAssignments.tsx entièrement bilingue (formulaire, labels, boutons, toasts). Onglets responsives (flex-col sm:flex-row, min-h-[44px]). Profils modifiables pour Teacher/Parent/Commercial via PUT endpoints. Fix WhatsApp password recovery (u.phone pas u.phoneNumber). ParentSubscription avec gestion erreurs. FIX CRITIQUE: fastModuleLoader.ts ligne 100 mapping 'subscription' corrigé vers ParentSubscription (pas SubscriptionStatusCard).
@@ -19,9 +19,9 @@ Educafric is a bilingual, mobile-first EdTech platform designed to enhance educa
 - L'endpoint `/api/director/students` a été corrigé pour retourner UNIQUEMENT les mock students pour les utilisateurs sandbox (email contenant @test.educafric.com, @educafric.demo, sandbox@, demo@, .sandbox@, .demo@, .test@). Les écoles réelles reçoivent UNIQUEMENT les étudiants de la base de données via une requête Drizzle. JAMAIS de mock data pour les écoles réelles.
 - Le module Fiche Scolaire (Mastersheet) dans Gestion Académique utilise maintenant UNIQUEMENT des données database via l'endpoint `/api/director/bulletins/list`. Cet endpoint interroge la table `bulletinComprehensive` avec isolation multi-tenant stricte (filtre par `schoolId`, `classId`, et `term`). L'affichage inclus : informations réelles de l'école depuis `/api/director/settings`, liste des bulletins créés avec noms d'élèves/moyennes/rangs/codes de vérification, et entête d'impression bilingue format ministère (RÉPUBLIQUE DU CAMEROUN / REPUBLIC OF CAMEROON) avec logo de l'école et délégations officielles. ZÉRO mock data, tout vient de la database.
 - Les modules enseignant récupèrent maintenant les matières/classes depuis `teacherSubjectAssignments` (module "Mes Classes") et NON depuis `timetables`. Endpoints modifiés:
-  - `/api/teacher/bulletin/class-subjects/:classId` - Récupère UNIQUEMENT depuis `teacherSubjectAssignments` pour afficher automatiquement le nom de l'enseignant + matière assignée dans "Notes par matière"
-  - `/api/teacher/timetable` - Récupère depuis `timetables` ET `teacherSubjectAssignments`, retourne `assignedClasses` et `assignedSubjects` dans la réponse
-  - La source principale pour les matières assignées est TOUJOURS `teacherSubjectAssignments`, pas `timetables`
+    - `/api/teacher/bulletin/class-subjects/:classId` - Récupère UNIQUEMENT depuis `teacherSubjectAssignments` pour afficher automatiquement le nom de l'enseignant + matière assignée dans "Notes par matière"
+    - `/api/teacher/timetable` - Récupère depuis `timetables` ET `teacherSubjectAssignments`, retourne `assignedClasses` et `assignedSubjects` dans la réponse
+    - La source principale pour les matières assignées est TOUJOURS `teacherSubjectAssignments`, pas `timetables`
 - Le module Présences enseignant a maintenant 3 options de statut au lieu de 2: Présent (vert), Retard (orange), Absent (rouge). Chaque élève a 3 boutons cliquables avec icônes (CheckCircle, Clock, XCircle). POST `/api/teacher/attendance` et GET `/api/teacher/profile` endpoints ajoutés.
 - La table pour les inscriptions d'élèves aux classes est `enrollments`, PAS `class_enrollment`. Structure: `id`, `student_id`, `academic_year_id`, `enrollment_date`, `status`. TOUJOURS utiliser `enrollments` dans les requêtes SQL pour récupérer les élèves d'une classe.
 - Pour lier parents et élèves, utiliser la table `parent_student_relations` (colonnes: `id`, `parent_id`, `student_id`, `relationship`, `is_primary`, `created_at`). NE JAMAIS chercher un `parent_id` dans la table `users` - cette colonne n'existe pas. Exemple SQL: `SELECT parent_id FROM parent_student_relations WHERE student_id FROM (...)`.
@@ -36,25 +36,25 @@ Educafric is a bilingual, mobile-first EdTech platform designed to enhance educa
 - DOCUMENTS MUST APPEAR INSTANTLY: User is frustrated that document creation takes hours - streamline to work immediately.
 - ALL documents MUST be placed in `/public/documents/` directory with lowercase kebab-case naming.
 - Use consolidated EDUCAFRIC system for document creation:
-  1. Create specialized PDF generator method in `server/services/pdfGenerator.ts`.
-  2. Add document to commercial docs list in `server/routes.ts` (both view and download routes).
-  3. Create HTML version in `/public/documents/` for web viewing.
-  4. Update alphabetical index in `00-index-documents-alphabetique.html`.
-  5. Test via API routes `/api/commercial/documents/{id}/download` and direct HTML access.
+    1. Create specialized PDF generator method in `server/services/pdfGenerator.ts`.
+    2. Add document to commercial docs list in `server/routes.ts` (both view and download routes).
+    3. Create HTML version in `/public/documents/` for web viewing.
+    4. Update alphabetical index in `00-index-documents-alphabetique.html`.
+    5. Test via API routes `/api/commercial/documents/{id}/download` and direct HTML access.
 - Les composants Logo.tsx et FrontpageNavbar.tsx utilisent un système de fallback à 4 niveaux pour garantir l'affichage du logo: 1) /educafric-128.png, 2) /educafric-512.png, 3) /favicon.ico, 4) Icône GraduationCap. Le texte "Educafric" est TOUJOURS visible indépendamment du statut de l'image. LOGO_SOURCES array avec useState pour tracking des erreurs. NE JAMAIS supprimer ces fallbacks.
 - RÈGLES D'ACCÈS CRITIQUES POUR MODULE COURS EN LIGNE:
-  - INTERFACE VISIBLE POUR TOUS: TOUS les enseignants DOIVENT voir l'interface complète avec les 3 onglets ("Mes Cours", "Sessions à Venir", "Créer un Cours") - JAMAIS cacher les onglets basé sur le statut d'abonnement.
-  - LOGIQUE FRONTEND: La condition `!hasPersonalSubscription` affiche les onglets avec restrictions (prompts d'achat). La condition `hasPersonalSubscription` affiche l'interface complète avec création de cours.
-  - 3 NIVEAUX D'ACCÈS:
-    1) Abonnement Personnel (activationType='teacher') → Accès complet, création de cours indépendants
-    2) Activation École (activationType='school') → Sessions assignées uniquement, prompt achat pour créer cours
-    3) Sans Abonnement (activationType=null) → Interface visible, tous les boutons de création montrent prompt d'achat
-  - COURS LIÉ À UNE ÉCOLE NON ACTIVÉ: Si `!hasSchoolAccess`, afficher un avertissement orange expliquant: "Module non activé par votre école" avec 2 options: a) Demander au directeur de contacter Educafric, b) Acheter un abonnement personnel.
-  - BACKEND: `onlineClassAccessService.checkAccess()` retourne TOUJOURS `allowed: true` pour les enseignants, avec flags `canCreateCourses` et `canStartSession` pour contrôler les actions.
-  - MULTI-RÔLE: Vérifier `effectiveRole = user.activeRole || user.role` pour compatibilité Parent→Teacher.
-  - NE JAMAIS: Cacher les onglets de l'interface basé sur `hasPersonalSubscription` ou `hasSchoolAccess` - toujours montrer l'interface complète avec restrictions contextuelles.
-  - DIRECTEUR - AVERTISSEMENT ACTIVATION: Dans OnlineClassesManager.tsx (director), vérifier `isSchoolActivated` via `/api/online-class-activations/school-status`. Si `!isSchoolActivated`, afficher un bandeau orange avec bouton WhatsApp pour contacter Educafric.
-  - BOUTON WHATSAPP: Tous les boutons "Contacter Educafric" doivent ouvrir WhatsApp (pas email) avec message pré-rempli. NUMÉRO OFFICIEL: `237656200472`. Format: `https://wa.me/237656200472?text=...`. NE JAMAIS utiliser le numéro placeholder `237699999999`.
+    - INTERFACE VISIBLE POUR TOUS: TOUS les enseignants DOIVENT voir l'interface complète avec les 3 onglets ("Mes Cours", "Sessions à Venir", "Créer un Cours") - JAMAIS cacher les onglets basé sur le statut d'abonnement.
+    - LOGIQUE FRONTEND: La condition `!hasPersonalSubscription` affiche les onglets avec restrictions (prompts d'achat). La condition `hasPersonalSubscription` affiche l'interface complète avec création de cours.
+    - 3 NIVEAUX D'ACCÈS:
+        1) Abonnement Personnel (activationType='teacher') → Accès complet, création de cours indépendants
+        2) Activation École (activationType='school') → Sessions assignées uniquement, prompt achat pour créer cours
+        3) Sans Abonnement (activationType=null) → Interface visible, tous les boutons de création montrent prompt d'achat
+    - COURS LIÉ À UNE ÉCOLE NON ACTIVÉ: Si `!hasSchoolAccess`, afficher un avertissement orange expliquant: "Module non activé par votre école" avec 2 options: a) Demander au directeur de contacter Educafric, b) Acheter un abonnement personnel.
+    - BACKEND: `onlineClassAccessService.checkAccess()` retourne TOUJOURS `allowed: true` pour les enseignants, avec flags `canCreateCourses` et `canStartSession` pour contrôler les actions.
+    - MULTI-RÔLE: Vérifier `effectiveRole = user.activeRole || user.role` pour compatibilité Parent→Teacher.
+    - NE JAMAIS: Cacher les onglets de l'interface basé sur `hasPersonalSubscription` ou `hasSchoolAccess` - toujours montrer l'interface complète avec restrictions contextuelles.
+    - DIRECTEUR - AVERTISSEMENT ACTIVATION: Dans OnlineClassesManager.tsx (director), vérifier `isSchoolActivated` via `/api/online-class-activations/school-status`. Si `!isSchoolActivated`, afficher un bandeau orange avec bouton WhatsApp pour contacter Educafric.
+    - BOUTON WHATSAPP: Tous les boutons "Contacter Educafric" doivent ouvrir WhatsApp (pas email) avec message pré-rempli. NUMÉRO OFFICIEL: `237656200472`. Format: `https://wa.me/237656200472?text=...`. NE JAMAIS utiliser le numéro placeholder `237699999999`.
 - Le logo de l'école DOIT être récupéré depuis `/api/director/settings` (champ `school.logoUrl` ou `profile.logoUrl`) et stocké dans `formData.schoolLogoUrl`. Tous les endroits générant des bulletins DOIVENT utiliser `formData.schoolLogoUrl` au lieu de données hardcodées. Le champ database est `schools.logoUrl` (pas `logo`). L'endpoint `PUT /api/school/logo` utilise `db.update(schools).set({ logoUrl: ... })` pour persister.
 - Le générateur PDF (`pdfGenerator.ts`) utilise un système de résolution hybride pour trouver les logos d'école. Chemins testés: 1) Chemin normalisé, 2) `public/` + chemin, 3) `public/uploads/logos/` + nom fichier, 4) Chemin relatif depuis projet. Logs détaillés: `[PDF_LOGO] 🔍 Searching logo...`. Le formulaire de bulletin affiche un aperçu du logo + option d'upload manuel dans la section "Informations École". Les logos sont stockés dans `public/uploads/logos/` avec noms format `school-{id}-{timestamp}.{ext}`.
 - Le format GIF n'est PAS supporté par le générateur PDF (pdf-lib). SEULS les formats PNG et JPEG sont autorisés pour les logos d'école. Validation côté frontend (input accept + vérification file.type) ET côté backend (multer fileFilter). Message d'erreur bilingue si tentative d'upload GIF: "Format GIF non supporté. Utilisez PNG ou JPEG pour que le logo apparaisse sur les bulletins PDF."
@@ -64,39 +64,39 @@ Educafric is a bilingual, mobile-first EdTech platform designed to enhance educa
 - PATTERN BILINGUE STANDARD: Utiliser hook `useLanguage()` avec objet `t` contenant `fr` et `en`. Pour états vides: Card avec icône (className="w-16 h-16 text-gray-300 mx-auto mb-4"), message FR/EN centré, texte gris. Pour chargement: Spinner avec texte "Chargement..."/"Loading...". Format: `{language === 'fr' ? 'Texte FR' : 'English text'}`.
 - RÉDUCTIONS FAMILIALES DYNAMIQUES PAR ÉCOLE (Janvier 2026): Le système de réduction pour parents avec plusieurs enfants est ENTIÈREMENT dynamique et configurable par école via Site Admin. Table `school_parent_pricing` contient les champs `discount_2_children` et `discount_3plus_children` (valeurs par défaut: 20% et 40%). Endpoint `/api/parent/pricing` récupère les réductions depuis l'école des enfants du parent. Frontend `ParentSubscription.tsx` utilise `pricing.discounts.twoChildren` et `pricing.discounts.threePlusChildren` de l'API. Site Admin modifie via `PATCH /api/siteadmin/schools/:id/parent-pricing` avec `discount2Children` et `discount3PlusChildren`. NE JAMAIS hardcoder les pourcentages de réduction - toujours utiliser les valeurs de la database.
 - Fichier `client/src/index.css` contient toutes les règles CSS pour les bulletins. NE JAMAIS supprimer ou modifier ces règles sans backup:
-  - LAYOUT FLEXBOX ADAPTATIF:
-    - `.bulletin-a4-optimized` : Container principal avec `display: flex`, `flex-direction: column`, `min-height: 297mm`
-    - `.bulletin-main-content` : Contenu avec `flex: 1 1 auto` pour remplir l'espace disponible
-    - `.grades-table-wrapper` : Tableau notes avec `flex: 1 1 auto` pour s'adapter au nombre de matières
-    - `.bulletin-footer-section` : Pied avec `flex: 0 0 auto` et `margin-top: auto` pour rester en bas
-  - BILAN ANNUEL T3 VISIBLE:
-    - `.annual-summary-print` : `display: block !important`, `visibility: visible !important` en preview ET print
-    - NE JAMAIS ajouter `display: none` sur `.border-orange-300` ou éléments du bilan annuel
-    - Règle `.pdf-capture-mode .border-orange-300 { display: none }` INTERDITE
-  - A4 CONTAINER:
-    - `.a4-container` : `display: flex`, `flex-direction: column`, `min-height: 297mm`
-    - PAS de `overflow: hidden` ou `max-height` restrictifs
-  - PDF CAPTURE MODE (for html2canvas):
-    - `.pdf-capture-mode #print-root` : `width: 794px`, `min-height: 1123px`
-    - `.pdf-capture-mode .a4-container` : `max-width: 778px`, `min-height: 1107px`
-    - `.pdf-capture-mode .bulletin-a4-optimized` : `min-height: 1100px`, background blanc
-    - Polices compactes: headers 7-8px, tables 6-8px, student info 7px
-  - PRINT STYLES (@media print):
-    - `.annual-summary-print` : toujours visible avec background blanc
-    - Couleurs préservées: `.text-red-600`, `.text-green-700`, `.text-orange-700` avec !important
-    - `-webkit-print-color-adjust: exact !important` pour impression couleur
-  - COMPOSANT: `client/src/components/academic/ReportCardPreview.tsx` génère les bulletins avec classes CSS appropriées
+    - LAYOUT FLEXBOX ADAPTATIF:
+        - `.bulletin-a4-optimized` : Container principal avec `display: flex`, `flex-direction: column`, `min-height: 297mm`
+        - `.bulletin-main-content` : Contenu avec `flex: 1 1 auto` pour remplir l'espace disponible
+        - `.grades-table-wrapper` : Tableau notes avec `flex: 1 1 auto` pour s'adapter au nombre de matières
+        - `.bulletin-footer-section` : Pied avec `flex: 0 0 auto` et `margin-top: auto` pour rester en bas
+    - BILAN ANNUEL T3 VISIBLE:
+        - `.annual-summary-print` : `display: block !important`, `visibility: visible !important` en preview ET print
+        - NE JAMAIS ajouter `display: none` sur `.border-orange-300` ou éléments du bilan annuel
+        - Règle `.pdf-capture-mode .border-orange-300 { display: none }` INTERDITE
+    - A4 CONTAINER:
+        - `.a4-container` : `display: flex`, `flex-direction: column`, `min-height: 297mm`
+        - PAS de `overflow: hidden` ou `max-height` restrictifs
+    - PDF CAPTURE MODE (for html2canvas):
+        - `.pdf-capture-mode #print-root` : `width: 794px`, `min-height: 1123px`
+        - `.pdf-capture-mode .a4-container` : `max-width: 778px`, `min-height: 1107px`
+        - `.pdf-capture-mode .bulletin-a4-optimized` : `min-height: 1100px`, background blanc
+        - Polices compactes: headers 7-8px, tables 6-8px, student info 7px
+    - PRINT STYLES (@media print):
+        - `.annual-summary-print` : toujours visible avec background blanc
+        - Couleurs préservées: `.text-red-600`, `.text-green-700`, `.text-orange-700` avec !important
+        - `-webkit-print-color-adjust: exact !important` pour impression couleur
+    - COMPOSANT: `client/src/components/academic/ReportCardPreview.tsx` génère les bulletins avec classes CSS appropriées
 - DESIGN MODERNE JANVIER 2026: Refonte UI complète avec thème violet moderne (#7C5CFC). Composants clés:
-  - `UnifiedIconDashboard.tsx`: Grille principale d'icônes avec 3 colonnes mobile / 4-6 colonnes desktop
-  - `DashboardNavbar.tsx`: Barre de navigation avec titre, sous-titre, langue, notifications, déconnexion
-  - `MobileIconTabNavigation.tsx`: Navigation par onglets sur mobile
-  - `ResponsiveTabs.tsx`: Composant réutilisable pour onglets responsifs
+    - `UnifiedIconDashboard.tsx`: Grille principale d'icônes avec 3 colonnes mobile / 4-6 colonnes desktop
+    - `DashboardNavbar.tsx`: Barre de navigation avec titre, sous-titre, langue, notifications, déconnexion
+    - `MobileIconTabNavigation.tsx`: Navigation par onglets sur mobile
+    - `ResponsiveTabs.tsx`: Composant réutilisable pour onglets responsifs
 - PATTERN ONGLETS RESPONSIFS (STANDARD OBLIGATOIRE):
-  - TabsList: `grid w-full grid-cols-X h-auto p-1.5 bg-[#F3F5F7] rounded-xl gap-1`
-  - TabsTrigger: `flex items-center justify-center gap-2 min-h-[44px] px-2 py-2 text-xs sm:text-sm data-[state=active]:bg-white data-[state=active]:text-[#7C5CFC] data-[state=active]:shadow-sm`
-  - Labels: `<span className="hidden sm:inline truncate">{label}</span>` (icônes seules sur mobile, icônes+texte sur desktop)
-  - Icônes: `className="w-4 h-4 flex-shrink-0"`
-  - Modules mis à jour: TeacherAbsenceManager, TeacherOnlineClasses, StudentCommunications, ParentCommunications, FunctionalParentProfile, FunctionalStudentProfile, et 10+ autres
+    - TabsList: `grid w-full grid-cols-X h-auto p-1.5 bg-[#F3F5F7] rounded-xl gap-1`
+    - TabsTrigger: `flex items-center justify-center gap-2 min-h-[44px] px-2 py-2 text-xs sm:text-sm data-[state=active]:bg-white data-[state=active]:text-[#7C5CFC] data-[state=active]:shadow-sm`
+    - Labels: `<span className="hidden sm:inline truncate">{label}</span>` (icônes seules sur mobile, icônes+texte sur desktop)
+    - Icônes: `className="w-4 h-4 flex-shrink-0"`
+    - Modules mis à jour: TeacherAbsenceManager, TeacherOnlineClasses, StudentCommunications, ParentCommunications, FunctionalParentProfile, FunctionalStudentProfile, et 10+ autres
 - TITRE DASHBOARD NON DUPLIQUÉ: Le titre et sous-titre du dashboard apparaissent UNIQUEMENT dans DashboardNavbar. NE JAMAIS ajouter de section titre dans le contenu principal (UnifiedIconDashboard). Le composant affiche directement la grille d'icônes sans titre répété.
 - COULEURS ICÔNES PRÉSERVÉES: Les icônes de modules conservent leurs couleurs distinctives originales (vert, violet, orange, rose, etc.). NE JAMAIS forcer toutes les icônes en violet - chaque module a sa couleur identitaire.
 - IMPORT EXCEL ENSEIGNANTS: L'import bulk des enseignants utilise le mot de passe par défaut `Educafric2024!` pour tous les nouveaux comptes. Champs importés: firstName, lastName, email, phone, gender, matricule, dateOfBirth, placeOfBirth, teachingSubjects. IMPORTANT: Le rôle DOIT être `'Teacher'` avec T majuscule (pas 'teacher' minuscule) car l'API `/api/director/teachers` filtre avec `eq(users.role, 'Teacher')`. Stratégie de déduplication: `ON CONFLICT DO NOTHING` sur email et phone. Les enseignants peuvent se connecter avec email OU téléphone + mot de passe `Educafric2024!` et doivent changer leur mot de passe après première connexion.
