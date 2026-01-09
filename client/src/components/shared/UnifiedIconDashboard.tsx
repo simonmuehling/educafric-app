@@ -197,12 +197,6 @@ const UnifiedIconDashboard: React.FC<UnifiedIconDashboardProps> = ({
       />
       
       <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8 py-4 sm:py-8">
-        {/* Modern title section */}
-        <div className="mb-6 sm:mb-8 text-center">
-          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-[#1A202C]">{title}</h1>
-          {subtitle && <p className="text-sm text-[#90A3BF] mt-2">{subtitle}</p>}
-        </div>
-
         {/* Mobile-first compact grid - Max 3 items per row on mobile */}
         <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3 sm:gap-4 md:gap-5 max-w-5xl mx-auto" data-testid="main-navigation">
           {(Array.isArray(modules) ? modules : []).map((module, index) => (
