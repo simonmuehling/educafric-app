@@ -186,7 +186,7 @@ const UnifiedIconDashboard: React.FC<UnifiedIconDashboardProps> = ({
   }, [modules]);
 
   const renderIconGrid = () => (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
+    <div className="min-h-screen bg-[#F3F5F7] font-['Plus_Jakarta_Sans',sans-serif]">
       <DashboardNavbar 
         title={title} 
         subtitle={subtitle} 
@@ -197,31 +197,39 @@ const UnifiedIconDashboard: React.FC<UnifiedIconDashboardProps> = ({
       />
       
       <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8 py-4 sm:py-8">
+        {/* Modern title section */}
+        <div className="mb-6 sm:mb-8 text-center">
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-[#1A202C]">{title}</h1>
+          {subtitle && <p className="text-sm text-[#90A3BF] mt-2">{subtitle}</p>}
+        </div>
+
         {/* Mobile-first compact grid - Max 3 items per row on mobile */}
-        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2 sm:gap-3 md:gap-4 max-w-5xl mx-auto" data-testid="main-navigation">
+        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3 sm:gap-4 md:gap-5 max-w-5xl mx-auto" data-testid="main-navigation">
           {(Array.isArray(modules) ? modules : []).map((module, index) => (
             <div
               key={module.id}
               onClick={() => handleModuleClick(module.id)}
               onMouseEnter={() => handleModuleHover(module.id)}
-              className="relative bg-white/90 backdrop-blur-sm rounded-lg sm:rounded-xl p-2 sm:p-3 md:p-4 shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer border border-gray-100/50 hover:border-blue-200 group min-h-[80px] sm:min-h-[100px] touch-action-manipulation"
+              className="relative bg-white rounded-xl p-3 sm:p-4 shadow-sm hover:shadow-lg transition-all duration-300 cursor-pointer border border-transparent hover:border-[#7C5CFC]/20 group min-h-[90px] sm:min-h-[110px] touch-action-manipulation"
               style={{ animationDelay: `${index * 30}ms` }}
               data-testid={module.id === 'grades' ? 'student-grades' : module.id === 'assignments' ? 'student-homework' : `module-${module.id}`}
             >
               {/* Compact mobile layout */}
-              <div className="flex flex-col items-center text-center space-y-1 sm:space-y-2 h-full justify-center">
-                <div className={`w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 ${module.color} rounded-lg sm:rounded-xl flex items-center justify-center text-white shadow-sm transition-all duration-300 group-hover:scale-110 dashboard-icon`}>
-                  <div className="scale-75 sm:scale-85 md:scale-100 module-icon">
+              <div className="flex flex-col items-center text-center space-y-2 sm:space-y-3 h-full justify-center">
+                <div className={`w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 rounded-xl flex items-center justify-center text-white shadow-md transition-all duration-300 group-hover:scale-110 group-hover:shadow-lg ${
+                  module.color.includes('gradient') ? module.color : `bg-gradient-to-br ${module.color.replace('bg-', 'from-')}/90 to-[#7C5CFC]`
+                }`}>
+                  <div className="scale-85 sm:scale-90 md:scale-100 module-icon">
                     {module.icon}
                   </div>
                 </div>
-                <span className="text-[10px] sm:text-xs md:text-sm font-medium text-gray-700 leading-tight line-clamp-2 max-w-full break-words">
+                <span className="text-[11px] sm:text-xs md:text-sm font-semibold text-[#1A202C] leading-tight line-clamp-2 max-w-full break-words group-hover:text-[#7C5CFC] transition-colors">
                   {module.label}
                 </span>
               </div>
               
-              {/* Subtle gradient overlay for depth */}
-              <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent rounded-lg sm:rounded-xl pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+              {/* Modern gradient overlay on hover */}
+              <div className="absolute inset-0 bg-gradient-to-br from-[#7C5CFC]/5 to-transparent rounded-xl pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
             </div>
           ))}
         </div>
@@ -261,7 +269,7 @@ const UnifiedIconDashboard: React.FC<UnifiedIconDashboardProps> = ({
     }
 
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
+      <div className="min-h-screen bg-[#F3F5F7] font-['Plus_Jakarta_Sans',sans-serif]">
         <DashboardNavbar 
           title={activeModuleData.label} 
           onTutorialClick={() => {
@@ -271,21 +279,21 @@ const UnifiedIconDashboard: React.FC<UnifiedIconDashboardProps> = ({
         />
         
         <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8 py-4 sm:py-8">
-          {/* Mobile-optimized back button */}
+          {/* Mobile-optimized back button with modern styling */}
           <div className="mb-4 sm:mb-6">
             <button
               onClick={handleBackClick}
-              className="inline-flex items-center space-x-2 px-3 sm:px-4 py-2 bg-white rounded-lg shadow-md hover:shadow-lg transition-all duration-300 text-gray-700 hover:text-gray-900 border border-gray-200 hover:border-gray-300 text-sm sm:text-base"
+              className="inline-flex items-center space-x-2 px-4 sm:px-5 py-2.5 bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-300 text-[#596780] hover:text-[#7C5CFC] border border-[#C3D4E9] hover:border-[#7C5CFC]/30 text-sm sm:text-base font-semibold"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
               </svg>
-              <span className="font-medium">{t.backToDashboard}</span>
+              <span>{t.backToDashboard}</span>
             </button>
           </div>
 
-          {/* Mobile-optimized module content container */}
-          <div className="bg-white rounded-xl sm:rounded-2xl shadow-lg p-3 sm:p-4 md:p-6 overflow-hidden">
+          {/* Mobile-optimized module content container with modern styling */}
+          <div className="bg-white rounded-xl sm:rounded-2xl shadow-sm p-3 sm:p-4 md:p-6 overflow-hidden">
             <div className="w-full overflow-x-auto">
               <OptimizedModuleWrapper key={`${activeModule}-${forceUpdate}`} moduleName={activeModule || undefined} className="animate-in fade-in-0 duration-300">
                 {(() => {
