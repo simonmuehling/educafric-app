@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { 
-  BookOpen, MessageSquare, Mail,
+  BookOpen, MessageSquare,
   Calendar, FileText, Bell,
   MapPin, Users, User, GraduationCap,
   CheckCircle2, Star, CreditCard, HelpCircle,
@@ -84,12 +84,6 @@ const ParentDashboard = ({ activeModule }: ParentDashboardProps) => {
       label: t.communications,
       icon: <MessageSquare className="w-5 h-5 sm:w-6 sm:h-6" />,
       color: 'bg-purple-500'
-    },
-    {
-      id: 'parent-instant-chat',
-      label: language === 'fr' ? 'Chat Enseignants' : 'Teacher Chat',
-      icon: <Mail className="w-5 h-5 sm:w-6 sm:h-6" />,
-      color: 'bg-teal-500'
     },
     {
       id: 'parent-library',

@@ -107,8 +107,6 @@ class FastModuleLoader {
       'parent.communications': () => import('@/components/parent/modules/FunctionalParentMessages'), // Role-namespaced
       'parent.messages': () => import('@/components/parent/modules/FunctionalParentMessages'), // Role-namespaced
       'parent.profile': () => import('@/components/parent/modules/FunctionalParentProfile'), // Role-namespaced
-      'parent-instant-chat': () => import('@/components/parent/modules/ParentInstantChat'), // Instant messaging with teachers
-      'parent.instant-chat': () => import('@/components/parent/modules/ParentInstantChat'), // Role-namespaced
       
       // CRITICAL MISSING Parent modules that were causing slow loading!
       'parent-messages': () => import('@/components/parent/modules/FunctionalParentMessages'),
@@ -175,8 +173,6 @@ class FastModuleLoader {
       'teacher-communications': () => import('@/components/teacher/modules/FunctionalTeacherCommunications'),
       'teacher.communications': () => import('@/components/teacher/modules/FunctionalTeacherCommunications'), // Role-namespaced
       'teacher.messages': () => import('@/components/teacher/modules/FunctionalTeacherCommunications'), // Role-namespaced
-      'teacher-instant-chat': () => import('@/components/teacher/modules/TeacherInstantChat'), // Instant messaging with parents
-      'teacher.instant-chat': () => import('@/components/teacher/modules/TeacherInstantChat'), // Role-namespaced
       'teacher-absence-declaration': () => import('@/components/teacher/modules/TeacherAbsenceDeclaration'),
       'absence-declaration': () => import('@/components/teacher/modules/TeacherAbsenceDeclaration'),
       'teacher-independent-courses': () => import('@/components/teacher/modules/TeacherIndependentCourses'),
