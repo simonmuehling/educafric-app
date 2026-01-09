@@ -216,9 +216,7 @@ const UnifiedIconDashboard: React.FC<UnifiedIconDashboardProps> = ({
             >
               {/* Compact mobile layout */}
               <div className="flex flex-col items-center text-center space-y-2 sm:space-y-3 h-full justify-center">
-                <div className={`w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 rounded-xl flex items-center justify-center text-white shadow-md transition-all duration-300 group-hover:scale-110 group-hover:shadow-lg ${
-                  module.color.includes('gradient') ? module.color : `bg-gradient-to-br ${module.color.replace('bg-', 'from-')}/90 to-[#7C5CFC]`
-                }`}>
+                <div className={`w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 rounded-xl flex items-center justify-center text-white shadow-md transition-all duration-300 group-hover:scale-110 group-hover:shadow-lg ${module.color}`}>
                   <div className="scale-85 sm:scale-90 md:scale-100 module-icon">
                     {module.icon}
                   </div>
