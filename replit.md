@@ -1,5 +1,5 @@
 # Overview
-Educafric is a bilingual, mobile-first EdTech platform designed to enhance educational access and quality across Africa. It provides a comprehensive ecosystem for academic administration, communication, financial transactions, and offline functionalities. The platform aims to foster community engagement and significantly improve educational outcomes throughout the continent, aspiring to become a leading educational platform in Africa.
+Educafric is a bilingual, mobile-first EdTech platform designed to enhance educational access and quality across Africa. It provides tools for academic administration, communication, financial transactions, and offline functionality, aiming to foster community engagement and significantly improve educational outcomes. The platform aspires to be a leading educational solution in Africa.
 
 # User Preferences
 - Module FunctionalTeacherAssignments.tsx entièrement bilingue (formulaire, labels, boutons, toasts). Onglets responsives (flex-col sm:flex-row, min-h-[44px]). Profils modifiables pour Teacher/Parent/Commercial via PUT endpoints. Fix WhatsApp password recovery (u.phone pas u.phoneNumber). ParentSubscription avec gestion erreurs. FIX CRITIQUE: fastModuleLoader.ts ligne 100 mapping 'subscription' corrigé vers ParentSubscription (pas SubscriptionStatusCard).
@@ -88,20 +88,33 @@ Educafric is a bilingual, mobile-first EdTech platform designed to enhance educa
     - Couleurs préservées: `.text-red-600`, `.text-green-700`, `.text-orange-700` avec !important
     - `-webkit-print-color-adjust: exact !important` pour impression couleur
   - COMPOSANT: `client/src/components/academic/ReportCardPreview.tsx` génère les bulletins avec classes CSS appropriées
+- DESIGN MODERNE JANVIER 2026: Refonte UI complète avec thème violet moderne (#7C5CFC). Composants clés:
+  - `UnifiedIconDashboard.tsx`: Grille principale d'icônes avec 3 colonnes mobile / 4-6 colonnes desktop
+  - `DashboardNavbar.tsx`: Barre de navigation avec titre, sous-titre, langue, notifications, déconnexion
+  - `MobileIconTabNavigation.tsx`: Navigation par onglets sur mobile
+  - `ResponsiveTabs.tsx`: Composant réutilisable pour onglets responsifs
+- PATTERN ONGLETS RESPONSIFS (STANDARD OBLIGATOIRE):
+  - TabsList: `grid w-full grid-cols-X h-auto p-1.5 bg-[#F3F5F7] rounded-xl gap-1`
+  - TabsTrigger: `flex items-center justify-center gap-2 min-h-[44px] px-2 py-2 text-xs sm:text-sm data-[state=active]:bg-white data-[state=active]:text-[#7C5CFC] data-[state=active]:shadow-sm`
+  - Labels: `<span className="hidden sm:inline truncate">{label}</span>` (icônes seules sur mobile, icônes+texte sur desktop)
+  - Icônes: `className="w-4 h-4 flex-shrink-0"`
+  - Modules mis à jour: TeacherAbsenceManager, TeacherOnlineClasses, StudentCommunications, ParentCommunications, FunctionalParentProfile, FunctionalStudentProfile, et 10+ autres
+- TITRE DASHBOARD NON DUPLIQUÉ: Le titre et sous-titre du dashboard apparaissent UNIQUEMENT dans DashboardNavbar. NE JAMAIS ajouter de section titre dans le contenu principal (UnifiedIconDashboard). Le composant affiche directement la grille d'icônes sans titre répété.
+- COULEURS ICÔNES PRÉSERVÉES: Les icônes de modules conservent leurs couleurs distinctives originales (vert, violet, orange, rose, etc.). NE JAMAIS forcer toutes les icônes en violet - chaque module a sa couleur identitaire.
 
 # System Architecture
-- **UI/UX Decisions**: The platform features an African-themed, mobile-first, PWA-enabled UI built with Radix UI, Shadcn/UI, and Tailwind CSS. All alert/confirmation dialogs consistently use a `bg-white` background. Student ID cards adhere to a standardized official template supporting color printing, digital signatures, QR codes, and mobile-friendly printing. A 4-level fallback system ensures logo display, and school logos for PDF generation are restricted to PNG and JPEG formats. Online course interfaces for teachers are always visible, with access rules dynamically enforced based on subscription types.
+- **UI/UX Decisions**: The platform features an African-themed, mobile-first, PWA-enabled UI using Radix UI, Shadcn/UI, and Tailwind CSS with a modern purple theme (#7C5CFC). Dialogs use a `bg-white` background. Student ID cards adhere to a standardized official template. A 4-level fallback system ensures logo display, with school logos for PDFs restricted to PNG and JPEG. Online course interfaces are always visible, with access rules dynamically enforced based on subscription types. Responsive tab patterns are standard.
 - **Technical Implementations**:
-    - **Frontend**: React (TypeScript), Wouter for routing, TanStack Query for data fetching, and PWA capabilities.
-    - **Backend**: RESTful API built with Express.js.
-    - **Database & ORM**: PostgreSQL on Neon Serverless, managed with Drizzle ORM.
-    - **Authentication**: Session-based authentication via `express-session` and `Passport.js`, including Firebase Google OAuth, supporting an 8-role-based access control system and multi-role users. Phone numbers are primary unique identifiers, with email being optional.
-    - **Route Architecture**: Express.js prioritizes internal routes (Settings, API Modules, System Routes, Services) over external routers, and module mappings are strictly separated by dashboard.
-    - **Cache Management**: `queryClient.ts` utilizes `serializeQueryKey()` to prevent query key collisions, ensuring immediate data display after imports.
-    - **Document Management**: A centralized system for instant PDF document generation using a specialized generator (`server/services/pdfGenerator.ts`), storing documents in `/public/documents/`, and employing a hybrid logo resolution system for PDFs.
-    - **Bulletin Generation**: Bulletins are generated using an adaptive flexbox layout defined in `client/src/index.css` to ensure optimal print quality and visibility of annual summaries, leveraging `html2canvas` for PDF capture.
-- **Feature Specifications**: Includes real-time attendance tracking with three statuses (Present, Late, Absent), flexible timetable management, multi-channel notifications (Email, WhatsApp, PWA), bilingual templates, integrated payment systems, iCal/ICS export, robust bulk Excel import with immediate data display, Competency-Based Approach (CBA) bulletin generation, and Jitsi Meet integration for online classes. Schools can define custom academic levels via a dedicated API and UI. Online course access rules are dynamically applied based on subscription types. Parent subscriptions are dynamic, configurable by Site Admins via `school_parent_pricing`, and include automatic family discounts. Student messages can only be sent to parents but received from all profiles (parents, teachers, director, school).
-- **System Design Choices**: All storage modules exclusively use database queries via Drizzle ORM, eliminating hardcoded or mock data, and enforcing strict multi-tenancy using `user.schoolId`. Sandbox data is pre-seeded via idempotent scripts (`server/scripts/seedSandboxData.ts`). User management includes a comprehensive multi-role system with `role_affiliations` and existing user detection by email/phone. Development and production databases are completely separated with zero automatic replication. All "Contacter Educafric" buttons open WhatsApp with pre-filled messages using the official number `237656200472`.
+    - **Frontend**: React (TypeScript), Wouter for routing, TanStack Query for data fetching, PWA.
+    - **Backend**: RESTful API with Express.js.
+    - **Database & ORM**: PostgreSQL on Neon Serverless with Drizzle ORM.
+    - **Authentication**: Session-based `express-session` and `Passport.js`, including Firebase Google OAuth, supporting an 8-role-based access control and multi-role users. Phone numbers are primary unique identifiers, email is optional.
+    - **Route Architecture**: Express.js prioritizes internal routes (Settings, API Modules, System Routes, Services) over external routers; module mappings are strictly separated by dashboard.
+    - **Cache Management**: `queryClient.ts` uses `serializeQueryKey()` to prevent query key collisions, ensuring immediate data display after imports.
+    - **Document Management**: Centralized system for instant PDF document generation using `server/services/pdfGenerator.ts`, documents stored in `/public/documents/`, and a hybrid logo resolution system for PDFs.
+    - **Bulletin Generation**: Bulletins are generated using an adaptive flexbox layout defined in `client/src/index.css` for optimal print quality and visibility of annual summaries, leveraging `html2canvas` for PDF capture.
+- **Feature Specifications**: Includes real-time attendance tracking (Present, Late, Absent), flexible timetable management, multi-channel notifications (Email, WhatsApp, PWA), bilingual templates, integrated payment systems, iCal/ICS export, robust bulk Excel import with immediate data display, Competency-Based Approach (CBA) bulletin generation, and Jitsi Meet integration for online classes. Schools can define custom academic levels via a dedicated API and UI. Online course access rules are dynamically applied based on subscription types. Parent subscriptions are dynamic, configurable by Site Admins via `school_parent_pricing`, and include automatic family discounts. Student messages can only be sent to parents but received from all profiles.
+- **System Design Choices**: All storage modules exclusively use database queries via Drizzle ORM, eliminating hardcoded/mock data, and enforcing strict multi-tenancy using `user.schoolId`. Sandbox data is pre-seeded via idempotent scripts (`server/scripts/seedSandboxData.ts`). User management includes a comprehensive multi-role system with `role_affiliations` and existing user detection by email/phone. Development and production databases are completely separated with zero automatic replication. All "Contacter Educafric" buttons open WhatsApp with pre-filled messages using the official number `237656200472`.
 
 # External Dependencies
 - **Neon Database**: Serverless PostgreSQL database.
