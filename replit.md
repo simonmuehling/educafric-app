@@ -1,5 +1,5 @@
 # Overview
-Educafric is a bilingual, mobile-first EdTech platform designed to enhance educational access and quality across Africa. It provides an integrated ecosystem for academic administration, communication, financial transactions, and offline capabilities, fostering community engagement and improved educational outcomes. The platform aims to revolutionize education in Africa by improving access, quality, and community engagement.
+Educafric is a bilingual, mobile-first EdTech platform designed to enhance educational access and quality across Africa. It provides an integrated ecosystem for academic administration, communication, financial transactions, and offline capabilities, aiming to foster community engagement and improve educational outcomes across the continent. The project's vision is to become a leading educational platform in Africa, significantly improving access to quality education.
 
 # User Preferences
 - Module FunctionalTeacherAssignments.tsx entièrement bilingue (formulaire, labels, boutons, toasts). Onglets responsives (flex-col sm:flex-row, min-h-[44px]). Profils modifiables pour Teacher/Parent/Commercial via PUT endpoints. Fix WhatsApp password recovery (u.phone pas u.phoneNumber). ParentSubscription avec gestion erreurs. FIX CRITIQUE: fastModuleLoader.ts ligne 100 mapping 'subscription' corrigé vers ParentSubscription (pas SubscriptionStatusCard).
@@ -78,7 +78,7 @@ Educafric is a bilingual, mobile-first EdTech platform designed to enhance educa
   - A4 CONTAINER:
     - `.a4-container` : `display: flex`, `flex-direction: column`, `min-height: 297mm`
     - PAS de `overflow: hidden` ou `max-height` restrictifs
-  - PDF CAPTURE MODE (pour html2canvas):
+  - PDF CAPTURE MODE (for html2canvas):
     - `.pdf-capture-mode #print-root` : `width: 794px`, `min-height: 1123px`
     - `.pdf-capture-mode .a4-container` : `max-width: 778px`, `min-height: 1107px`
     - `.pdf-capture-mode .bulletin-a4-optimized` : `min-height: 1100px`, background blanc
@@ -90,7 +90,7 @@ Educafric is a bilingual, mobile-first EdTech platform designed to enhance educa
   - COMPOSANT: `client/src/components/academic/ReportCardPreview.tsx` génère les bulletins avec classes CSS appropriées
 
 # System Architecture
-- **UI/UX Decisions**: The platform features an African-themed, mobile-first, PWA-enabled UI, built with Radix UI, Shadcn/UI, and Tailwind CSS. All alert/confirmation dialogs have a consistent `bg-white` background. Student ID cards adhere to a standardized official template (85.6mm x 54mm) supporting color printing, digital signatures, QR codes, and mobile-friendly printing. A 4-level fallback system ensures logo display, and school logos for PDF generation are restricted to PNG and JPEG formats. Online course interfaces for teachers are always visible, with access rules dynamically enforced based on subscription types.
+- **UI/UX Decisions**: The platform features an African-themed, mobile-first, PWA-enabled UI built with Radix UI, Shadcn/UI, and Tailwind CSS. All alert/confirmation dialogs have a consistent `bg-white` background. Student ID cards adhere to a standardized official template (85.6mm x 54mm) supporting color printing, digital signatures, QR codes, and mobile-friendly printing. A 4-level fallback system ensures logo display, and school logos for PDF generation are restricted to PNG and JPEG formats. Online course interfaces for teachers are always visible, with access rules dynamically enforced based on subscription types.
 - **Technical Implementations**:
     - **Frontend**: React (TypeScript), Wouter for routing, TanStack Query for data fetching, and PWA capabilities.
     - **Backend**: RESTful API built with Express.js.
