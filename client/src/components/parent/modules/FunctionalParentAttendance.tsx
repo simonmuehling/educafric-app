@@ -183,7 +183,19 @@ const FunctionalParentAttendance: React.FC = () => {
         teacher: 'Enseignant',
         reason: 'Motif',
         lateBy: 'Retard de'
-      }
+      },
+      attendanceRate: 'Taux de Présence Global',
+      thisMonth: 'ce mois',
+      attendanceHistory: 'Historique des Présences',
+      requestExcuse: 'Demander une Excuse',
+      excuseTitle: "Demande d'Excuse d'Absence",
+      student: 'Élève',
+      absenceDate: "Date d'absence",
+      absenceReason: "Motif de l'absence",
+      absencePlaceholder: "Expliquez la raison de l'absence (maladie, rendez-vous médical, etc.)",
+      submitRequest: 'Soumettre la Demande',
+      cancel: 'Annuler',
+      sending: 'Envoi...'
     },
     en: {
       title: 'Attendance Tracking',
@@ -239,7 +251,19 @@ const FunctionalParentAttendance: React.FC = () => {
         teacher: 'Teacher',
         reason: 'Reason',
         lateBy: 'Late by'
-      }
+      },
+      attendanceRate: 'Global Attendance Rate',
+      thisMonth: 'this month',
+      attendanceHistory: 'Attendance History',
+      requestExcuse: 'Request Excuse',
+      excuseTitle: 'Absence Excuse Request',
+      student: 'Student',
+      absenceDate: 'Absence Date',
+      absenceReason: 'Absence Reason',
+      absencePlaceholder: 'Explain the reason for absence (illness, medical appointment, etc.)',
+      submitRequest: 'Submit Request',
+      cancel: 'Cancel',
+      sending: 'Sending...'
     }
   };
 
@@ -409,12 +433,12 @@ const FunctionalParentAttendance: React.FC = () => {
         <CardContent className="p-6">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="text-lg font-semibold mb-2">Taux de Présence Global</h3>
+              <h3 className="text-lg font-semibold mb-2">{t?.attendanceRate}</h3>
               <div className="flex items-center space-x-4">
                 <div className="text-4xl font-bold text-blue-600">{getAttendanceRate()}%</div>
                 <div className="flex items-center text-green-600">
                   <TrendingUp className="w-5 h-5 sm:w-6 sm:h-6 mr-1" />
-                  <span className="text-sm">+2.5% ce mois</span>
+                  <span className="text-sm">+2.5% {t?.thisMonth}</span>
                 </div>
               </div>
             </div>
@@ -447,7 +471,7 @@ const FunctionalParentAttendance: React.FC = () => {
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-semibold">
               <FileText className="w-5 h-5 sm:w-6 sm:h-6 mr-2 inline" />
-              Demander une Excuse
+              {t?.requestExcuse}
             </h3>
           </div>
         </CardHeader>
@@ -456,16 +480,16 @@ const FunctionalParentAttendance: React.FC = () => {
             <DialogTrigger asChild>
               <Button className="bg-orange-600 hover:bg-orange-700 w-full" data-testid="button-request-excuse">
                 <FileText className="h-4 w-4 sm:h-5 sm:h-5 mr-2" />
-                Demander une Excuse
+                {t?.requestExcuse}
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[500px]">
+            <DialogContent className="sm:max-w-[500px] bg-white">
               <DialogHeader>
-                <DialogTitle>Demande d'Excuse d'Absence</DialogTitle>
+                <DialogTitle>{t?.excuseTitle}</DialogTitle>
               </DialogHeader>
               <div className="space-y-4">
                 <div>
-                  <label className="text-sm font-medium">{language === 'fr' ? 'Élève' : 'Student'} ({childrenData.length} {language === 'fr' ? 'enfant(s)' : 'child(ren)'})</label>
+                  <label className="text-sm font-medium">{t?.student} ({childrenData.length} {language === 'fr' ? 'enfant(s)' : 'child(ren)'})</label>
                   <Select value={excuseForm.childId} onValueChange={(value) => setExcuseForm(prev => ({ ...prev, childId: value }))}>
                     <SelectTrigger>
                       <SelectValue placeholder={language === 'fr' ? 'Sélectionnez un enfant' : 'Select a child'} />
@@ -484,7 +508,7 @@ const FunctionalParentAttendance: React.FC = () => {
                   </Select>
                 </div>
                 <div>
-                  <label className="text-sm font-medium">Date d'absence</label>
+                  <label className="text-sm font-medium">{t?.absenceDate}</label>
                   <Input
                     type="date"
                     value={excuseForm.date}
@@ -492,11 +516,11 @@ const FunctionalParentAttendance: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <label className="text-sm font-medium">Motif de l'absence</label>
+                  <label className="text-sm font-medium">{t?.absenceReason}</label>
                   <Textarea
                     value={excuseForm.reason}
                     onChange={(e) => setExcuseForm(prev => ({ ...prev, reason: e.target.value }))}
-                    placeholder="Expliquez la raison de l'absence (maladie, rendez-vous médical, etc.)"
+                    placeholder={t?.absencePlaceholder}
                     rows={3}
                   />
                 </div>
@@ -506,10 +530,10 @@ const FunctionalParentAttendance: React.FC = () => {
                     disabled={createExcuseMutation.isPending || !excuseForm.childId || !excuseForm.date || !excuseForm.reason}
                     className="flex-1 bg-orange-600 hover:bg-orange-700"
                   >
-                    {createExcuseMutation.isPending ? 'Envoi...' : 'Soumettre la Demande'}
+                    {createExcuseMutation.isPending ? t?.sending : t?.submitRequest}
                   </Button>
                   <Button variant="outline" onClick={() => setIsExcuseOpen(false)}>
-                    Annuler
+                    {t?.cancel}
                   </Button>
                 </div>
               </div>
@@ -522,7 +546,7 @@ const FunctionalParentAttendance: React.FC = () => {
       <Card>
         <CardHeader>
           <div>
-            <h3 className="text-lg font-semibold mb-4">Historique des Présences</h3>
+            <h3 className="text-lg font-semibold mb-4">{t?.attendanceHistory}</h3>
             {/* Filter Fields - Moved Under Title */}
             <div className="flex items-center space-x-3 flex-wrap gap-2">
               <select
@@ -541,10 +565,10 @@ const FunctionalParentAttendance: React.FC = () => {
                 className="border rounded-md px-3 py-1 text-sm"
               >
                 <option value="all">{t?.filters?.allStatuses}</option>
-                <option value="present">Présent</option>
-                <option value="absent">Absent</option>
-                <option value="late">En retard</option>
-                <option value="excused">Excusé</option>
+                <option value="present">{t?.status?.present}</option>
+                <option value="absent">{t?.status?.absent}</option>
+                <option value="late">{t?.status?.late}</option>
+                <option value="excused">{t?.status?.excused}</option>
               </select>
               <select
                 value={dateRange}
@@ -564,7 +588,7 @@ const FunctionalParentAttendance: React.FC = () => {
             <div className="text-center py-8">
               <Calendar className="h-10 w-10 sm:h-12 sm:w-12 text-gray-400 mx-auto mb-4" />
               <h3 className="text-lg font-medium text-gray-900 mb-2">{t.noData}</h3>
-              <p className="text-gray-600">Aucun enregistrement de présence ne correspond à vos critères.</p>
+              <p className="text-gray-600">{language === 'fr' ? 'Aucun enregistrement de présence ne correspond à vos critères.' : 'No attendance records match your criteria.'}</p>
             </div>
           ) : (
             <div className="space-y-4">

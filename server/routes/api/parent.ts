@@ -907,20 +907,30 @@ router.get('/attendance', requireAuth, async (req: AuthenticatedRequest, res: Re
     // Create student lookup
     const studentMap = Object.fromEntries(studentDetails.map(s => [s.id, s]));
     
-    // Format attendance data
+    // Format attendance data - use studentName for frontend compatibility
     const attendanceData = attendanceRecords.map(record => {
       const student = studentMap[record.studentId];
+      const studentFullName = student ? `${student.firstName || ''} ${student.lastName || ''}`.trim() : 'Élève inconnu';
       return {
         id: record.id,
         childId: record.studentId,
-        childName: student ? `${student.firstName || ''} ${student.lastName || ''}`.trim() : 'Élève inconnu',
+        studentId: record.studentId,
+        childName: studentFullName,
+        studentName: studentFullName,
         schoolName: student?.schoolId ? (schoolMap[student.schoolId] || 'École non définie') : 'École non définie',
         className: 'Classe',
         date: record.date?.toISOString().split('T')[0] || new Date().toISOString().split('T')[0],
         status: record.status,
         arrivalTime: record.timeIn?.toISOString().split('T')[1]?.substring(0, 5) || null,
         departureTime: record.timeOut?.toISOString().split('T')[1]?.substring(0, 5) || null,
-        notes: record.notes || record.reason || ''
+        notes: record.notes || record.reason || '',
+        teacherName: '',
+        subject: '',
+        period: 'fullday',
+        excusedReason: record.reason || '',
+        lateMinutes: 0,
+        notificationSent: true,
+        parentNotified: true
       };
     });
     
