@@ -465,20 +465,20 @@ const FunctionalParentAttendance: React.FC = () => {
               </DialogHeader>
               <div className="space-y-4">
                 <div>
-                  <label className="text-sm font-medium">Élève</label>
+                  <label className="text-sm font-medium">{language === 'fr' ? 'Élève' : 'Student'} ({childrenData.length} {language === 'fr' ? 'enfant(s)' : 'child(ren)'})</label>
                   <Select value={excuseForm.childId} onValueChange={(value) => setExcuseForm(prev => ({ ...prev, childId: value }))}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Sélectionnez un enfant" />
+                      <SelectValue placeholder={language === 'fr' ? 'Sélectionnez un enfant' : 'Select a child'} />
                     </SelectTrigger>
                     <SelectContent>
-                      {childrenData.length > 0 ? (
+                      {Array.isArray(childrenData) && childrenData.length > 0 ? (
                         childrenData.map((child) => (
                           <SelectItem key={child.id} value={String(child.id)}>
                             {child.firstName} {child.lastName} {child.class || child.className ? ` - ${child.class || child.className}` : ''} {child.school || child.schoolName ? ` (${child.school || child.schoolName})` : ''}
                           </SelectItem>
                         ))
                       ) : (
-                        <SelectItem value="no-children" disabled>Aucun enfant trouvé</SelectItem>
+                        <SelectItem value="no-children" disabled>{language === 'fr' ? 'Aucun enfant trouvé' : 'No children found'}</SelectItem>
                       )}
                     </SelectContent>
                   </Select>
