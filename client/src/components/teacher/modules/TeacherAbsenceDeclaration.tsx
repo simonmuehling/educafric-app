@@ -419,18 +419,21 @@ const TeacherAbsenceDeclaration: React.FC = () => {
                 </div>
               ) : (
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mt-2">
-                  {teacherClasses.map((className) => (
-                    <Button
-                      key={className}
-                      variant={declaration.classesAffected.includes(className) ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => handleClassToggle(className)}
-                      className="text-xs"
-                      data-testid={`button-class-${className.toLowerCase().replace(' ', '-')}`}
-                    >
-                      {className}
-                    </Button>
-                  ))}
+                  {teacherClasses.map((className) => {
+                    const isSelected = declaration.classesAffected.includes(className);
+                    return (
+                      <Button
+                        key={className}
+                        variant={isSelected ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => handleClassToggle(className)}
+                        className={`text-xs transition-all ${isSelected ? 'ring-2 ring-[#7C5CFC] ring-offset-2 bg-[#7C5CFC] hover:bg-[#6B4FE0] shadow-md' : 'hover:border-[#7C5CFC] hover:text-[#7C5CFC]'}`}
+                        data-testid={`button-class-${className.toLowerCase().replace(' ', '-')}`}
+                      >
+                        {className}
+                      </Button>
+                    );
+                  })}
                 </div>
               )}
             </div>
