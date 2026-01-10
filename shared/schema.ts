@@ -372,6 +372,10 @@ export const parentStudentRelations = pgTable("parent_student_relations", {
   studentId: integer("student_id").notNull(),
   relationship: text("relationship"),
   isPrimary: boolean("is_primary").default(false),
+  status: text("status").default("pending"), // 'pending', 'approved', 'rejected'
+  requestedBy: text("requested_by"), // 'student' or 'parent' - who initiated
+  verificationCode: text("verification_code"), // code for approval
+  approvedAt: timestamp("approved_at"),
   createdAt: timestamp("created_at").defaultNow()
 });
 
