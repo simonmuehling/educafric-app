@@ -320,7 +320,7 @@ const FindParentsModule: React.FC = () => {
   const searchParentsMutation = useMutation({
     mutationFn: async (query: string) => {
       if (!query || query.length < 3) return [];
-      return apiRequest('/api/student-parent/search-parents', 'POST', { 
+      return apiRequest('POST', '/api/student-parent/search-parents', { 
         searchValue: query,
         searchType: 'universal'
       });
@@ -373,7 +373,7 @@ const FindParentsModule: React.FC = () => {
   // Send parent request mutation
   const sendRequestMutation = useMutation({
     mutationFn: async (requestData: ParentRequest) => {
-      return apiRequest('/api/student-parent/connections', 'POST', {
+      return apiRequest('POST', '/api/student-parent/connections', {
         parentEmail: requestData.parentEmail,
         parentPhone: requestData.parentPhone,
         relationshipType: requestData.relationshipType,
