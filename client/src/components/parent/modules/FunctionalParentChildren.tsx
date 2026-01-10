@@ -19,20 +19,28 @@ interface ParentChild {
   id: number;
   firstName: string;
   lastName: string;
-  fullName: string;
-  email: string;
-  phone: string;
-  grade: string;
-  className: string;
+  fullName?: string;
+  email?: string;
+  phone?: string;
+  grade?: string;
+  class?: string;
+  className?: string;
+  level?: string;
   schoolName: string;
+  schoolId?: number | null;
   averageGrade: number;
   attendanceRate: number;
+  totalAbsences?: number;
+  homeworkCompleted?: number;
+  totalHomework?: number;
   status: string;
-  lastActivity: string;
-  nextExam: string;
-  behavior: string;
-  profilePhoto: string;
-  teacherName: string;
+  lastActivity?: string;
+  nextExam?: string | null;
+  behavior?: string;
+  profilePhoto?: string;
+  profilePicture?: string | null;
+  teacherName?: string;
+  teacher?: string;
 }
 
 const FunctionalParentChildren: React.FC = () => {
@@ -113,7 +121,7 @@ const FunctionalParentChildren: React.FC = () => {
       ...(Array.isArray(children) ? children : []).map(child => [
         child.lastName,
         child.firstName,
-        child.className,
+        child.class || child.className || '',
         child.schoolName,
         child.averageGrade,
         child.attendanceRate,
@@ -142,10 +150,13 @@ const FunctionalParentChildren: React.FC = () => {
   });
 
   // Fetch parent children data from PostgreSQL API
-  const { data: children = [], isLoading } = useQuery<ParentChild[]>({
+  const { data: childrenResponse, isLoading } = useQuery<{ success: boolean; children: ParentChild[] }>({
     queryKey: ['/api/parent/children'],
     enabled: !!user
   });
+  
+  // Extract children array from response object
+  const children = childrenResponse?.children || [];
 
   const text = {
     fr: {
@@ -488,8 +499,8 @@ const FunctionalParentChildren: React.FC = () => {
                       <div className="flex-1 min-w-0">
                         <div className="flex items-start justify-between mb-3">
                           <div>
-                            <h4 className="text-lg font-semibold text-gray-900">{child.fullName}</h4>
-                            <p className="text-sm text-gray-600">{child.className} - {child.schoolName}</p>
+                            <h4 className="text-lg font-semibold text-gray-900">{child.fullName || `${child.firstName} ${child.lastName}`}</h4>
+                            <p className="text-sm text-gray-600">{child.class || child.className || 'Non assigné'} - {child.schoolName}</p>
                           </div>
                           <div className="flex flex-col space-y-1">
                             {getStatusBadge(child.status)}
@@ -500,28 +511,28 @@ const FunctionalParentChildren: React.FC = () => {
                         <div className="grid grid-cols-2 gap-4 mb-4">
                           <div>
                             <p className="text-sm text-gray-500">{t?.child?.teacher}</p>
-                            <p className="font-medium">{child.teacherName}</p>
+                            <p className="font-medium">{child.teacherName || child.teacher || 'N/A'}</p>
                           </div>
                           <div>
                             <p className="text-sm text-gray-500">{t?.child?.avgGrade}</p>
-                            <p className={`font-medium text-lg ${getGradeColor(child.averageGrade)}`}>
-                              {child.averageGrade}/20
+                            <p className={`font-medium text-lg ${getGradeColor(child.averageGrade || 0)}`}>
+                              {child.averageGrade || 0}/20
                             </p>
                           </div>
                           <div>
                             <p className="text-sm text-gray-500">{t?.child?.attendance}</p>
-                            <p className="font-medium">{child.attendanceRate}%</p>
+                            <p className="font-medium">{child.attendanceRate || 0}%</p>
                           </div>
                           <div>
                             <p className="text-sm text-gray-500">{t?.child?.nextExam}</p>
-                            <p className="font-medium">{new Date(child.nextExam).toLocaleDateString()}</p>
+                            <p className="font-medium">{child.nextExam ? new Date(child.nextExam).toLocaleDateString() : 'N/A'}</p>
                           </div>
                         </div>
 
                         <div className="mb-4 text-sm text-gray-600">
                           <div className="flex items-center mb-1">
                             <Calendar className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-2" />
-                            <span>Dernière activité: {new Date(child.lastActivity).toLocaleDateString()}</span>
+                            <span>{language === 'fr' ? 'Dernière activité' : 'Last activity'}: {child.lastActivity ? new Date(child.lastActivity).toLocaleDateString() : 'N/A'}</span>
                           </div>
                           <div className="flex items-center">
                             <MapPin className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-2" />
