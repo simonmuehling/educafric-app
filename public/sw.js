@@ -1,7 +1,7 @@
 // Educafric Service Worker - Enhanced Offline Support for Sandbox Demo Mode
 // Enables complete offline functionality with aggressive caching
 
-const CACHE_VERSION = 'educafric-v1.3.0';
+const CACHE_VERSION = 'educafric-v1.4.0';
 const CACHE_NAME = `educafric-cache-${CACHE_VERSION}`;
 
 // Assets to cache immediately for offline demo mode
@@ -16,9 +16,13 @@ const PRECACHE_ASSETS = [
   // Sandbox login
   '/sandbox-login',
   
-  // Common UI assets
-  '/assets/logo.png',
-  '/assets/school-logo.png',
+  // Educafric Logo assets - CRITICAL for PWA
+  '/educafric-logo-128.png',
+  '/educafric-logo-512.png',
+  '/android-chrome-192x192.png',
+  '/android-chrome-512x512.png',
+  '/favicon.ico',
+  '/manifest.json',
   
   // Fonts (if any)
   // Add font paths here

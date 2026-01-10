@@ -43,25 +43,31 @@ const FrontPagePWAInstallPrompt: React.FC = () => {
   // Check if PWA is already installed
   useEffect(() => {
     const checkInstallation = () => {
+      console.log('[PWA Popup] Checking installation status...');
+      
       try {
         const isStandalone = window.matchMedia && window.matchMedia('(display-mode: standalone)').matches;
         const isWebkit = (navigator as any).standalone;
         const isAndroid = document.referrer && document.referrer.includes('android-app://');
         
+        console.log('[PWA Popup] Standalone mode:', { isStandalone, isWebkit, isAndroid });
+        
         if (isStandalone || isWebkit || isAndroid) {
+          console.log('[PWA Popup] Already running as PWA, not showing popup');
           setIsInstalled(true);
           return;
         }
       } catch (e) {
-        console.log('[PWA] Installation check failed on older browser');
+        console.log('[PWA Popup] Installation check failed on older browser');
       }
 
       try {
         const dismissed = localStorage.getItem('pwa-frontpage-dismissed');
         if (dismissed) {
           const dismissedTime = parseInt(dismissed);
-          const twoHoursAgo = Date.now() - (2 * 60 * 60 * 1000);
-          if (dismissedTime > twoHoursAgo) {
+          const oneHourAgo = Date.now() - (1 * 60 * 60 * 1000); // Reduced to 1 hour
+          if (dismissedTime > oneHourAgo) {
+            console.log('[PWA Popup] Recently dismissed, will show again in 1 hour');
             return;
           }
         }
@@ -69,9 +75,11 @@ const FrontPagePWAInstallPrompt: React.FC = () => {
         // Ignore localStorage errors
       }
 
+      console.log('[PWA Popup] Will show popup in 2 seconds...');
       setTimeout(() => {
+        console.log('[PWA Popup] Showing popup now');
         setIsVisible(true);
-      }, 3000);
+      }, 2000); // Reduced to 2 seconds for faster display
     };
 
     checkInstallation();
