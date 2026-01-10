@@ -164,38 +164,19 @@ const CreateEducationalContent = () => {
     enabled: !!user
   });
 
-  // Build subjects list from teacher's assigned subjects
-  const subjects = teacherSubjects.length > 0 
-    ? teacherSubjects.map((subj: any) => ({ 
-        id: subj.id?.toString() || subj.name, 
-        name: subj.nameFr || subj.name 
-      }))
-    : [
-        { id: 'mathematiques', name: 'Mathématiques' },
-        { id: 'francais', name: 'Français' },
-        { id: 'anglais', name: 'Anglais' },
-        { id: 'sciences', name: 'Sciences' },
-        { id: 'histoire', name: 'Histoire-Géographie' },
-        { id: 'physique', name: 'Physique-Chimie' },
-        { id: 'svt', name: 'SVT' },
-        { id: 'education', name: 'Éducation Civique' }
-      ];
+  // Build subjects list from teacher's assigned subjects - NO MOCK DATA
+  const safeTeacherSubjects = Array.isArray(teacherSubjects) ? teacherSubjects : [];
+  const subjects = safeTeacherSubjects.map((subj: any) => ({ 
+    id: subj.id?.toString() || subj.name, 
+    name: subj.nameFr || subj.name 
+  }));
 
-  // Build class list from teacher's assigned classes (full names)
-  const levels = teacherClasses.length > 0
-    ? teacherClasses.map((cls: any) => ({ 
-        id: cls.id?.toString() || cls.name, 
-        name: cls.name || cls.level || 'Classe' 
-      }))
-    : [
-        { id: '6eme', name: '6ème' },
-        { id: '5eme', name: '5ème' },
-        { id: '4eme', name: '4ème' },
-        { id: '3eme', name: '3ème' },
-        { id: '2nde', name: '2nde' },
-        { id: '1ere', name: '1ère' },
-        { id: 'tle', name: 'Terminale' }
-      ];
+  // Build class list from teacher's assigned classes (full names) - NO MOCK DATA
+  const safeTeacherClasses = Array.isArray(teacherClasses) ? teacherClasses : [];
+  const levels = safeTeacherClasses.map((cls: any) => ({ 
+    id: cls.id?.toString() || cls.name, 
+    name: cls.schoolName ? `${cls.name} (${cls.schoolName})` : (cls.name || cls.level || 'Classe')
+  }));
 
   const contentTypes = [
     { id: 'lesson', name: t.lesson, icon: BookOpen, color: 'blue' },
