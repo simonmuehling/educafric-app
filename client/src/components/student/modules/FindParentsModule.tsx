@@ -64,8 +64,7 @@ interface ParentRequest {
   parentEmail: string;
   parentPhone: string;
   searchMethod: 'email' | 'phone';
-  relationshipType: 'parent' | 'guardian' | 'emergency_contact';
-  message: string;
+  relationshipType: 'parent' | 'guardian';
 }
 
 const FindParentsModule: React.FC = () => {
@@ -84,8 +83,7 @@ const FindParentsModule: React.FC = () => {
     parentEmail: '',
     parentPhone: '',
     searchMethod: 'email',
-    relationshipType: 'parent',
-    message: ''
+    relationshipType: 'parent'
   });
 
   // Enhanced search states
@@ -116,11 +114,10 @@ const FindParentsModule: React.FC = () => {
       parentPhone: 'Parent phone',
       parentName: 'Parent name',
       relationship: 'Relationship type',
-      message: 'Message (optional)',
       sendRequest: 'Send request',
       relationships: {
-        parent: 'Primary Parent',
-        guardian: 'Guardian/Responsible',
+        parent: 'Parent/Guardian',
+        guardian: 'Guardian',
         emergency_contact: 'Emergency Contact'
       },
       connectionStatus: {
@@ -132,7 +129,6 @@ const FindParentsModule: React.FC = () => {
       requestSentDesc: 'Your connection request has been sent to the parent',
       qrGenerated: 'QR Code generated',
       qrGeneratedDesc: 'Share this code with your parents for quick connection',
-      messagePlaceholder: 'Hello, I am your child on EDUCAFRIC...',
       emailPlaceholder: 'parent@email.com',
       phonePlaceholder: '+237656200472',
       error: 'Error',
@@ -170,11 +166,10 @@ const FindParentsModule: React.FC = () => {
       parentPhone: 'Téléphone du parent',
       parentName: 'Nom du parent',
       relationship: 'Type de relation',
-      message: 'Message (optionnel)',
       sendRequest: 'Envoyer demande',
       relationships: {
-        parent: 'Parent Principal',
-        guardian: 'Tuteur/Responsable',
+        parent: 'Parent/Tuteur',
+        guardian: 'Tuteur',
         emergency_contact: 'Contact d\'Urgence'
       },
       connectionStatus: {
@@ -186,7 +181,6 @@ const FindParentsModule: React.FC = () => {
       requestSentDesc: 'Votre demande de connexion a été envoyée au parent',
       qrGenerated: 'Code QR généré',
       qrGeneratedDesc: 'Partagez ce code avec vos parents pour une connexion rapide',
-      messagePlaceholder: 'Bonjour, je suis votre enfant sur EDUCAFRIC...',
       emailPlaceholder: 'parent@email.com',
       phonePlaceholder: '+237656200472',
       error: 'Erreur',
@@ -206,39 +200,41 @@ const FindParentsModule: React.FC = () => {
 
   const t = text[language];
 
-  // 🔧 FONCTION GÉNÉRATION QR CODE AUTHENTIQUE
+  // 🔧 FONCTION GÉNÉRATION QR CODE VIA API
   const generateQRCode = async () => {
     if (!user) return;
     
     setIsGeneratingQR(true);
     try {
-      console.log('[QR_GENERATOR] 📱 Generating QR code for student:', user.id);
+      console.log('[QR_GENERATOR] 📱 Generating QR code via API for student:', user.id);
       
-      // Créer les données de connexion
-      const connectionData = {
-        type: 'EDUCAFRIC_STUDENT_CONNECT',
-        studentId: user.id,
-        studentName: formatName(user.firstName, user.lastName, language as 'fr' | 'en'),
-        studentEmail: user.email,
-        schoolName: 'École Saint-Joseph Yaoundé',
-        className: '3ème A',
-        timestamp: new Date().toISOString(),
-        connectUrl: `https://educafric.com/parent-connect/${user.id}`,
-        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString() // +7 jours
-      };
+      // Appeler l'API pour générer le QR code avec les vraies données
+      const response = await fetch('/api/student/generate-qr', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ purpose: 'parent-connection' })
+      });
       
-      // Créer le lien magique
-      const magicUrl = `https://educafric.com/parent-connect/${user.id}?name=${encodeURIComponent(formatName(user.firstName, user.lastName, language as 'fr' | 'en'))}&school=${encodeURIComponent('École Saint-Joseph Yaoundé')}&class=${encodeURIComponent('3ème A')}`;
-      setMagicLink(magicUrl);
+      if (!response.ok) {
+        throw new Error('Failed to generate QR code');
+      }
       
-      // Générer le QR code avec les vraies données
-      const qrString = JSON.stringify(connectionData);
-      const qrDataURL = await QRCode.toDataURL(qrString, {
+      const data = await response.json();
+      console.log('[QR_GENERATOR] 📱 API response:', data);
+      
+      // Récupérer le lien magique depuis l'API
+      const apiMagicLink = data.dynamicLink || data.qrData || 
+        `${window.location.origin}/parent-connect?student=${user.id}&token=${data.qrToken || data.token}`;
+      setMagicLink(apiMagicLink);
+      
+      // Générer le QR code avec le lien magique
+      const qrDataURL = await QRCode.toDataURL(apiMagicLink, {
         width: 300,
         margin: 2,
         color: {
-          dark: '#1f2937', // Couleur foncée
-          light: '#ffffff' // Couleur claire
+          dark: '#1f2937',
+          light: '#ffffff'
         },
         errorCorrectionLevel: 'M'
       });
@@ -390,8 +386,7 @@ const FindParentsModule: React.FC = () => {
         parentEmail: '',
         parentPhone: '',
         searchMethod: 'email',
-        relationshipType: 'parent',
-        message: ''
+        relationshipType: 'parent'
       });
       setSearchQuery('');
       setSearchResults([]);
@@ -812,26 +807,13 @@ const FindParentsModule: React.FC = () => {
                     value={parentRequest.relationshipType}
                     onChange={(e) => setParentRequest(prev => ({ 
                       ...prev, 
-                      relationshipType: e.target.value as 'parent' | 'guardian' | 'emergency_contact' 
+                      relationshipType: e.target.value as 'parent' | 'guardian' 
                     }))}
                     className="w-full p-2 border border-gray-300 rounded-md"
                     data-testid="select-relationship-type"
                   >
                     <option value="parent">{t.relationships.parent}</option>
-                    <option value="guardian">{t.relationships.guardian}</option>
-                    <option value="emergency_contact">{t.relationships.emergency_contact}</option>
                   </select>
-                </div>
-
-                <div>
-                  <Label htmlFor="message">{t.message}</Label>
-                  <Input
-                    id="message"
-                    value={parentRequest.message}
-                    onChange={(e) => setParentRequest(prev => ({ ...prev, message: e.target.value }))}
-                    placeholder={t.messagePlaceholder}
-                    data-testid="input-message"
-                  />
                 </div>
 
                 <Button
