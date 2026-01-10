@@ -182,14 +182,17 @@ const FunctionalTeacherAttendance: React.FC = () => {
   };
 
   // Update students list when class changes - use stable reference to prevent infinite loops
+  // Ensure classStudents is always an array to prevent .map() errors
+  const safeClassStudents = Array.isArray(classStudents) ? classStudents : [];
+  
   const classStudentsKey = useMemo(() => 
-    classStudents.map((s: any) => s.id).join(','), 
-    [classStudents]
+    safeClassStudents.map((s: any) => s.id).join(','), 
+    [safeClassStudents]
   );
   
   React.useEffect(() => {
-    if (classStudents.length > 0) {
-      const studentsWithStatus = classStudents.map((student: any) => ({
+    if (safeClassStudents.length > 0) {
+      const studentsWithStatus = safeClassStudents.map((student: any) => ({
         id: student.id,
         name: student.name || student.firstName + ' ' + student.lastName,
         status: 'present' // Default to present
