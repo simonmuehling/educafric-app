@@ -147,6 +147,29 @@ const FamilyConnections: React.FC = () => {
     }
   });
 
+  // Respond to connection request mutation (approve/reject)
+  const respondToRequestMutation = useMutation({
+    mutationFn: async (data: { connectionId: number; action: 'approve' | 'reject' }) => {
+      const response = await apiRequest('PATCH', `/api/family/connections/${data.connectionId}/respond`, { action: data.action });
+      return response.json();
+    },
+    onSuccess: (data: any, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['/api/family/connections'] });
+      const t = text[language as keyof typeof text] || text.fr;
+      toast({
+        title: variables.action === 'approve' ? t.approveSuccess : t.rejectSuccess,
+        description: variables.action === 'approve' ? t.approveSuccessDesc : t.rejectSuccessDesc
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: language === 'fr' ? 'Erreur' : 'Error',
+        description: error.message || (language === 'fr' ? 'Impossible de répondre à la demande' : 'Failed to respond to request'),
+        variant: 'destructive'
+      });
+    }
+  });
+
   // Handle input change and trigger search
   const handleInputChange = (value: string) => {
     setChildEmailOrPhone(value);
@@ -234,7 +257,18 @@ const FamilyConnections: React.FC = () => {
       lastSeen: 'Vu',
       pending: 'En attente',
       active: 'Actif',
-      unreadMessages: 'messages non lus'
+      approved: 'Approuvé',
+      rejected: 'Refusé',
+      unreadMessages: 'messages non lus',
+      pendingRequests: 'Demandes en attente',
+      pendingRequestsDesc: 'Ces élèves souhaitent vous ajouter comme parent',
+      approve: 'Approuver',
+      reject: 'Refuser',
+      requestFrom: 'Demande de',
+      approveSuccess: 'Demande approuvée',
+      rejectSuccess: 'Demande refusée',
+      approveSuccessDesc: 'Vous êtes maintenant connecté avec cet élève',
+      rejectSuccessDesc: 'La demande de connexion a été refusée'
     },
     en: {
       title: 'Family Connections',
@@ -257,7 +291,18 @@ const FamilyConnections: React.FC = () => {
       lastSeen: 'Last seen',
       pending: 'Pending',
       active: 'Active',
-      unreadMessages: 'unread messages'
+      approved: 'Approved',
+      rejected: 'Rejected',
+      unreadMessages: 'unread messages',
+      pendingRequests: 'Pending Requests',
+      pendingRequestsDesc: 'These students want to add you as their parent',
+      approve: 'Approve',
+      reject: 'Reject',
+      requestFrom: 'Request from',
+      approveSuccess: 'Request approved',
+      rejectSuccess: 'Request rejected',
+      approveSuccessDesc: 'You are now connected with this student',
+      rejectSuccessDesc: 'The connection request has been rejected'
     }
   };
 
@@ -420,6 +465,63 @@ const FamilyConnections: React.FC = () => {
         </Card>
       )}
 
+      {/* Pending Requests Section */}
+      {connections.filter((c: any) => c.connectionStatus === 'pending' && c.requestedBy === 'student').length > 0 && (
+        <Card className="border-2 border-orange-200 bg-orange-50">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-orange-700">
+              <Clock className="w-5 h-5 sm:w-6 sm:h-6" />
+              {t.pendingRequests} ({connections.filter((c: any) => c.connectionStatus === 'pending' && c.requestedBy === 'student').length})
+            </CardTitle>
+            <p className="text-sm text-orange-600">{t.pendingRequestsDesc}</p>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {connections
+                .filter((c: any) => c.connectionStatus === 'pending' && c.requestedBy === 'student')
+                .map((connection: any) => (
+                  <div
+                    key={connection.id}
+                    className="p-4 bg-white rounded-lg border border-orange-200 shadow-sm"
+                  >
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-gradient-to-br from-orange-400 to-yellow-400 rounded-full flex items-center justify-center text-white font-bold">
+                          {connection.childName?.charAt(0) || '?'}
+                        </div>
+                        <div>
+                          <p className="font-medium text-gray-900">{connection.childName || 'Nom inconnu'}</p>
+                          <p className="text-sm text-gray-500">{t.requestFrom} {connection.relationship || 'enfant'}</p>
+                        </div>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          className="bg-green-600 hover:bg-green-700 text-white"
+                          onClick={() => respondToRequestMutation.mutate({ connectionId: connection.id, action: 'approve' })}
+                          disabled={respondToRequestMutation.isPending}
+                        >
+                          <CheckCheck className="h-4 w-4 mr-1" />
+                          {t.approve}
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="border-red-300 text-red-600 hover:bg-red-50"
+                          onClick={() => respondToRequestMutation.mutate({ connectionId: connection.id, action: 'reject' })}
+                          disabled={respondToRequestMutation.isPending}
+                        >
+                          {t.reject}
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Main Content */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Connections List */}
@@ -428,11 +530,11 @@ const FamilyConnections: React.FC = () => {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Users className="w-5 h-5 sm:w-6 sm:h-6" />
-                Mes enfants ({connections.length})
+                {language === 'fr' ? 'Mes enfants' : 'My children'} ({connections.filter((c: any) => c.connectionStatus === 'approved' || c.connectionStatus === 'active').length})
               </CardTitle>
             </CardHeader>
             <CardContent>
-              {connections.length === 0 ? (
+              {connections.filter((c: any) => c.connectionStatus === 'approved' || c.connectionStatus === 'active').length === 0 ? (
                 <div className="text-center py-8">
                   <Heart className="h-10 w-10 sm:h-12 sm:w-12 text-gray-300 mx-auto mb-3" />
                   <p className="text-gray-500 font-medium">{t.noConnections}</p>
@@ -440,7 +542,7 @@ const FamilyConnections: React.FC = () => {
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {connections.map((connection: FamilyConnection) => (
+                  {connections.filter((c: any) => c.connectionStatus === 'approved' || c.connectionStatus === 'active').map((connection: FamilyConnection) => (
                     <div
                       key={connection.id}
                       onClick={() => setSelectedConnection(connection.id)}
@@ -463,10 +565,10 @@ const FamilyConnections: React.FC = () => {
                           <p className="font-medium">{connection.childName || 'Nom inconnu'}</p>
                           <div className="flex items-center gap-2">
                             <Badge 
-                              variant={connection.connectionStatus === 'active' ? 'default' : 'secondary'}
-                              className="text-xs"
+                              variant="default"
+                              className="text-xs bg-green-100 text-green-700"
                             >
-                              {connection.connectionStatus === 'active' ? t.active : t.pending}
+                              {t.approved}
                             </Badge>
                             {connection.unreadMessages > 0 && (
                               <Badge variant="destructive" className="text-xs">

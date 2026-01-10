@@ -11514,11 +11514,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // API 3: /api/student-parent/connections - Send connection request to parent
+  // API 3: /api/student-parent/connections - Send connection request to parent - SAVES TO DATABASE
   app.post("/api/student-parent/connections", requireAuth, async (req, res) => {
     try {
       const user = req.user as any;
-      const { parentEmail, parentPhone, relationshipType, connectionType } = req.body;
+      const { parentEmail, parentPhone, relationshipType } = req.body;
       console.log('[STUDENT_PARENT_CONNECT] 📤 Sending connection request:', { 
         parentEmail, 
         parentPhone, 
@@ -11530,47 +11530,100 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({
           success: false,
           message: 'Parent email or phone is required',
-          error: 'Email ou téléphone parent requis'
+          messageFr: 'Email ou téléphone parent requis'
         });
       }
       
-      // 📤 CRÉATION DEMANDE DE CONNEXION
-      const connectionRequest = {
-        id: Date.now(),
-        studentId: user.id,
-        studentName: user.firstName + ' ' + user.lastName,
-        studentEmail: user.email,
-        parentEmail: parentEmail || null,
-        parentPhone: parentPhone || null,
-        relationshipType: relationshipType || 'parent',
-        connectionType: connectionType || 'guardian',
-        status: 'pending',
-        requestedAt: new Date().toISOString(),
-        message: `Demande de connexion de ${user.firstName} ${user.lastName}`,
-        verificationCode: Math.random().toString(36).substring(2, 8).toUpperCase(),
-        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString() // +7 jours
-      };
-      
-      // 📧 SIMULATION ENVOI EMAIL/SMS
+      // 🔍 Find parent by email or phone
+      let parentUser = null;
       if (parentEmail) {
-        console.log(`[STUDENT_PARENT_CONNECT] 📧 Email sent to: ${parentEmail}`);
-        console.log(`[STUDENT_PARENT_CONNECT] 🔑 Verification code: ${connectionRequest.verificationCode}`);
+        const result = await db.select().from(users).where(eq(users.email, parentEmail)).limit(1);
+        if (result.length > 0) parentUser = result[0];
+      }
+      if (!parentUser && parentPhone) {
+        const result = await db.select().from(users).where(eq(users.phone, parentPhone)).limit(1);
+        if (result.length > 0) parentUser = result[0];
       }
       
-      if (parentPhone) {
-        console.log(`[STUDENT_PARENT_CONNECT] 📱 SMS sent to: ${parentPhone}`);
-        console.log(`[STUDENT_PARENT_CONNECT] 🔑 Verification code: ${connectionRequest.verificationCode}`);
+      if (!parentUser) {
+        return res.status(404).json({
+          success: false,
+          message: 'Parent not found. Please verify the email or phone number.',
+          messageFr: 'Parent non trouvé. Veuillez vérifier l\'email ou le numéro de téléphone.'
+        });
       }
       
-      console.log(`[STUDENT_PARENT_CONNECT] ✅ Connection request created with ID: ${connectionRequest.id}`);
+      // 🔍 Check if connection already exists
+      const existingConnection = await db.select()
+        .from(parentStudentRelations)
+        .where(and(
+          eq(parentStudentRelations.parentId, parentUser.id),
+          eq(parentStudentRelations.studentId, user.id)
+        ))
+        .limit(1);
+      
+      if (existingConnection.length > 0) {
+        const status = existingConnection[0].status;
+        if (status === 'approved') {
+          return res.status(400).json({
+            success: false,
+            message: 'You are already connected with this parent.',
+            messageFr: 'Vous êtes déjà connecté avec ce parent.'
+          });
+        } else if (status === 'pending') {
+          return res.status(400).json({
+            success: false,
+            message: 'A connection request is already pending with this parent.',
+            messageFr: 'Une demande de connexion est déjà en attente avec ce parent.'
+          });
+        }
+      }
+      
+      // 📤 Create pending connection request in database
+      const verificationCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+      
+      const [newConnection] = await db.insert(parentStudentRelations).values({
+        parentId: parentUser.id,
+        studentId: user.id,
+        relationship: relationshipType || 'parent',
+        isPrimary: false,
+        status: 'pending',
+        requestedBy: 'student',
+        verificationCode: verificationCode
+      }).returning();
+      
+      console.log(`[STUDENT_PARENT_CONNECT] ✅ Connection request saved to database with ID: ${newConnection.id}`);
+      
+      // 🔔 Create notification for parent
+      const studentName = `${user.firstName || ''} ${user.lastName || ''}`.trim();
+      await db.insert(notifications).values({
+        userId: parentUser.id,
+        type: 'connection_request',
+        title: `Demande de connexion de ${studentName}`,
+        message: `L'élève ${studentName} souhaite vous ajouter comme parent. Veuillez approuver ou refuser cette demande dans Connexions Familiales.`,
+        isRead: false,
+        metadata: JSON.stringify({
+          connectionId: newConnection.id,
+          studentId: user.id,
+          studentName: studentName,
+          verificationCode: verificationCode
+        })
+      });
+      
+      console.log(`[STUDENT_PARENT_CONNECT] 🔔 Notification created for parent ${parentUser.id}`);
       
       res.json({
         success: true,
         message: 'Connection request sent successfully',
-        data: connectionRequest,
+        messageFr: 'Demande de connexion envoyée avec succès',
+        data: {
+          id: newConnection.id,
+          status: 'pending',
+          parentName: `${parentUser.firstName || ''} ${parentUser.lastName || ''}`.trim()
+        },
         nextSteps: {
-          fr: 'Le parent recevra un email/SMS avec un code de vérification',
-          en: 'The parent will receive an email/SMS with a verification code'
+          fr: 'Le parent recevra une notification et pourra approuver votre demande dans Connexions Familiales',
+          en: 'The parent will receive a notification and can approve your request in Family Connections'
         }
       });
     } catch (error) {
@@ -11578,7 +11631,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({
         success: false,
         message: 'Failed to send connection request',
-        error: 'Impossible d\'envoyer la demande de connexion'
+        messageFr: 'Impossible d\'envoyer la demande de connexion'
       });
     }
   });
@@ -13286,12 +13339,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let connections: any[] = [];
       
       if (userRole === 'Parent') {
-        // Parent viewing their children
+        // Parent viewing their children (including pending requests from students)
         const relations = await db.select({
           id: parentStudentRelations.id,
           parentId: parentStudentRelations.parentId,
           studentId: parentStudentRelations.studentId,
           relationship: parentStudentRelations.relationship,
+          status: parentStudentRelations.status,
+          requestedBy: parentStudentRelations.requestedBy,
           createdAt: parentStudentRelations.createdAt,
           childFirstName: users.firstName,
           childLastName: users.lastName,
@@ -13310,7 +13365,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           childName: `${rel.childFirstName || ''} ${rel.childLastName || ''}`.trim() || 'Nom inconnu',
           childEmail: rel.childEmail,
           childPhone: rel.childPhone,
-          connectionStatus: 'active',
+          connectionStatus: rel.status || 'approved', // 'pending', 'approved', 'rejected'
+          requestedBy: rel.requestedBy || 'parent',
           relationship: rel.relationship || 'parent',
           lastContact: rel.createdAt?.toISOString() || new Date().toISOString(),
           unreadMessages: 0,
@@ -13323,6 +13379,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           parentId: parentStudentRelations.parentId,
           studentId: parentStudentRelations.studentId,
           relationship: parentStudentRelations.relationship,
+          status: parentStudentRelations.status,
+          requestedBy: parentStudentRelations.requestedBy,
           createdAt: parentStudentRelations.createdAt,
           parentFirstName: users.firstName,
           parentLastName: users.lastName,
@@ -13341,7 +13399,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           parentName: `${rel.parentFirstName || ''} ${rel.parentLastName || ''}`.trim() || 'Nom inconnu',
           parentEmail: rel.parentEmail,
           parentPhone: rel.parentPhone,
-          connectionStatus: 'active',
+          connectionStatus: rel.status || 'approved', // 'pending', 'approved', 'rejected'
+          requestedBy: rel.requestedBy || 'parent',
           relationship: rel.relationship || 'parent',
           lastContact: rel.createdAt?.toISOString() || new Date().toISOString(),
           unreadMessages: 0,
@@ -13360,6 +13419,106 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ 
         success: false, 
         message: 'Failed to fetch family connections' 
+      });
+    }
+  });
+
+  // Family Connections API - Approve or reject pending connection request
+  app.patch("/api/family/connections/:connectionId/respond", requireAuth, async (req, res) => {
+    try {
+      const userId = (req as any).user?.id || (req.session as any)?.userId;
+      const { connectionId } = req.params;
+      const { action } = req.body; // 'approve' or 'reject'
+      
+      console.log('[FAMILY_CONNECTION_RESPOND] User', userId, 'responding to connection', connectionId, 'with action:', action);
+      
+      if (!['approve', 'reject'].includes(action)) {
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid action. Use "approve" or "reject".',
+          messageFr: 'Action invalide. Utilisez "approve" ou "reject".'
+        });
+      }
+      
+      // Get the connection
+      const connection = await db.select()
+        .from(parentStudentRelations)
+        .where(eq(parentStudentRelations.id, Number(connectionId)))
+        .limit(1);
+      
+      if (connection.length === 0) {
+        return res.status(404).json({
+          success: false,
+          message: 'Connection request not found.',
+          messageFr: 'Demande de connexion non trouvée.'
+        });
+      }
+      
+      const conn = connection[0];
+      
+      // Verify user is the parent for this connection
+      if (conn.parentId !== userId) {
+        return res.status(403).json({
+          success: false,
+          message: 'You are not authorized to respond to this request.',
+          messageFr: 'Vous n\'êtes pas autorisé à répondre à cette demande.'
+        });
+      }
+      
+      // Check if already processed
+      if (conn.status !== 'pending') {
+        return res.status(400).json({
+          success: false,
+          message: 'This request has already been processed.',
+          messageFr: 'Cette demande a déjà été traitée.'
+        });
+      }
+      
+      // Update the status
+      const newStatus = action === 'approve' ? 'approved' : 'rejected';
+      await db.update(parentStudentRelations)
+        .set({ 
+          status: newStatus,
+          approvedAt: action === 'approve' ? new Date() : null
+        })
+        .where(eq(parentStudentRelations.id, Number(connectionId)));
+      
+      // Create notification for student
+      const parentUser = await db.select().from(users).where(eq(users.id, userId)).limit(1);
+      const parentName = parentUser.length > 0 
+        ? `${parentUser[0].firstName || ''} ${parentUser[0].lastName || ''}`.trim() 
+        : 'Parent';
+      
+      await db.insert(notifications).values({
+        userId: conn.studentId,
+        type: 'connection_response',
+        title: action === 'approve' 
+          ? `${parentName} a accepté votre demande de connexion`
+          : `${parentName} a refusé votre demande de connexion`,
+        message: action === 'approve'
+          ? 'Vous êtes maintenant connecté avec votre parent. Vous pouvez communiquer dans Connexions Familiales.'
+          : 'Votre demande de connexion a été refusée. Contactez votre parent pour plus d\'informations.',
+        isRead: false
+      });
+      
+      console.log(`[FAMILY_CONNECTION_RESPOND] Connection ${connectionId} ${newStatus} by parent ${userId}`);
+      
+      res.json({
+        success: true,
+        message: action === 'approve' 
+          ? 'Connection request approved successfully'
+          : 'Connection request rejected',
+        messageFr: action === 'approve'
+          ? 'Demande de connexion approuvée avec succès'
+          : 'Demande de connexion refusée',
+        status: newStatus
+      });
+    } catch (error) {
+      console.error('[FAMILY_CONNECTION_RESPOND] Error:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to respond to connection request',
+        messageFr: 'Impossible de répondre à la demande de connexion'
       });
     }
   });
