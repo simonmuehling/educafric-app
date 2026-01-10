@@ -443,26 +443,6 @@ export const schoolSubscriptions = pgTable("school_subscriptions", {
   updatedAt: timestamp("updated_at").defaultNow()
 });
 
-// 🎓 TABLE ABONNEMENTS FREELANCER : Support pour répétiteurs
-export const freelancerSubscriptions = pgTable("freelancer_subscriptions", {
-  id: serial("id").primaryKey(),
-  freelancerId: integer("freelancer_id").notNull(),
-  planId: text("plan_id").notNull(), // 'repetiteur_professionnel_semestriel', etc.
-  status: text("status").notNull().default("freemium"), // 'freemium', 'premium', 'trial', 'expired'
-  startDate: timestamp("start_date").notNull(),
-  endDate: timestamp("end_date"),
-  paymentMethod: text("payment_method"), // 'stripe', 'orange_money', 'bank_transfer'
-  lastPaymentDate: timestamp("last_payment_date"),
-  nextPaymentDate: timestamp("next_payment_date"),
-  autoRenew: boolean("auto_renew").default(false),
-  // Limites freemium
-  maxStudents: integer("max_students").default(10),
-  // Métadonnées
-  metadata: jsonb("metadata"),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow()
-});
-
 export const payments = pgTable("payments", {
   id: serial("id").primaryKey(),
   studentId: integer("student_id"), // Nullable for system/MTN payments

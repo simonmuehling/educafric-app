@@ -376,14 +376,6 @@ router.post('/import-profile', async (req, res) => {
       return res.status(400).json({ message: 'Missing required fields' });
     }
 
-    // Block Freelancer registration until September 2026
-    if (newRole === 'Freelancer') {
-      return res.status(403).json({ 
-        message: 'Freelancer registration is temporarily unavailable until September 2026',
-        messageFr: 'L\'inscription en tant que Freelancer est temporairement indisponible jusqu\'à septembre 2026'
-      });
-    }
-
     // Get existing user
     const existingUser = await storage.getUserById(existingUserId);
     if (!existingUser) {
@@ -413,14 +405,6 @@ router.post('/register', async (req, res) => {
   try {
     const validatedData = createUserSchema.parse(req.body);
     
-    // Block Freelancer registration until September 2026
-    if (validatedData.role === 'Freelancer') {
-      return res.status(403).json({ 
-        message: 'Freelancer registration is temporarily unavailable until September 2026',
-        messageFr: 'L\'inscription en tant que Freelancer est temporairement indisponible jusqu\'à septembre 2026'
-      });
-    }
-
     // VALIDATE EDUCAFRIC NUMBER FOR DIRECTORS
     if (validatedData.role === 'Director') {
       const educafricNumber = req.body.educafricNumber;
