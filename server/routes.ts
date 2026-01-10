@@ -8151,6 +8151,63 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Teacher: Upload homework attachment files
+  const homeworkUpload = multer({
+    storage: multer.memoryStorage(),
+    limits: { fileSize: 10 * 1024 * 1024 }, // 10MB limit
+    fileFilter: (req, file, cb) => {
+      const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'application/pdf'];
+      if (allowedTypes.includes(file.mimetype)) {
+        cb(null, true);
+      } else {
+        cb(new Error('Invalid file type. Only images and PDFs are allowed.'));
+      }
+    }
+  });
+  
+  app.post("/api/upload/homework", requireAuth, homeworkUpload.single('file'), async (req, res) => {
+    try {
+      const user = req.user as any;
+      
+      if (!req.file) {
+        return res.status(400).json({ success: false, message: 'No file uploaded' });
+      }
+      
+      console.log('[HOMEWORK_UPLOAD] 📁 Uploading file for teacher:', user.id);
+      
+      // Generate unique filename
+      const ext = req.file.originalname.split('.').pop() || 'file';
+      const timestamp = Date.now();
+      const uniqueId = Math.random().toString(36).substring(2, 8);
+      const filename = `homework-${user.id}-${timestamp}-${uniqueId}.${ext}`;
+      
+      // Save to public uploads directory
+      const uploadsDir = path.join(process.cwd(), 'public', 'uploads', 'homework');
+      if (!fs.existsSync(uploadsDir)) {
+        fs.mkdirSync(uploadsDir, { recursive: true });
+      }
+      
+      const filePath = path.join(uploadsDir, filename);
+      fs.writeFileSync(filePath, req.file.buffer);
+      
+      const fileUrl = `/uploads/homework/${filename}`;
+      
+      console.log('[HOMEWORK_UPLOAD] ✅ File uploaded:', fileUrl);
+      
+      res.json({ 
+        success: true, 
+        url: fileUrl,
+        filename: filename,
+        originalName: req.file.originalname,
+        size: req.file.size,
+        mimetype: req.file.mimetype
+      });
+    } catch (error) {
+      console.error('[HOMEWORK_UPLOAD] Error:', error);
+      res.status(500).json({ success: false, message: 'Failed to upload file' });
+    }
+  });
+
   // Teacher: Create new homework assignment
   app.post("/api/teacher/homework", requireAuth, requireAnyRole(['Teacher']), async (req, res) => {
     try {

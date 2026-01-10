@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
@@ -14,7 +14,8 @@ import {
   Plus, Calendar, Users, Eye, Edit,
   Download, Filter, TrendingUp, Archive,
   Trash2, RotateCcw, Settings, BookOpen,
-  MessageCircle, Timer, Star, AlertTriangle, WifiOff
+  MessageCircle, Timer, Star, AlertTriangle, WifiOff,
+  Upload, Image, File, X
 } from 'lucide-react';
 import DeleteConfirmationDialog from '@/components/ui/DeleteConfirmationDialog';
 
@@ -77,6 +78,9 @@ const FunctionalTeacherAssignments: React.FC = () => {
     notifyParents: true,
     notifyStudents: true
   });
+  const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Fetch teacher assignments data from PostgreSQL API
   const { data: assignments = [], isLoading } = useQuery<Assignment[]>({
@@ -255,6 +259,84 @@ const FunctionalTeacherAssignments: React.FC = () => {
       notifyParents: true,
       notifyStudents: true
     });
+    setUploadedFiles([]);
+  };
+
+  // Handle file selection
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files) return;
+    
+    const validFiles: File[] = [];
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'application/pdf'];
+    const maxSize = 10 * 1024 * 1024; // 10MB
+    
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      if (!allowedTypes.includes(file.type)) {
+        toast({
+          title: language === 'fr' ? 'Type de fichier non supporté' : 'Unsupported file type',
+          description: language === 'fr' 
+            ? `${file.name}: Seuls les images (JPG, PNG, GIF, WebP) et les PDF sont acceptés.`
+            : `${file.name}: Only images (JPG, PNG, GIF, WebP) and PDFs are accepted.`,
+          variant: 'destructive'
+        });
+        continue;
+      }
+      if (file.size > maxSize) {
+        toast({
+          title: language === 'fr' ? 'Fichier trop volumineux' : 'File too large',
+          description: language === 'fr' 
+            ? `${file.name}: Taille maximum 10 MB.`
+            : `${file.name}: Maximum size 10 MB.`,
+          variant: 'destructive'
+        });
+        continue;
+      }
+      validFiles.push(file);
+    }
+    
+    setUploadedFiles(prev => [...prev, ...validFiles]);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  // Remove a file from the list
+  const removeFile = (index: number) => {
+    setUploadedFiles(prev => prev.filter((_, i) => i !== index));
+  };
+
+  // Upload files to object storage and return URLs
+  const uploadFilesToStorage = async (): Promise<string[]> => {
+    if (uploadedFiles.length === 0) return [];
+    
+    const uploadedUrls: string[] = [];
+    
+    for (const file of uploadedFiles) {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('folder', 'homework-attachments');
+      
+      try {
+        const response = await fetch('/api/upload/homework', {
+          method: 'POST',
+          body: formData,
+          credentials: 'include'
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          if (data.url) {
+            uploadedUrls.push(data.url);
+          }
+        }
+      } catch (error) {
+        console.error('File upload failed:', error);
+      }
+    }
+    
+    return uploadedUrls;
   };
 
   const handleCreateHomework = async () => {
@@ -268,6 +350,16 @@ const FunctionalTeacherAssignments: React.FC = () => {
         reminderDate.setDate(reminderDate.getDate() - reminderDays);
       }
       
+      // Upload files first if any
+      setIsUploading(true);
+      let attachmentUrls: string[] = [];
+      try {
+        attachmentUrls = await uploadFilesToStorage();
+      } catch (error) {
+        console.error('File upload error:', error);
+      }
+      setIsUploading(false);
+      
       const homeworkData = {
         title: homeworkForm.title,
         description: homeworkForm.description,
@@ -280,7 +372,8 @@ const FunctionalTeacherAssignments: React.FC = () => {
         reminderDate: reminderDate?.toISOString(),
         reminderDays: parseInt(homeworkForm.reminderDays),
         notifyParents: homeworkForm.notifyParents,
-        notifyStudents: homeworkForm.notifyStudents
+        notifyStudents: homeworkForm.notifyStudents,
+        attachments: attachmentUrls
       };
 
       // If offline, queue for later sync
@@ -1179,6 +1272,70 @@ const FunctionalTeacherAssignments: React.FC = () => {
                   className="w-full border rounded-md px-3 py-2"
                 />
               </div>
+              
+              {/* File Upload Section */}
+              <div className="bg-purple-50 p-3 rounded-lg border border-purple-200">
+                <label className="text-sm font-medium flex items-center gap-2 mb-2">
+                  <Upload className="w-4 h-4 text-purple-600" />
+                  {language === 'fr' ? 'Pièces jointes (images, PDF)' : 'Attachments (images, PDF)'}
+                </label>
+                <div className="space-y-2">
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    onChange={handleFileSelect}
+                    accept="image/jpeg,image/png,image/gif,image/webp,application/pdf"
+                    multiple
+                    className="hidden"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="w-full border-dashed border-2 border-purple-300 hover:border-purple-500"
+                  >
+                    <Upload className="w-4 h-4 mr-2" />
+                    {language === 'fr' ? 'Ajouter des fichiers' : 'Add files'}
+                  </Button>
+                  <p className="text-xs text-gray-500 text-center">
+                    {language === 'fr' 
+                      ? 'JPG, PNG, GIF, WebP, PDF • Max 10 MB par fichier'
+                      : 'JPG, PNG, GIF, WebP, PDF • Max 10 MB per file'}
+                  </p>
+                  
+                  {/* Display uploaded files */}
+                  {uploadedFiles.length > 0 && (
+                    <div className="mt-3 space-y-2">
+                      {uploadedFiles.map((file, index) => (
+                        <div key={index} className="flex items-center justify-between bg-white p-2 rounded border">
+                          <div className="flex items-center gap-2">
+                            {file.type.startsWith('image/') ? (
+                              <Image className="w-4 h-4 text-blue-500" />
+                            ) : (
+                              <File className="w-4 h-4 text-red-500" />
+                            )}
+                            <span className="text-sm truncate max-w-[180px]">{file.name}</span>
+                            <span className="text-xs text-gray-400">
+                              ({(file.size / 1024).toFixed(0)} KB)
+                            </span>
+                          </div>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => removeFile(index)}
+                            className="h-6 w-6 p-0 text-red-500 hover:text-red-700"
+                          >
+                            <X className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+              
               <div className="flex gap-2 pt-4">
                 <Button 
                   onClick={editingHomework ? handleUpdateHomework : handleCreateHomework}
