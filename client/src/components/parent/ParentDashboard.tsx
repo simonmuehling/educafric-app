@@ -86,6 +86,12 @@ const ParentDashboard = ({ activeModule }: ParentDashboardProps) => {
       color: 'bg-purple-500'
     },
     {
+      id: 'parent-homework',
+      label: language === 'fr' ? 'Devoirs Enfants' : 'Children Homework',
+      icon: <FileText className="w-5 h-5 sm:w-6 sm:h-6" />,
+      color: 'bg-green-500'
+    },
+    {
       id: 'parent-library',
       label: language === 'fr' ? 'Bibliothèque' : 'Library',
       icon: <BookOpen className="w-5 h-5 sm:w-6 sm:h-6" />,

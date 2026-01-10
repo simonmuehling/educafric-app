@@ -234,6 +234,7 @@ class FastModuleLoader {
       'student-my-school': () => import('@/components/student/modules/StudentMySchool'),
       'my-school': () => import('@/components/student/modules/StudentMySchool'),
       'parent-library': () => import('@/components/parent/modules/LibraryRelatedBooks'),
+      'parent-homework': () => import('@/components/parent/modules/ParentChildrenHomework'),
       
       // =============================================
       // 📹 ONLINE CLASSES MODULES - VIDEO CONFERENCING
