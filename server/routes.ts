@@ -8861,6 +8861,66 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         console.log('[HOMEWORK_API] 📡 Notification sent to teacher');
         
+        // Send notification to parent(s) when student submits homework
+        try {
+          const parentRelations = await db
+            .select({
+              parentId: parentStudentRelations.parentId
+            })
+            .from(parentStudentRelations)
+            .where(eq(parentStudentRelations.studentId, studentId));
+          
+          if (parentRelations.length > 0) {
+            const parentIds = parentRelations.map(r => r.parentId);
+            const parents = await db
+              .select({
+                id: users.id,
+                email: users.email,
+                phone: users.phone,
+                firstName: users.firstName
+              })
+              .from(users)
+              .where(inArray(users.id, parentIds));
+            
+            for (const parent of parents) {
+              // Create PWA notification for parent
+              await db.insert(notifications).values({
+                userId: parent.id,
+                type: 'homework_submission',
+                title: 'Devoir rendu / Homework submitted',
+                message: `${user.firstName} ${user.lastName} a rendu son devoir / submitted homework: ${assignedHomework.title}`,
+                data: JSON.stringify({
+                  studentId,
+                  studentName: `${user.firstName} ${user.lastName}`,
+                  homeworkId,
+                  homeworkTitle: assignedHomework.title,
+                  submittedAt: new Date().toISOString()
+                }),
+                isRead: false,
+                createdAt: new Date()
+              });
+              
+              // Send Email/WhatsApp notification if available
+              if (parent.email && autoNotificationService) {
+                await autoNotificationService.sendMultiChannelNotification({
+                  userId: parent.id,
+                  type: 'homework',
+                  title: 'Devoir rendu par votre enfant / Homework submitted',
+                  message: `${user.firstName} ${user.lastName} a rendu son devoir / submitted homework: "${assignedHomework.title}"`,
+                  channels: ['email', 'whatsapp'],
+                  data: { homeworkTitle: assignedHomework.title, studentName: `${user.firstName} ${user.lastName}` }
+                });
+              }
+              
+              console.log(`[HOMEWORK_API] 📧 Parent notification sent to: ${parent.id}`);
+            }
+            console.log(`[HOMEWORK_API] ✅ Notified ${parents.length} parent(s) of homework submission`);
+          }
+        } catch (parentNotifyError) {
+          console.error('[HOMEWORK_API] ⚠️ Failed to notify parents:', parentNotifyError);
+          // Don't fail the submission if parent notification fails
+        }
+        
         res.json({
           success: true,
           submission: newSubmission,
