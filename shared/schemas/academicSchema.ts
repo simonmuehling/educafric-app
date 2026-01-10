@@ -79,6 +79,7 @@ export const homework = pgTable("homework", {
   archivedAt: timestamp("archived_at"), // When archived
   archivedBy: integer("archived_by"), // Who archived
   notifyChannels: jsonb("notify_channels"), // {email: true, sms: false, whatsapp: true}
+  attachments: jsonb("attachments"), // Array of {url, filename, mimetype, size}
   reminderEnabled: boolean("reminder_enabled").default(true), // Automatic reminders enabled
   reminderDays: integer("reminder_days").default(1), // Days before due date for reminder (1-7)
   reminderSentAt: timestamp("reminder_sent_at"), // When reminder was sent

@@ -8228,7 +8228,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         reminderDate,
         reminderDays,
         notifyParents,
-        notifyStudents
+        notifyStudents,
+        attachments
       } = req.body;
       
       // Validation
@@ -8256,6 +8257,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           priority: priority || 'medium',
           dueDate: new Date(dueDate),
           status: 'active',
+          attachments: attachments || null,
           notifyChannels: {
             email: true, 
             sms: false, 
@@ -8664,6 +8666,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           title: homework.title,
           description: homework.description,
           instructions: homework.instructions,
+          attachments: homework.attachments,
           subjectName: subjects.nameFr,
           className: classes.name,
           teacherName: sql<string>`${users.firstName} || ' ' || ${users.lastName}`,
@@ -8702,6 +8705,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           ...hw,
           subject: hw.subjectName,
           teacher: hw.teacherName,
+          attachments: hw.attachments || [],
           status: submission ? 'completed' : 'pending',
           submission: submission ? {
             id: submission.id,
@@ -12182,6 +12186,136 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('[PARENT_CHILDREN] ❌ Error:', error);
       res.status(500).json({ success: false, message: 'Failed to fetch children data' });
+    }
+  });
+
+  // ============= PARENT CHILDREN HOMEWORK API =============
+  // GET /api/parent/children/homework - Get all homework for the parent's children
+  app.get("/api/parent/children/homework", requireAuth, requireAnyRole(['Parent']), async (req, res) => {
+    try {
+      const user = req.user as any;
+      const parentId = user.id;
+      
+      console.log(`[PARENT_HOMEWORK] 📚 Fetching homework for parent: ${parentId}`);
+      
+      // Get children linked to this parent
+      const childRelations = await db
+        .select({
+          studentId: parentStudentRelations.studentId
+        })
+        .from(parentStudentRelations)
+        .where(eq(parentStudentRelations.parentId, parentId));
+      
+      if (childRelations.length === 0) {
+        console.log(`[PARENT_HOMEWORK] No children found for parent ${parentId}`);
+        return res.json({ success: true, homework: [] });
+      }
+      
+      const childUserIds = childRelations.map(r => r.studentId);
+      
+      // Get children's class enrollments
+      const childrenClasses = await db
+        .select({ 
+          studentId: sql<number>`student_id`,
+          classId: sql<number>`class_id` 
+        })
+        .from(sql`enrollments`)
+        .where(sql`student_id IN (${sql.join(childUserIds, sql`, `)})`);
+      
+      if (childrenClasses.length === 0) {
+        return res.json({ success: true, homework: [] });
+      }
+      
+      const classIds = [...new Set(childrenClasses.map(c => c.classId))];
+      
+      // Get homework assigned to children's classes
+      const homeworkList = await db
+        .select({
+          id: homework.id,
+          title: homework.title,
+          description: homework.description,
+          instructions: homework.instructions,
+          attachments: homework.attachments,
+          subjectName: subjects.nameFr,
+          className: classes.name,
+          teacherName: sql<string>`${users.firstName} || ' ' || ${users.lastName}`,
+          classId: homework.classId,
+          priority: homework.priority,
+          dueDate: homework.dueDate,
+          assignedDate: homework.assignedDate,
+          status: homework.status,
+          createdAt: homework.createdAt
+        })
+        .from(homework)
+        .leftJoin(classes, eq(homework.classId, classes.id))
+        .leftJoin(subjects, eq(homework.subjectId, subjects.id))
+        .leftJoin(users, eq(homework.teacherId, users.id))
+        .where(and(
+          eq(homework.status, 'active'),
+          sql`${homework.classId} IN (${sql.join(classIds, sql`, `)})`
+        ))
+        .orderBy(homework.dueDate);
+      
+      // Get children info for mapping
+      const childrenInfo = await db
+        .select({
+          id: users.id,
+          firstName: users.firstName,
+          lastName: users.lastName
+        })
+        .from(users)
+        .where(inArray(users.id, childUserIds));
+      
+      const childrenMap = new Map(childrenInfo.map(c => [c.id, c]));
+      
+      // Map homework to children
+      const homeworkWithChildren = await Promise.all(homeworkList.map(async (hw) => {
+        // Find which children have this homework (by classId)
+        const relevantChildren = childrenClasses
+          .filter(cc => cc.classId === hw.classId)
+          .map(cc => {
+            const child = childrenMap.get(cc.studentId);
+            return child ? `${child.firstName || ''} ${child.lastName || ''}`.trim() : '';
+          })
+          .filter(name => name);
+        
+        // Check submission status for each child
+        const submissions = await db
+          .select({
+            studentId: homeworkSubmissions.studentId,
+            status: homeworkSubmissions.status,
+            submittedAt: homeworkSubmissions.submittedAt
+          })
+          .from(homeworkSubmissions)
+          .where(and(
+            eq(homeworkSubmissions.homeworkId, hw.id),
+            inArray(homeworkSubmissions.studentId, childUserIds)
+          ));
+        
+        return {
+          ...hw,
+          subject: hw.subjectName,
+          teacher: hw.teacherName,
+          attachments: hw.attachments || [],
+          children: relevantChildren,
+          submissions: submissions.map(s => ({
+            studentId: s.studentId,
+            studentName: childrenMap.get(s.studentId) 
+              ? `${childrenMap.get(s.studentId)?.firstName || ''} ${childrenMap.get(s.studentId)?.lastName || ''}`.trim() 
+              : '',
+            status: s.status,
+            submittedAt: s.submittedAt
+          }))
+        };
+      }));
+      
+      console.log(`[PARENT_HOMEWORK] ✅ Found ${homeworkWithChildren.length} homework assignments`);
+      
+      res.json({ success: true, homework: homeworkWithChildren });
+      
+    } catch (error) {
+      console.error('[PARENT_HOMEWORK] ❌ Error:', error);
+      res.status(500).json({ success: false, message: 'Failed to fetch homework', homework: [] });
     }
   });
 
