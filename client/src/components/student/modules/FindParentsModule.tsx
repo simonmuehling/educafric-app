@@ -223,9 +223,16 @@ const FindParentsModule: React.FC = () => {
       const data = await response.json();
       console.log('[QR_GENERATOR] 📱 API response:', data);
       
-      // Récupérer le lien magique depuis l'API
-      const apiMagicLink = data.dynamicLink || data.qrData || 
-        `${window.location.origin}/parent-connect?student=${user.id}&token=${data.qrToken || data.token}`;
+      // Récupérer le lien magique depuis l'API (shareUrl is the correct field)
+      const apiMagicLink = data.shareUrl || data.dynamicLink || 
+        `${window.location.origin}/parent-connect?student=${user.id}&code=${data.qrData?.connectionId || Date.now()}`;
+      
+      console.log('[QR_GENERATOR] 🔗 Magic link:', apiMagicLink);
+      
+      if (!apiMagicLink || typeof apiMagicLink !== 'string') {
+        throw new Error('Invalid magic link received from API');
+      }
+      
       setMagicLink(apiMagicLink);
       
       // Générer le QR code avec le lien magique

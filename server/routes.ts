@@ -11655,18 +11655,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
         expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString() // +24h
       };
       
-      // Génération URL QR code (format base64)
-      const qrContent = JSON.stringify(qrData);
-      const qrCodeBase64 = `data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==`;
+      // Génération URL QR code - use the request host for dynamic URL
+      const protocol = req.headers['x-forwarded-proto'] || 'https';
+      const host = req.headers['host'] || 'educafric.com';
+      const baseUrl = `${protocol}://${host}`;
+      const shareUrl = `${baseUrl}/parent-connect?student=${user.id}&code=${qrData.connectionId}`;
       
       console.log('[STUDENT_QR_GENERATE] ✅ QR code generated successfully');
       console.log('[STUDENT_QR_GENERATE] 🔗 Connection ID:', qrData.connectionId);
+      console.log('[STUDENT_QR_GENERATE] 🔗 Share URL:', shareUrl);
       
       res.json({
         success: true,
-        qrCode: qrCodeBase64,
         qrData: qrData,
-        shareUrl: `https://educafric.com/connect?code=${qrData.connectionId}`,
+        shareUrl: shareUrl,
         instructions: {
           fr: 'Montrez ce code QR à vos parents pour qu\'ils se connectent instantanément',
           en: 'Show this QR code to your parents for instant connection'
