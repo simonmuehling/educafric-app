@@ -41,6 +41,17 @@ jobs:
       
     - name: Sync Capacitor
       run: npx cap sync android
+
+    # 🔥 AJOUT 1 — nettoyer le cache Gradle
+    - name: Clear Gradle cache
+      run: rm -rf ~/.gradle/caches
+
+    # 🔥 AJOUT 2 — clean Android build
+    - name: Clean Android build
+      run: |
+        cd android
+        chmod +x gradlew
+        ./gradlew clean
       
     - name: Build APK
       run: |
