@@ -648,6 +648,29 @@ router.post('/login', (req, res, next) => {
       return res.status(401).json({ message: info?.message || 'Invalid credentials' });
     }
     
+    // MOBILE APP RESTRICTION: Block Commercial and SiteAdmin roles on mobile app
+    // Detection via User-Agent (Capacitor WebView) or custom header X-Educafric-Platform
+    const userAgent = req.headers['user-agent'] || '';
+    const platformHeader = req.headers['x-educafric-platform'] as string;
+    const isMobileApp = platformHeader === 'android' || 
+                        platformHeader === 'ios' || 
+                        userAgent.includes('Capacitor') ||
+                        userAgent.includes('EducafricApp');
+    
+    if (isMobileApp) {
+      const blockedRoles = ['Commercial', 'SiteAdmin', 'Admin'];
+      if (blockedRoles.includes(user.role)) {
+        console.log(`[AUTH_MOBILE_BLOCK] 🚫 Blocked ${user.role} login from mobile app: ${user.email || user.phone}`);
+        return res.status(403).json({ 
+          message: 'Ce profil n\'est pas disponible sur l\'application mobile. Veuillez utiliser le site web.',
+          messageFr: 'Ce profil n\'est pas disponible sur l\'application mobile. Veuillez utiliser le site web.',
+          messageEn: 'This profile is not available on the mobile app. Please use the website.',
+          blockedRole: user.role
+        });
+      }
+      console.log(`[AUTH_MOBILE] ✅ Mobile app login allowed for ${user.role}: ${user.email || user.phone}`);
+    }
+    
     // Check if user has 2FA enabled
     if (user.twoFactorEnabled && user.twoFactorSecret) {
       // Store user ID in session for 2FA verification but don't fully authenticate
