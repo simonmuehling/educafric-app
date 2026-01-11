@@ -132,21 +132,20 @@ router.post('/location', async (req: Request, res: Response) => {
     if (payload.parentId) deviceUpdate['parentId'] = payload.parentId;
     if (payload.childName) deviceUpdate['childName'] = payload.childName;
     
-    if (realtimeDb) {
-      // Write to Firebase Realtime Database
-      const deviceRef = realtimeDb.ref(`devices/${payload.deviceId}`);
-      await deviceRef.update(deviceUpdate);
-      
-      // Also save to location history
-      const historyRef = realtimeDb.ref(`locationHistory/${payload.deviceId}`);
-      await historyRef.push({
-        ...locationData,
-        recordedAt: Date.now()
-      });
-      
+    // Write to Firebase Realtime Database via REST API
+    const deviceSuccess = await firebaseWrite(`devices/${payload.deviceId}`, deviceUpdate);
+    
+    // Also save to location history
+    const historySuccess = await firebaseWrite(
+      `locationHistory/${payload.deviceId}/${Date.now()}`, 
+      { ...locationData, recordedAt: Date.now() },
+      'PUT'
+    );
+    
+    if (deviceSuccess) {
       console.log('[SMARTWATCH_WEBHOOK] ✅ Location saved to Firebase:', payload.deviceId);
     } else {
-      console.log('[SMARTWATCH_WEBHOOK] ⚠️ Firebase not available, location logged only');
+      console.log('[SMARTWATCH_WEBHOOK] ⚠️ Firebase write failed, location logged only');
     }
     
     res.json({
@@ -184,44 +183,41 @@ router.post('/sos', async (req: Request, res: Response) => {
       });
     }
     
-    if (realtimeDb) {
-      // Get device info to find parent
-      const deviceSnap = await realtimeDb.ref(`devices/${payload.deviceId}`).get();
-      const device = deviceSnap.val();
+    // Get device info to find parent via REST API
+    const device = await firebaseRead(`devices/${payload.deviceId}`);
+    
+    if (device?.parentId) {
+      // Create SOS alert for parent
+      const alertData = {
+        childId: device.childId,
+        deviceId: payload.deviceId,
+        type: 'sos',
+        message: `SOS! ${device.childName || 'Your child'} pressed the emergency button`,
+        messageFr: `SOS ! ${device.childName || 'Votre enfant'} a appuyé sur le bouton d'urgence`,
+        location: {
+          latitude: payload.latitude || device.location?.latitude || 0,
+          longitude: payload.longitude || device.location?.longitude || 0,
+          accuracy: payload.accuracy || 10,
+          timestamp: Date.now()
+        },
+        timestamp: Date.now(),
+        isRead: false
+      };
       
-      if (device?.parentId) {
-        // Create SOS alert for parent
-        const alertData = {
-          childId: device.childId,
-          deviceId: payload.deviceId,
-          type: 'sos',
-          message: `SOS! ${device.childName || 'Your child'} pressed the emergency button`,
-          messageFr: `SOS ! ${device.childName || 'Votre enfant'} a appuyé sur le bouton d'urgence`,
-          location: {
-            latitude: payload.latitude || device.location?.latitude || 0,
-            longitude: payload.longitude || device.location?.longitude || 0,
-            accuracy: payload.accuracy || 10,
-            timestamp: Date.now()
-          },
-          timestamp: Date.now(),
-          isRead: false
-        };
-        
-        await realtimeDb.ref(`alerts/${device.parentId}`).push(alertData);
-        console.log('[SMARTWATCH_WEBHOOK] ✅ SOS alert created for parent:', device.parentId);
-        
-        // Also send push notification via existing notification service
-        try {
-          const { autoNotificationService } = await import('../services/autoNotificationService');
-          await autoNotificationService.sendTestNotification('attendance', {
-            userId: device.parentId,
-            studentName: device.childName || 'Votre enfant',
-            customTitle: '🚨 ALERTE SOS!',
-            customMessage: `${device.childName || 'Votre enfant'} a déclenché une alerte SOS!`
-          });
-        } catch (notifError) {
-          console.error('[SMARTWATCH_WEBHOOK] Failed to send push notification:', notifError);
-        }
+      await firebaseWrite(`alerts/${device.parentId}/${Date.now()}`, alertData, 'PUT');
+      console.log('[SMARTWATCH_WEBHOOK] ✅ SOS alert created for parent:', device.parentId);
+      
+      // Also send push notification via existing notification service
+      try {
+        const { autoNotificationService } = await import('../services/autoNotificationService');
+        await autoNotificationService.sendTestNotification('attendance', {
+          userId: device.parentId,
+          studentName: device.childName || 'Votre enfant',
+          customTitle: '🚨 ALERTE SOS!',
+          customMessage: `${device.childName || 'Votre enfant'} a déclenché une alerte SOS!`
+        });
+      } catch (notifError) {
+        console.error('[SMARTWATCH_WEBHOOK] Failed to send push notification:', notifError);
       }
     }
     
@@ -261,28 +257,28 @@ router.post('/register', async (req: Request, res: Response) => {
       });
     }
     
-    if (realtimeDb) {
-      const deviceData = {
-        deviceId,
-        childId,
-        parentId,
-        childName: childName || `Child ${childId}`,
-        deviceType: deviceType || 'smartwatch',
-        deviceName: deviceName || `Device ${deviceId.slice(-4)}`,
-        batteryLevel: 100,
-        isOnline: true,
-        lastSeen: Date.now(),
-        location: {
-          latitude: 0,
-          longitude: 0,
-          accuracy: 0,
-          timestamp: Date.now()
-        },
-        safeZones: {},
-        registeredAt: Date.now()
-      };
-      
-      await realtimeDb.ref(`devices/${deviceId}`).set(deviceData);
+    const deviceData = {
+      deviceId,
+      childId,
+      parentId,
+      childName: childName || `Child ${childId}`,
+      deviceType: deviceType || 'smartwatch',
+      deviceName: deviceName || `Device ${deviceId.slice(-4)}`,
+      batteryLevel: 100,
+      isOnline: true,
+      lastSeen: Date.now(),
+      location: {
+        latitude: 0,
+        longitude: 0,
+        accuracy: 0,
+        timestamp: Date.now()
+      },
+      safeZones: {},
+      registeredAt: Date.now()
+    };
+    
+    const success = await firebaseWrite(`devices/${deviceId}`, deviceData, 'PUT');
+    if (success) {
       console.log('[SMARTWATCH_WEBHOOK] ✅ Device registered:', deviceId);
     }
     
@@ -317,30 +313,27 @@ router.post('/battery', async (req: Request, res: Response) => {
     
     console.log('[SMARTWATCH_WEBHOOK] 🔋 Battery update:', { deviceId, batteryLevel, isCharging });
     
-    if (realtimeDb) {
-      await realtimeDb.ref(`devices/${deviceId}`).update({
-        batteryLevel,
-        isCharging: isCharging || false,
-        lastSeen: Date.now()
-      });
+    await firebaseWrite(`devices/${deviceId}`, {
+      batteryLevel,
+      isCharging: isCharging || false,
+      lastSeen: Date.now()
+    });
+    
+    // Create alert if battery is low
+    if (batteryLevel < 20) {
+      const device = await firebaseRead(`devices/${deviceId}`);
       
-      // Create alert if battery is low
-      if (batteryLevel < 20) {
-        const deviceSnap = await realtimeDb.ref(`devices/${deviceId}`).get();
-        const device = deviceSnap.val();
-        
-        if (device?.parentId) {
-          await realtimeDb.ref(`alerts/${device.parentId}`).push({
-            childId: device.childId,
-            deviceId,
-            type: 'battery_low',
-            message: `${device.childName || 'Your child'}'s device battery is low (${batteryLevel}%)`,
-            messageFr: `La batterie de l'appareil de ${device.childName || 'votre enfant'} est faible (${batteryLevel}%)`,
-            location: device.location || { latitude: 0, longitude: 0, accuracy: 0, timestamp: Date.now() },
-            timestamp: Date.now(),
-            isRead: false
-          });
-        }
+      if (device?.parentId) {
+        await firebaseWrite(`alerts/${device.parentId}/${Date.now()}`, {
+          childId: device.childId,
+          deviceId,
+          type: 'battery_low',
+          message: `${device.childName || 'Your child'}'s device battery is low (${batteryLevel}%)`,
+          messageFr: `La batterie de l'appareil de ${device.childName || 'votre enfant'} est faible (${batteryLevel}%)`,
+          location: device.location || { latitude: 0, longitude: 0, accuracy: 0, timestamp: Date.now() },
+          timestamp: Date.now(),
+          isRead: false
+        }, 'PUT');
       }
     }
     
@@ -366,7 +359,9 @@ router.get('/health', (req: Request, res: Response) => {
   res.json({
     status: 'ok',
     service: 'smartwatch-webhook',
-    firebase: realtimeDb ? 'connected' : 'not_configured',
+    firebase: FIREBASE_DATABASE_URL ? 'configured' : 'not_configured',
+    databaseUrl: FIREBASE_DATABASE_URL,
+    hasSecret: !!FIREBASE_DATABASE_SECRET,
     timestamp: Date.now()
   });
 });

@@ -215,6 +215,9 @@ const CSRF_ALLOWLIST: Array<(p: string, m: string) => boolean> = [
   
   // Health check
   (p) => p === '/api/health',
+  
+  // Smartwatch webhook (external device callbacks - no auth)
+  (p) => p.startsWith('/api/smartwatch/webhook/'),
 ];
 
 export function csrfWithAllowlist(req: any, res: any, next: any) {
