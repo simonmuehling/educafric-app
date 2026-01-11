@@ -1,26 +1,67 @@
-<?xml version="1.0" encoding="utf-8"?>
-<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+name: Build Android APK
 
-    <!-- Fond -->
-    <item android:drawable="@color/splash_background" />
+on:
+  workflow_dispatch:
+    inputs:
+      build_type:
+        description: 'Build type'
+        required: true
+        default: 'debug'
+        type: choice
+        options:
+        - debug
+        - release
 
-    <!-- Logo centré -->
-    <item>
-        <bitmap
-            android:gravity="center"
-            android:src="@drawable/splash_logo" />
-    </item>
+jobs:
+  build:
+    runs-on: ubuntu-latest
 
-</layer-list>
-<?xml version="1.0" encoding="utf-8"?>
-<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
-    <!-- Background color: Educafric Purple -->
-    <item android:drawable="@color/splash_background"/>
+    steps:
+    - uses: actions/checkout@v4
     
-    <!-- Centered logo -->
-    <item>
-        <bitmap
-            android:gravity="center"
-            android:src="@mipmap/ic_launcher"/>
-    </item>
-</layer-list>
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+        
+    - name: Setup Java 17
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+        
+    - name: Setup Android SDK
+      uses: android-actions/setup-android@v3
+      
+    - name: Accept Android licenses
+      run: yes | sdkmanager --licenses || true
+      
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Build web app
+      run: npm run build
+      
+    - name: Sync Capacitor
+      run: npx cap sync android
+
+    - name: Clean Android build
+      run: |
+        cd android
+        chmod +x gradlew
+        ./gradlew clean
+
+    - name: Build APK
+      run: |
+        cd android
+        ./gradlew assemble${{ github.event.inputs.build_type == 'release' && 'Release' || 'Debug' }} \
+          --no-build-cache \
+          --stacktrace
+        
+    - name: Upload APK
+      uses: actions/upload-artifact@v4
+      with:
+        name: educafric-${{ github.event.inputs.build_type }}
+        path: android/app/build/outputs/apk/**/*.apk
+        retention-days: 30
