@@ -1,24 +1,29 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'com.muehlingsolutions.educafric',
+  appId: 'com.educafric.app',
   appName: 'EDUCAFRIC',
   webDir: 'dist/public',
   server: {
+    // Production: charge depuis le serveur distant
+    url: 'https://educafric.com',
     androidScheme: 'https',
-    cleartext: true,
-    hostname: 'educafric.app'
+    cleartext: false,
+    // Pour le développement local, décommenter ci-dessous:
+    // url: 'http://localhost:5000',
+    // cleartext: true,
   },
   android: {
-    allowMixedContent: true,
+    allowMixedContent: false,
     useLegacyBridge: false,
-    webContentsDebuggingEnabled: true,
-    backgroundColor: '#0079F2',
-    overrideUserAgent: 'EDUCAFRIC-Android-v4.2.1',
+    webContentsDebuggingEnabled: false, // Mettre à true pour debug
+    backgroundColor: '#7C5CFC', // Thème violet Educafric
+    // User-Agent pour détection côté serveur (blocage Commercial/SiteAdmin)
+    overrideUserAgent: 'EducafricApp/1.0.0 Capacitor Android',
     buildOptions: {
       keystorePath: undefined,
       keystoreAlias: undefined,
-      releaseType: 'AAB',
+      releaseType: 'APK', // APK pour distribution directe, AAB pour Play Store
       signingType: 'apksigner'
     }
   },
@@ -43,10 +48,11 @@ const config: CapacitorConfig = {
     SplashScreen: {
       launchShowDuration: 2000,
       launchAutoHide: true,
-      backgroundColor: "#0079F2",
+      backgroundColor: "#7C5CFC", // Thème violet
       androidSplashResourceName: "splash",
       androidScaleType: "CENTER_CROP",
-      showSpinner: false,
+      showSpinner: true,
+      spinnerColor: "#FFFFFF",
       splashFullScreen: true,
       splashImmersive: true
     },
@@ -56,8 +62,15 @@ const config: CapacitorConfig = {
       resizeOnFullScreen: true
     },
     StatusBar: {
-      style: "dark",
-      backgroundColor: "#0079F2"
+      style: "light", // Texte blanc sur fond violet
+      backgroundColor: "#7C5CFC"
+    },
+    // Configuration cookies pour sessions
+    CapacitorCookies: {
+      enabled: true
+    },
+    CapacitorHttp: {
+      enabled: true
     }
   }
 };
