@@ -33,9 +33,6 @@ jobs:
     - name: Setup Android SDK
       uses: android-actions/setup-android@v3
       
-    - name: Accept Android licenses
-      run: yes | $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --licenses || true
-      
     - name: Install dependencies
       run: npm ci
       
@@ -44,12 +41,23 @@ jobs:
       
     - name: Sync Capacitor
       run: npx cap sync android
+
+    # 🔥 AJOUT 1 — nettoyer le cache Gradle
+    - name: Clear Gradle cache
+      run: rm -rf ~/.gradle/caches
+
+    # 🔥 AJOUT 2 — clean Android build
+    - name: Clean Android build
+      run: |
+        cd android
+        chmod +x gradlew
+        ./gradlew clean
       
     - name: Build APK
       run: |
         cd android
         chmod +x gradlew
-        ./gradlew assemble${{ github.event.inputs.build_type == 'release' && 'Release' || 'Debug' }} --stacktrace
+        ./gradlew assemble${{ github.event.inputs.build_type == 'release' && 'Release' || 'Debug' }}
         
     - name: Upload APK
       uses: actions/upload-artifact@v4
