@@ -1,26 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <!-- Fond -->
+    <!-- Fond du splash -->
     <item android:drawable="@color/splash_background" />
 
     <!-- Logo centré -->
     <item>
         <bitmap
-            android:gravity="center"
-            android:src="@drawable/splash_logo" />
+            android:src="@drawable/splash_logo"
+            android:gravity="center" />
     </item>
 
 </layer-list>
-<?xml version="1.0" encoding="utf-8"?>
-<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
-    <!-- Background color: Educafric Purple -->
-    <item android:drawable="@color/splash_background"/>
-    
-    <!-- Centered logo -->
-    <item>
-        <bitmap
-            android:gravity="center"
-            android:src="@mipmap/ic_launcher"/>
-    </item>
-</layer-list>
+
