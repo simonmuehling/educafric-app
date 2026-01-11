@@ -1,5 +1,5 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { translations } from '@/lib/translations';
 import { useAuth } from '@/contexts/AuthContext';
@@ -15,8 +15,13 @@ import { csrfFetch } from '@/lib/csrf';
 import { 
   MapPin, Shield, Smartphone, Battery, AlertTriangle, 
   Clock, Navigation, Home, School, CheckCircle, 
-  Plus, Settings, Users, Activity
+  Plus, Settings, Users, Activity, Watch, Wifi, WifiOff
 } from 'lucide-react';
+import { 
+  smartwatchService, 
+  type SmartwatchDevice, 
+  type LocationAlert as FirebaseAlert 
+} from '@/services/smartwatchRealtimeTracking';
 
 interface Child {
   id: number;
@@ -78,9 +83,74 @@ export const ParentGeolocation = () => {
     lng: number;
     distance?: number;
   }>>([]);
+  
+  // Firebase Realtime Database - Smartwatch tracking state
+  const [realtimeDevices, setRealtimeDevices] = useState<SmartwatchDevice[]>([]);
+  const [realtimeAlerts, setRealtimeAlerts] = useState<FirebaseAlert[]>([]);
+  const [isRealtimeConnected, setIsRealtimeConnected] = useState(false);
 
   // Use proper translations from translation system with safe fallback
   const t = translations[language === 'fr' ? 'fr' : 'en'].geolocation;
+  
+  // Firebase Realtime Database subscriptions for smartwatch tracking
+  useEffect(() => {
+    if (!user?.id) return;
+    
+    console.log('[FIREBASE_REALTIME] 🔌 Connecting to Firebase Realtime Database for parent:', user.id);
+    
+    // Subscribe to real-time device updates
+    const unsubDevices = smartwatchService.subscribeToChildDevices(
+      user.id,
+      (devices) => {
+        console.log('[FIREBASE_REALTIME] 📍 Received device updates:', devices.length, 'devices');
+        setRealtimeDevices(devices);
+        setIsRealtimeConnected(true);
+        
+        // Show toast for new device online
+        devices.forEach(device => {
+          if (device.isOnline && device.batteryLevel < 20) {
+            toast({
+              title: language === 'fr' ? '🔋 Batterie faible' : '🔋 Low battery',
+              description: language === 'fr' 
+                ? `L'appareil de ${device.childName} a ${device.batteryLevel}% de batterie`
+                : `${device.childName}'s device has ${device.batteryLevel}% battery`,
+              variant: 'destructive'
+            });
+          }
+        });
+      }
+    );
+    
+    // Subscribe to real-time alerts (SOS, zone exits, etc.)
+    const unsubAlerts = smartwatchService.subscribeToAlerts(
+      user.id,
+      (alerts) => {
+        console.log('[FIREBASE_REALTIME] 🚨 Received alerts:', alerts.length);
+        setRealtimeAlerts(alerts);
+        
+        // Show toast for new unread alerts
+        const unreadAlerts = alerts.filter(a => !a.isRead);
+        if (unreadAlerts.length > 0) {
+          const latestAlert = unreadAlerts[0];
+          toast({
+            title: latestAlert.type === 'sos' 
+              ? (language === 'fr' ? '🚨 ALERTE SOS!' : '🚨 SOS ALERT!')
+              : (language === 'fr' ? '⚠️ Nouvelle alerte' : '⚠️ New alert'),
+            description: language === 'fr' ? latestAlert.messageFr : latestAlert.message,
+            variant: latestAlert.type === 'sos' ? 'destructive' : 'default'
+          });
+        }
+      }
+    );
+    
+    return () => {
+      console.log('[FIREBASE_REALTIME] 🔌 Disconnecting from Firebase Realtime Database');
+      unsubDevices();
+      unsubAlerts();
+      smartwatchService.cleanupAllListeners();
+      setIsRealtimeConnected(false);
+    };
+  }, [user?.id, language, toast]);
 
   // Real API calls using TanStack Query - Use parent API routes for proper session handling
   const { data: childrenData, isLoading: childrenLoading } = useQuery<Child[]>({
@@ -98,10 +168,52 @@ export const ParentGeolocation = () => {
     enabled: !!user
   });
 
-  // Safe data with fallbacks
-  const children = childrenData || [];
+  // Safe data with fallbacks - merge REST API data with Firebase Realtime data
+  const baseChildren = childrenData || [];
+  
+  // Merge realtime smartwatch devices into children data
+  const children: Child[] = baseChildren.map(child => {
+    const realtimeDevice = realtimeDevices.find(d => d.childId === child.id);
+    if (realtimeDevice) {
+      return {
+        ...child,
+        deviceId: realtimeDevice.deviceId,
+        deviceType: realtimeDevice.deviceType,
+        lastLocation: realtimeDevice.location ? {
+          latitude: realtimeDevice.location.latitude,
+          longitude: realtimeDevice.location.longitude,
+          timestamp: new Date(realtimeDevice.location.timestamp).toISOString(),
+          address: realtimeDevice.location.address || ''
+        } : child.lastLocation,
+        batteryLevel: realtimeDevice.batteryLevel ?? child.batteryLevel,
+        status: realtimeDevice.isOnline ? 'safe' : 'unknown'
+      };
+    }
+    return child;
+  });
+  
   const safeZones = safeZonesData || [];
-  const alerts = alertsData || [];
+  
+  // Merge REST alerts with Firebase Realtime alerts
+  const restAlerts = alertsData || [];
+  const firebaseAlertsMapped: GeolocationAlert[] = realtimeAlerts.map((fa, idx) => ({
+    id: parseInt(fa.id || `${Date.now()}${idx}`),
+    childName: realtimeDevices.find(d => d.deviceId === fa.deviceId)?.childName || 'Unknown',
+    type: fa.type === 'left_safe_zone' ? 'zone_exit' : 
+          fa.type === 'entered_safe_zone' ? 'zone_enter' :
+          fa.type === 'sos' ? 'emergency' :
+          fa.type === 'battery_low' ? 'low_battery' : 'speed_alert',
+    message: language === 'fr' ? fa.messageFr : fa.message,
+    timestamp: new Date(fa.timestamp).toISOString(),
+    severity: fa.type === 'sos' ? 'critical' : fa.type === 'battery_low' ? 'warning' : 'info',
+    resolved: fa.isRead,
+    isResolved: fa.isRead,
+    latitude: fa.location?.latitude,
+    longitude: fa.location?.longitude
+  }));
+  
+  // Combine and dedupe alerts (Firebase alerts first as they're more recent)
+  const alerts = [...firebaseAlertsMapped, ...restAlerts];
 
   // Test zone exit mutation
   const testZoneExitMutation = useMutation({
@@ -427,11 +539,45 @@ export const ParentGeolocation = () => {
           <h2 className="text-2xl font-bold text-gray-900">{t.title || ''}</h2>
           <p className="text-gray-600">{t.subtitle}</p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 flex-wrap">
           <Badge variant="outline" className="bg-green-100 text-green-700">
             <MapPin className="w-3 h-3 mr-1" />
             {t.realTimeTracking}
           </Badge>
+          {/* Firebase Realtime Connection Status */}
+          <Badge 
+            variant="outline" 
+            className={isRealtimeConnected 
+              ? "bg-purple-100 text-purple-700 border-purple-300" 
+              : "bg-gray-100 text-gray-500 border-gray-300"
+            }
+          >
+            {isRealtimeConnected ? (
+              <>
+                <Wifi className="w-3 h-3 mr-1" />
+                <span className="hidden sm:inline">
+                  {language === 'fr' ? 'Smartwatch connectée' : 'Smartwatch connected'}
+                </span>
+                <span className="sm:hidden">
+                  <Watch className="w-3 h-3" />
+                </span>
+              </>
+            ) : (
+              <>
+                <WifiOff className="w-3 h-3 mr-1" />
+                <span className="hidden sm:inline">
+                  {language === 'fr' ? 'Hors ligne' : 'Offline'}
+                </span>
+              </>
+            )}
+          </Badge>
+          {/* Realtime devices count */}
+          {realtimeDevices.length > 0 && (
+            <Badge variant="outline" className="bg-blue-100 text-blue-700 border-blue-300">
+              <Watch className="w-3 h-3 mr-1" />
+              {realtimeDevices.length} {language === 'fr' ? 'appareil(s)' : 'device(s)'}
+            </Badge>
+          )}
         </div>
       </div>
 

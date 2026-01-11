@@ -1,5 +1,5 @@
 import { initializeApp, getApps, getApp } from 'firebase/app';
-import { getDatabase, ref, onValue, set, update, push, query, orderByChild, limitToLast, off } from 'firebase/database';
+import { getDatabase, ref, onValue, set, update, push, query, orderByChild, limitToLast, off, get } from 'firebase/database';
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -222,11 +222,8 @@ export class SmartwatchRealtimeService {
   ): Promise<void> {
     try {
       const deviceRef = ref(realtimeDb, `devices/${deviceId}`);
-      const deviceData = await new Promise<SmartwatchDevice | null>((resolve) => {
-        onValue(deviceRef, (snapshot) => {
-          resolve(snapshot.val());
-        }, { onlyOnce: true });
-      });
+      const snapshot = await get(deviceRef);
+      const deviceData = snapshot.val() as SmartwatchDevice | null;
       
       if (!deviceData) return;
       
