@@ -70,6 +70,7 @@ import {
 // Import existing route modules
 import geolocationRoutes from "./routes/geolocation";
 import enhancedGeolocationRoutes from "./routes/enhancedGeolocation";
+import smartwatchWebhookRouter from "./routes/smartwatchWebhook";
 import documentsRouter from "./routes/documents";
 import authRoutes from "./routes/auth";
 import facebookWebhookRoutes from "./routes/facebook-webhook";
@@ -14227,6 +14228,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // 🔥 PREMIUM RESTRICTED: GPS tracking and geolocation (premium schools only)
   app.use('/api/geolocation', checkSubscriptionFeature('geolocation_tracking'), geolocationRoutes);
   app.use('/api/enhanced-geolocation', checkSubscriptionFeature('geolocation_tracking'), enhancedGeolocationRoutes);
+  
+  // 📱 SMARTWATCH WEBHOOK: Receives location data from smartwatch APIs (Xplora, Imoo, etc.)
+  // Public endpoint - no auth required for external device callbacks
+  // Note: Router imported at top of file as smartwatchWebhookRouter
+  app.use('/api/smartwatch/webhook', smartwatchWebhookRouter);
   app.use('/api/documents', documentsRouter);
   app.use('/api/subscription', subscriptionRoutes);
   app.use('/api/pwa', pwaRoutes);
