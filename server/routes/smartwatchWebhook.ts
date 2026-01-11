@@ -1,28 +1,61 @@
 import { Router, Request, Response } from 'express';
-import { initializeApp, getApps, cert } from 'firebase-admin/app';
-import { getDatabase } from 'firebase-admin/database';
 
 const router = Router();
 
-// Initialize Firebase Admin SDK for server-side writes
-let firebaseAdmin: any = null;
-let realtimeDb: any = null;
+// Firebase Realtime Database REST API configuration
+// Uses REST API instead of Admin SDK - no service account key needed!
+const FIREBASE_DATABASE_URL = process.env.FIREBASE_DATABASE_URL || 'https://smartwatch-tracker-e061f-default-rtdb.firebaseio.com';
+const FIREBASE_DATABASE_SECRET = process.env.FIREBASE_DATABASE_SECRET; // Optional: for authenticated writes
 
-try {
-  if (getApps().length === 0) {
-    firebaseAdmin = initializeApp({
-      credential: cert({
-        projectId: process.env.FIREBASE_PROJECT_ID || 'smartwatch-tracker-e061f',
-        clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-        privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n')
-      }),
-      databaseURL: process.env.FIREBASE_DATABASE_URL || 'https://smartwatch-tracker-e061f-default-rtdb.firebaseio.com'
+console.log('[SMARTWATCH_WEBHOOK] 🔥 Using Firebase REST API');
+console.log('[SMARTWATCH_WEBHOOK] 📡 Database URL:', FIREBASE_DATABASE_URL);
+
+// Helper function to write to Firebase using REST API
+async function firebaseWrite(path: string, data: any, method: 'PUT' | 'PATCH' | 'POST' = 'PATCH'): Promise<boolean> {
+  try {
+    let url = `${FIREBASE_DATABASE_URL}/${path}.json`;
+    if (FIREBASE_DATABASE_SECRET) {
+      url += `?auth=${FIREBASE_DATABASE_SECRET}`;
+    }
+    
+    const response = await fetch(url, {
+      method,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
     });
+    
+    if (!response.ok) {
+      console.error('[FIREBASE_REST] ❌ Write failed:', response.status, await response.text());
+      return false;
+    }
+    
+    console.log('[FIREBASE_REST] ✅ Write success:', path);
+    return true;
+  } catch (error) {
+    console.error('[FIREBASE_REST] ❌ Error:', error);
+    return false;
   }
-  realtimeDb = getDatabase();
-  console.log('[SMARTWATCH_WEBHOOK] ✅ Firebase Admin initialized');
-} catch (error) {
-  console.warn('[SMARTWATCH_WEBHOOK] ⚠️ Firebase Admin not initialized - webhook will use REST fallback');
+}
+
+// Helper function to read from Firebase using REST API
+async function firebaseRead(path: string): Promise<any> {
+  try {
+    let url = `${FIREBASE_DATABASE_URL}/${path}.json`;
+    if (FIREBASE_DATABASE_SECRET) {
+      url += `?auth=${FIREBASE_DATABASE_SECRET}`;
+    }
+    
+    const response = await fetch(url);
+    if (!response.ok) {
+      console.error('[FIREBASE_REST] ❌ Read failed:', response.status);
+      return null;
+    }
+    
+    return await response.json();
+  } catch (error) {
+    console.error('[FIREBASE_REST] ❌ Read error:', error);
+    return null;
+  }
 }
 
 interface SmartwatchPayload {
