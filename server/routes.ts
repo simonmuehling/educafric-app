@@ -2953,10 +2953,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
         className = classInfo?.name || '';
       }
       
-      console.log('[UPDATE_STUDENT] ✅ Student updated successfully:', `${updatedStudent.firstName} ${updatedStudent.lastName}`, 'Class:', className);
+      console.log('[UPDATE_STUDENT] ✅ Student updated successfully:', `${updatedStudent.firstName} ${updatedStudent.lastName}`, 'Class:', className, 'Photo:', updatedStudent.profilePictureUrl ? 'Yes' : 'No');
+      
+      // ✅ FIX: Include all photo field names for frontend compatibility
       res.json({ 
         success: true, 
-        student: { ...updatedStudent, className, classId: classId || null }, 
+        student: { 
+          ...updatedStudent, 
+          className, 
+          classId: classId || null,
+          // ✅ Map profilePictureUrl to all expected frontend field names
+          photo: updatedStudent.profilePictureUrl || null,
+          photoURL: updatedStudent.profilePictureUrl || null,
+          profilePicture: updatedStudent.profilePictureUrl || null
+        }, 
         message: 'Student updated successfully' 
       });
     } catch (error) {
