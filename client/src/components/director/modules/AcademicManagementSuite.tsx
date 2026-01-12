@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
@@ -346,46 +347,26 @@ function CompileBulletinsFromGrades() {
 function ArchiveManagementContent() {
   const { language } = useLanguage();
   const { toast } = useToast();
-  const [filters, setFilters] = useState({
-    academicYear: 'all',
-    classId: 'all',
-    term: 'all',
-    type: 'all',
-    search: '',
-    page: 1,
-    limit: 20
+  const queryClient = useQueryClient();
+  
+  // State for expandable tree view
+  const [expandedYears, setExpandedYears] = useState<Set<string>>(new Set());
+  const [expandedClasses, setExpandedClasses] = useState<Set<string>>(new Set());
+  const [expandedTerms, setExpandedTerms] = useState<Set<string>>(new Set());
+  
+  // State for bulletin preview modal
+  const [selectedBulletin, setSelectedBulletin] = useState<any>(null);
+  const [isLoadingBulletin, setIsLoadingBulletin] = useState(false);
+  const [showBulletinModal, setShowBulletinModal] = useState(false);
+
+  // Fetch hierarchical archive data
+  const { data: hierarchicalData, isLoading, error, refetch } = useQuery({
+    queryKey: ['/api/director/archives/hierarchical'],
   });
 
-  // Build URL with query params for archives
-  const archivesUrl = useMemo(() => {
-    const params = new URLSearchParams();
-    Object.entries(filters).forEach(([key, value]) => {
-      if (value && value !== 'all') params.append(key, value.toString());
-    });
-    const queryString = params.toString();
-    return queryString ? `/api/director/archives?${queryString}` : '/api/director/archives';
-  }, [filters]);
-
-  // Build URL with query params for stats
-  const statsUrl = useMemo(() => {
-    return filters.academicYear && filters.academicYear !== 'all'
-      ? `/api/director/archives/stats?academicYear=${filters.academicYear}`
-      : '/api/director/archives/stats';
-  }, [filters.academicYear]);
-
-  // Fetch archives with filters - using default fetcher
-  const { data: archivesData, isLoading: archivesLoading, error: archivesError, refetch } = useQuery({
-    queryKey: [archivesUrl],
-  });
-
-  // Fetch archive statistics - using default fetcher
-  const { data: statsData, isLoading: statsLoading, error: statsError } = useQuery({
-    queryKey: [statsUrl],
-  });
-
-  // Show error toast if queries fail
+  // Show error toast if query fails
   useEffect(() => {
-    if (archivesError) {
+    if (error) {
       toast({
         title: language === 'fr' ? 'Erreur' : 'Error',
         description: language === 'fr' 
@@ -394,69 +375,114 @@ function ArchiveManagementContent() {
         variant: 'destructive',
       });
     }
-    if (statsError) {
+  }, [error, language, toast]);
+
+  const years = (hierarchicalData as any)?.data?.years || [];
+  const stats = (hierarchicalData as any)?.data?.stats || {};
+  
+  const toggleYear = (year: string) => {
+    const newExpanded = new Set(expandedYears);
+    if (newExpanded.has(year)) {
+      newExpanded.delete(year);
+    } else {
+      newExpanded.add(year);
+    }
+    setExpandedYears(newExpanded);
+  };
+  
+  const toggleClass = (yearClass: string) => {
+    const newExpanded = new Set(expandedClasses);
+    if (newExpanded.has(yearClass)) {
+      newExpanded.delete(yearClass);
+    } else {
+      newExpanded.add(yearClass);
+    }
+    setExpandedClasses(newExpanded);
+  };
+  
+  const toggleTerm = (termKey: string) => {
+    const newExpanded = new Set(expandedTerms);
+    if (newExpanded.has(termKey)) {
+      newExpanded.delete(termKey);
+    } else {
+      newExpanded.add(termKey);
+    }
+    setExpandedTerms(newExpanded);
+  };
+
+  const handleViewBulletin = async (bulletinId: number) => {
+    setIsLoadingBulletin(true);
+    try {
+      const response = await fetch(`/api/director/bulletins/${bulletinId}/download-pdf`, {
+        credentials: 'include'
+      });
+      const data = await response.json();
+      
+      if (data.success && data.bulletin) {
+        setSelectedBulletin(data.bulletin);
+        setShowBulletinModal(true);
+      } else {
+        toast({
+          title: language === 'fr' ? 'Erreur' : 'Error',
+          description: data.message || 'Failed to load bulletin',
+          variant: 'destructive'
+        });
+      }
+    } catch (err) {
+      console.error('View bulletin error:', err);
       toast({
         title: language === 'fr' ? 'Erreur' : 'Error',
-        description: language === 'fr' 
-          ? 'Impossible de charger les statistiques' 
-          : 'Failed to load statistics',
-        variant: 'destructive',
+        description: language === 'fr' ? 'Impossible de charger le bulletin' : 'Failed to load bulletin',
+        variant: 'destructive'
       });
-    }
-  }, [archivesError, statsError, language, toast]);
-
-  const archives = archivesData?.documents || archivesData?.data?.documents || [];
-  const stats = statsData?.data || statsData || {};
-  const isLoading = archivesLoading || statsLoading;
-  
-  const handleDownload = async (archiveId: number, filename: string) => {
-    try {
-      const response = await fetch(`/api/director/archives/${archiveId}/download`);
-      if (response.ok) {
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.style.display = 'none';
-        a.href = url;
-        a.download = filename;
-        document.body.appendChild(a);
-        a.click();
-        window.URL.revokeObjectURL(url);
-        document.body.removeChild(a);
-      }
-    } catch (error) {
-      console.error('Download failed:', error);
+    } finally {
+      setIsLoadingBulletin(false);
     }
   };
 
-  const formatFileSize = (bytes: number): string => {
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-    if (bytes === 0) return '0 Bytes';
-    const i = Math.floor(Math.log(bytes) / Math.log(1024));
-    return Math.round(bytes / Math.pow(1024, i) * 100) / 100 + ' ' + sizes[i];
+  const handlePrintBulletin = () => {
+    window.print();
+  };
+
+  const closeBulletinModal = () => {
+    setShowBulletinModal(false);
+    setSelectedBulletin(null);
   };
 
   const formatDate = (dateString: string): string => {
+    if (!dateString) return '-';
     const date = new Date(dateString);
     return language === 'fr' 
       ? date.toLocaleDateString('fr-FR')
       : date.toLocaleDateString('en-US');
   };
 
+  const getTermLabel = (term: string): string => {
+    const labels: Record<string, { fr: string; en: string }> = {
+      'T1': { fr: '1er Trimestre', en: 'First Term' },
+      'T2': { fr: '2ème Trimestre', en: 'Second Term' },
+      'T3': { fr: '3ème Trimestre', en: 'Third Term' },
+      'Premier Trimestre': { fr: '1er Trimestre', en: 'First Term' },
+      'Deuxième Trimestre': { fr: '2ème Trimestre', en: 'Second Term' },
+      'Troisième Trimestre': { fr: '3ème Trimestre', en: 'Third Term' }
+    };
+    return labels[term]?.[language] || term;
+  };
+
   return (
     <div className="space-y-6">
       {/* Statistics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center space-x-2">
-              <Archive className="h-5 w-5 text-blue-600" />
+              <Calendar className="h-5 w-5 text-blue-600" />
               <div>
                 <p className="text-xs text-muted-foreground">
-                  {language === 'fr' ? 'Total Archives' : 'Total Archives'}
+                  {language === 'fr' ? 'Années Scolaires' : 'Academic Years'}
                 </p>
-                <p className="text-lg font-semibold" data-testid="stat-total-archives">
-                  {stats.totalArchives || 0}
+                <p className="text-lg font-semibold" data-testid="stat-total-years">
+                  {stats.totalYears || 0}
                 </p>
               </div>
             </div>
@@ -469,26 +495,10 @@ function ArchiveManagementContent() {
               <FileText className="h-5 w-5 text-green-600" />
               <div>
                 <p className="text-xs text-muted-foreground">
-                  {language === 'fr' ? 'Bulletins' : 'Report Cards'}
+                  {language === 'fr' ? 'Total Bulletins' : 'Total Bulletins'}
                 </p>
-                <p className="text-lg font-semibold" data-testid="stat-bulletins">
-                  {stats.bulletinCount || 0}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center space-x-2">
-              <BookOpen className="h-5 w-5 text-purple-600" />
-              <div>
-                <p className="text-xs text-muted-foreground">
-                  {language === 'fr' ? 'Relevés' : 'Transcripts'}
-                </p>
-                <p className="text-lg font-semibold" data-testid="stat-transcripts">
-                  {stats.transcriptCount || 0}
+                <p className="text-lg font-semibold" data-testid="stat-total-bulletins">
+                  {stats.totalBulletins || 0}
                 </p>
               </div>
             </div>
@@ -497,81 +507,20 @@ function ArchiveManagementContent() {
 
         <Card>
           <CardContent className="p-4">
-            <div className="flex items-center space-x-2">
-              <TrendingUp className="h-5 w-5 text-orange-600" />
-              <div>
-                <p className="text-xs text-muted-foreground">
-                  {language === 'fr' ? 'Taille Total' : 'Total Size'}
-                </p>
-                <p className="text-lg font-semibold" data-testid="stat-total-size">
-                  {formatFileSize(stats.totalSize || 0)}
-                </p>
-              </div>
-            </div>
+            <Button onClick={() => refetch()} className="w-full" variant="outline">
+              <Search className="h-4 w-4 mr-2" />
+              {language === 'fr' ? 'Actualiser' : 'Refresh'}
+            </Button>
           </CardContent>
         </Card>
       </div>
 
-      {/* Filters */}
-      <Card>
-        <CardHeader>
-          <CardTitle>{language === 'fr' ? 'Filtres' : 'Filters'}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-6 gap-4 items-end">
-            <div>
-              <Label>{language === 'fr' ? 'Année Scolaire' : 'Academic Year'}</Label>
-              <Select value={filters.academicYear} onValueChange={(value) => setFilters(prev => ({ ...prev, academicYear: value }))}>
-                <SelectTrigger data-testid="select-academic-year-filter">
-                  <SelectValue placeholder={language === 'fr' ? 'Sélectionner...' : 'Select...'} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">{language === 'fr' ? 'Toutes' : 'All'}</SelectItem>
-                  <SelectItem value="2024-2025">2024-2025</SelectItem>
-                  <SelectItem value="2023-2024">2023-2024</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div>
-              <Label>{language === 'fr' ? 'Type' : 'Type'}</Label>
-              <Select value={filters.type} onValueChange={(value) => setFilters(prev => ({ ...prev, type: value }))}>
-                <SelectTrigger data-testid="select-type-filter">
-                  <SelectValue placeholder={language === 'fr' ? 'Sélectionner...' : 'Select...'} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">{language === 'fr' ? 'Tous' : 'All'}</SelectItem>
-                  <SelectItem value="bulletin">{language === 'fr' ? 'Bulletins' : 'Report Cards'}</SelectItem>
-                  <SelectItem value="transcript">{language === 'fr' ? 'Relevés' : 'Transcripts'}</SelectItem>
-                  <SelectItem value="annual-report">{language === 'fr' ? 'Rapports Annuels' : 'Annual Reports'}</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div>
-              <Label>{language === 'fr' ? 'Recherche' : 'Search'}</Label>
-              <Input
-                placeholder={language === 'fr' ? 'Nom du fichier...' : 'Filename...'}
-                value={filters.search}
-                onChange={(e) => setFilters(prev => ({ ...prev, search: e.target.value }))}
-                data-testid="input-search-filter"
-              />
-            </div>
-            
-            <Button onClick={() => refetch()} data-testid="button-search-archives">
-              <Search className="h-4 w-4 mr-2" />
-              {language === 'fr' ? 'Actualiser' : 'Refresh'}
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Archives List */}
+      {/* Hierarchical Archive Tree */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Archive className="h-5 w-5" />
-            {language === 'fr' ? 'Archives des Documents' : 'Document Archives'}
+            {language === 'fr' ? 'Archives par Année Scolaire' : 'Archives by Academic Year'}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -580,77 +529,286 @@ function ArchiveManagementContent() {
               <div className="animate-spin h-8 w-8 border-4 border-blue-500 border-t-transparent rounded-full mx-auto mb-4"></div>
               {language === 'fr' ? 'Chargement des archives...' : 'Loading archives...'}
             </div>
-          ) : archives.length === 0 ? (
+          ) : years.length === 0 ? (
             <div className="p-8 text-center text-muted-foreground" data-testid="empty-archives">
-              <Archive className="h-12 w-12 mx-auto mb-4" />
-              <p>{language === 'fr' ? 'Aucune archive trouvée' : 'No archives found'}</p>
+              <Archive className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+              <p className="font-medium">{language === 'fr' ? 'Aucun bulletin archivé' : 'No archived bulletins'}</p>
               <p className="text-sm mt-2">
                 {language === 'fr' 
-                  ? 'Les documents archivés apparaîtront ici après envoi'
-                  : 'Archived documents will appear here after sending'
+                  ? 'Les bulletins générés apparaîtront ici, organisés par année scolaire et classe'
+                  : 'Generated report cards will appear here, organized by academic year and class'
                 }
               </p>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b">
-                    <Th>{language === 'fr' ? 'Nom du Fichier' : 'Filename'}</Th>
-                    <Th>{language === 'fr' ? 'Type' : 'Type'}</Th>
-                    <Th>{language === 'fr' ? 'Taille' : 'Size'}</Th>
-                    <Th>{language === 'fr' ? 'Année' : 'Year'}</Th>
-                    <Th>{language === 'fr' ? 'Envoyé le' : 'Sent Date'}</Th>
-                    <Th>{language === 'fr' ? 'Actions' : 'Actions'}</Th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {archives.map((archive: any, index: number) => (
-                    <tr key={archive.id} className={index % 2 ? "bg-white" : "bg-gray-50/50"} data-testid={`row-archive-${archive.id}`}>
-                      <Td className="font-medium" data-testid={`text-filename-${archive.id}`}>{archive.filename}</Td>
-                      <Td data-testid={`badge-type-${archive.id}`}>
-                        <Badge variant={archive.type === 'bulletin' ? 'default' : 'secondary'}>
-                          {archive.type === 'bulletin' 
-                            ? (language === 'fr' ? 'Bulletin' : 'Report Card')
-                            : archive.type === 'transcript'
-                            ? (language === 'fr' ? 'Relevé' : 'Transcript')
-                            : (language === 'fr' ? 'Rapport Annuel' : 'Annual Report')
-                          }
-                        </Badge>
-                      </Td>
-                      <Td data-testid={`text-filesize-${archive.id}`}>{formatFileSize(archive.fileSize || 0)}</Td>
-                      <Td data-testid={`text-year-${archive.id}`}>{archive.academicYear}</Td>
-                      <Td data-testid={`text-date-${archive.id}`}>{formatDate(archive.sentAt || archive.createdAt)}</Td>
-                      <Td>
-                        <div className="flex items-center gap-2">
-                          <Button 
-                            size="sm" 
-                            variant="outline"
-                            onClick={() => handleDownload(archive.id, archive.filename)}
-                            data-testid={`button-download-${archive.id}`}
-                          >
-                            <Download className="h-3 w-3 mr-1" />
-                            {language === 'fr' ? 'Télécharger' : 'Download'}
-                          </Button>
-                          <Button 
-                            size="sm" 
-                            variant="ghost"
-                            onClick={() => window.open(archive.previewUrl, '_blank')}
-                            data-testid={`button-preview-${archive.id}`}
-                          >
-                            <Eye className="h-3 w-3 mr-1" />
-                            {language === 'fr' ? 'Voir' : 'View'}
-                          </Button>
-                        </div>
-                      </Td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+            <div className="space-y-2">
+              {years.map((yearData: any) => (
+                <div key={yearData.year} className="border rounded-lg overflow-hidden">
+                  {/* Year Header */}
+                  <button
+                    onClick={() => toggleYear(yearData.year)}
+                    className="w-full flex items-center justify-between p-4 bg-gradient-to-r from-[#7C5CFC] to-[#6B4CE0] text-white hover:from-[#6B4CE0] hover:to-[#5A3DC0] transition-colors"
+                  >
+                    <div className="flex items-center gap-3">
+                      <Calendar className="h-5 w-5" />
+                      <span className="font-semibold text-lg">{yearData.year}</span>
+                      <Badge variant="secondary" className="bg-white/20 text-white">
+                        {yearData.totalDocuments} {language === 'fr' ? 'bulletins' : 'bulletins'}
+                      </Badge>
+                    </div>
+                    {expandedYears.has(yearData.year) ? (
+                      <XCircle className="h-5 w-5" />
+                    ) : (
+                      <Eye className="h-5 w-5" />
+                    )}
+                  </button>
+                  
+                  {/* Classes */}
+                  {expandedYears.has(yearData.year) && (
+                    <div className="bg-gray-50 p-2 space-y-2">
+                      {yearData.classes.map((classData: any) => {
+                        const classKey = `${yearData.year}-${classData.className}`;
+                        return (
+                          <div key={classKey} className="bg-white rounded-lg border overflow-hidden">
+                            {/* Class Header */}
+                            <button
+                              onClick={() => toggleClass(classKey)}
+                              className="w-full flex items-center justify-between p-3 hover:bg-gray-50 transition-colors"
+                            >
+                              <div className="flex items-center gap-3">
+                                <Users className="h-4 w-4 text-[#7C5CFC]" />
+                                <span className="font-medium">{classData.className}</span>
+                                <Badge variant="outline">
+                                  {classData.totalDocuments} {language === 'fr' ? 'élèves' : 'students'}
+                                </Badge>
+                              </div>
+                              {expandedClasses.has(classKey) ? (
+                                <XCircle className="h-4 w-4 text-gray-400" />
+                              ) : (
+                                <Eye className="h-4 w-4 text-gray-400" />
+                              )}
+                            </button>
+                            
+                            {/* Terms */}
+                            {expandedClasses.has(classKey) && (
+                              <div className="border-t p-2 space-y-2 bg-gray-50">
+                                {classData.terms.map((termData: any) => {
+                                  const termKey = `${classKey}-${termData.term}`;
+                                  return (
+                                    <div key={termKey} className="bg-white rounded border overflow-hidden">
+                                      {/* Term Header */}
+                                      <button
+                                        onClick={() => toggleTerm(termKey)}
+                                        className="w-full flex items-center justify-between p-2 hover:bg-gray-50 transition-colors"
+                                      >
+                                        <div className="flex items-center gap-2">
+                                          <Clock className="h-4 w-4 text-orange-500" />
+                                          <span className="text-sm font-medium">{getTermLabel(termData.term)}</span>
+                                          <Badge variant="secondary" className="text-xs">
+                                            {termData.count}
+                                          </Badge>
+                                        </div>
+                                        {expandedTerms.has(termKey) ? (
+                                          <XCircle className="h-4 w-4 text-gray-400" />
+                                        ) : (
+                                          <Download className="h-4 w-4 text-gray-400" />
+                                        )}
+                                      </button>
+                                      
+                                      {/* Documents List */}
+                                      {expandedTerms.has(termKey) && (
+                                        <div className="border-t max-h-64 overflow-y-auto">
+                                          <table className="w-full text-sm">
+                                            <thead className="bg-gray-100 sticky top-0">
+                                              <tr>
+                                                <Th className="text-xs">{language === 'fr' ? 'Élève' : 'Student'}</Th>
+                                                <Th className="text-xs">{language === 'fr' ? 'Moyenne' : 'Average'}</Th>
+                                                <Th className="text-xs">{language === 'fr' ? 'Rang' : 'Rank'}</Th>
+                                                <Th className="text-xs">{language === 'fr' ? 'Action' : 'Action'}</Th>
+                                              </tr>
+                                            </thead>
+                                            <tbody>
+                                              {termData.documents.map((doc: any, idx: number) => (
+                                                <tr key={doc.id} className={idx % 2 ? 'bg-white' : 'bg-gray-50/50'}>
+                                                  <Td className="font-medium text-xs">{doc.studentName}</Td>
+                                                  <Td className="text-xs">
+                                                    <span className={`font-semibold ${parseFloat(doc.generalAverage) >= 10 ? 'text-green-600' : 'text-red-600'}`}>
+                                                      {parseFloat(doc.generalAverage || 0).toFixed(2)}/20
+                                                    </span>
+                                                  </Td>
+                                                  <Td className="text-xs">
+                                                    <Badge variant="outline" className="text-xs">
+                                                      {doc.studentRank || '-'}
+                                                    </Badge>
+                                                  </Td>
+                                                  <Td>
+                                                    <Button 
+                                                      size="sm" 
+                                                      variant="ghost"
+                                                      className="h-7 px-2 text-xs text-[#7C5CFC] hover:text-[#6B4CE0]"
+                                                      onClick={() => handleViewBulletin(doc.id)}
+                                                      disabled={isLoadingBulletin}
+                                                    >
+                                                      {isLoadingBulletin ? (
+                                                        <div className="animate-spin h-3 w-3 border-2 border-[#7C5CFC] border-t-transparent rounded-full mr-1" />
+                                                      ) : (
+                                                        <Eye className="h-3 w-3 mr-1" />
+                                                      )}
+                                                      {language === 'fr' ? 'Voir' : 'View'}
+                                                    </Button>
+                                                  </Td>
+                                                </tr>
+                                              ))}
+                                            </tbody>
+                                          </table>
+                                        </div>
+                                      )}
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              ))}
             </div>
           )}
         </CardContent>
       </Card>
+
+      {/* Bulletin Preview Modal */}
+      {showBulletinModal && selectedBulletin && (
+        <Dialog open={showBulletinModal} onOpenChange={closeBulletinModal}>
+          <DialogContent className="bg-white max-w-4xl max-h-[90vh] overflow-y-auto print:max-w-none print:max-h-none print:overflow-visible">
+            <DialogHeader className="print:hidden">
+              <DialogTitle className="flex items-center gap-2">
+                <FileText className="h-5 w-5 text-[#7C5CFC]" />
+                {language === 'fr' ? 'Aperçu du Bulletin' : 'Report Card Preview'}
+              </DialogTitle>
+            </DialogHeader>
+            
+            {/* Bulletin Content */}
+            <div className="bulletin-preview-content p-6" id="bulletin-print-area">
+              {/* Header */}
+              <div className="text-center border-b-2 border-[#7C5CFC] pb-4 mb-4">
+                <h1 className="text-xl font-bold text-[#7C5CFC]">
+                  {language === 'fr' ? 'BULLETIN SCOLAIRE' : 'SCHOOL REPORT CARD'}
+                </h1>
+                <p className="text-sm text-gray-600">{selectedBulletin.academicYear} - {selectedBulletin.term}</p>
+              </div>
+              
+              {/* Student Info */}
+              <div className="grid grid-cols-2 gap-4 mb-6 p-4 bg-gray-50 rounded-lg">
+                <div>
+                  <p className="text-sm text-gray-500">{language === 'fr' ? 'Nom de l\'élève' : 'Student Name'}</p>
+                  <p className="font-semibold">{selectedBulletin.studentFirstName} {selectedBulletin.studentLastName}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500">{language === 'fr' ? 'Classe' : 'Class'}</p>
+                  <p className="font-semibold">{selectedBulletin.className}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500">{language === 'fr' ? 'Matricule' : 'Student ID'}</p>
+                  <p className="font-semibold">{selectedBulletin.studentMatricule || '-'}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500">{language === 'fr' ? 'Moyenne Générale' : 'General Average'}</p>
+                  <p className={`font-bold text-lg ${parseFloat(selectedBulletin.generalAverage) >= 10 ? 'text-green-600' : 'text-red-600'}`}>
+                    {parseFloat(selectedBulletin.generalAverage || 0).toFixed(2)}/20
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500">{language === 'fr' ? 'Rang' : 'Rank'}</p>
+                  <p className="font-semibold">{selectedBulletin.studentRank || '-'}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500">{language === 'fr' ? 'Mention' : 'Grade'}</p>
+                  <p className="font-semibold">{selectedBulletin.overallGrade || '-'}</p>
+                </div>
+              </div>
+              
+              {/* Subjects Table */}
+              {selectedBulletin.subjects && selectedBulletin.subjects.length > 0 && (
+                <div className="mb-6">
+                  <h3 className="font-semibold mb-3 text-[#7C5CFC]">
+                    {language === 'fr' ? 'Détail des Notes' : 'Grade Details'}
+                  </h3>
+                  <table className="w-full border-collapse border border-gray-200">
+                    <thead>
+                      <tr className="bg-[#7C5CFC] text-white">
+                        <th className="border border-gray-200 p-2 text-left text-sm">{language === 'fr' ? 'Matière' : 'Subject'}</th>
+                        <th className="border border-gray-200 p-2 text-center text-sm">{language === 'fr' ? 'Coef' : 'Coef'}</th>
+                        <th className="border border-gray-200 p-2 text-center text-sm">{language === 'fr' ? 'Note' : 'Mark'}</th>
+                        <th className="border border-gray-200 p-2 text-center text-sm">{language === 'fr' ? 'Moy Classe' : 'Class Avg'}</th>
+                        <th className="border border-gray-200 p-2 text-left text-sm">{language === 'fr' ? 'Appréciation' : 'Remark'}</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {selectedBulletin.subjects.map((subject: any, idx: number) => (
+                        <tr key={idx} className={idx % 2 ? 'bg-gray-50' : 'bg-white'}>
+                          <td className="border border-gray-200 p-2 text-sm">{subject.name || subject.subjectName}</td>
+                          <td className="border border-gray-200 p-2 text-center text-sm">{subject.coefficient || 1}</td>
+                          <td className={`border border-gray-200 p-2 text-center text-sm font-semibold ${parseFloat(subject.average || subject.note || 0) >= 10 ? 'text-green-600' : 'text-red-600'}`}>
+                            {parseFloat(subject.average || subject.note || 0).toFixed(2)}
+                          </td>
+                          <td className="border border-gray-200 p-2 text-center text-sm">{subject.classAverage || '-'}</td>
+                          <td className="border border-gray-200 p-2 text-sm">{subject.remark || subject.appreciation || '-'}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+              
+              {/* Discipline & Comments */}
+              {selectedBulletin.discipline && (
+                <div className="grid grid-cols-2 gap-4 p-4 bg-gray-50 rounded-lg">
+                  <div>
+                    <p className="text-sm text-gray-500">{language === 'fr' ? 'Absences' : 'Absences'}</p>
+                    <p className="font-semibold">{selectedBulletin.discipline.absences || 0}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500">{language === 'fr' ? 'Retards' : 'Late arrivals'}</p>
+                    <p className="font-semibold">{selectedBulletin.discipline.lateArrivals || 0}</p>
+                  </div>
+                </div>
+              )}
+              
+              {/* Teacher Comments */}
+              {selectedBulletin.teacherComments && (
+                <div className="mt-4 p-4 border-l-4 border-[#7C5CFC] bg-gray-50">
+                  <p className="text-sm text-gray-500 mb-1">{language === 'fr' ? 'Commentaire du Professeur Principal' : 'Class Teacher Comment'}</p>
+                  <p className="text-sm">{selectedBulletin.teacherComments}</p>
+                </div>
+              )}
+              
+              {/* Principal Comments */}
+              {selectedBulletin.principalComments && (
+                <div className="mt-4 p-4 border-l-4 border-green-500 bg-gray-50">
+                  <p className="text-sm text-gray-500 mb-1">{language === 'fr' ? 'Commentaire du Directeur' : 'Principal Comment'}</p>
+                  <p className="text-sm">{selectedBulletin.principalComments}</p>
+                </div>
+              )}
+            </div>
+            
+            {/* Actions */}
+            <div className="flex justify-end gap-2 mt-4 print:hidden">
+              <Button variant="outline" onClick={closeBulletinModal}>
+                <XCircle className="h-4 w-4 mr-2" />
+                {language === 'fr' ? 'Fermer' : 'Close'}
+              </Button>
+              <Button onClick={handlePrintBulletin} className="bg-[#7C5CFC] hover:bg-[#6B4CE0]">
+                <Printer className="h-4 w-4 mr-2" />
+                {language === 'fr' ? 'Imprimer' : 'Print'}
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 }

@@ -4656,11 +4656,56 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log('[DIRECTOR_TEACHER_GRADES] ✅ Found', submissions.length, 'submissions');
       
+      // ✅ FIX: Enrich submissions with competencies from competencies table
+      // Fetch competencies for all unique subjectIds in the submissions
+      const uniqueSubjectIds = [...new Set(submissions.map(s => s.subjectId).filter(id => id))];
+      
+      let subjectCompetencies: Record<number, string[]> = {};
+      if (uniqueSubjectIds.length > 0) {
+        try {
+          const competencyResults = await db
+            .select({
+              subjectId: competencies.subjectId,
+              textFr: competencies.competencyTextFr,
+              textEn: competencies.competencyTextEn
+            })
+            .from(competencies)
+            .where(and(
+              eq(competencies.schoolId, userSchoolId),
+              competencies.subjectId ? sql`${competencies.subjectId} = ANY(${uniqueSubjectIds})` : sql`false`
+            ))
+            .orderBy(competencies.displayOrder);
+          
+          // Group competencies by subject
+          competencyResults.forEach(comp => {
+            if (comp.subjectId) {
+              if (!subjectCompetencies[comp.subjectId]) {
+                subjectCompetencies[comp.subjectId] = [];
+              }
+              subjectCompetencies[comp.subjectId].push(comp.textFr || comp.textEn || '');
+            }
+          });
+          console.log('[DIRECTOR_TEACHER_GRADES] Loaded competencies for', Object.keys(subjectCompetencies).length, 'subjects');
+        } catch (compError) {
+          console.log('[DIRECTOR_TEACHER_GRADES] Could not load competencies:', compError);
+        }
+      }
+      
+      // Add competencies to each submission
+      const enrichedSubmissions = submissions.map(submission => ({
+        ...submission,
+        // ✅ NEW: Include competencies for the subject
+        competence1: subjectCompetencies[submission.subjectId]?.[0] || '',
+        competence2: subjectCompetencies[submission.subjectId]?.[1] || '',
+        competence3: subjectCompetencies[submission.subjectId]?.[2] || '',
+        competencies: subjectCompetencies[submission.subjectId]?.join('\n') || ''
+      }));
+      
       res.json({
         success: true,
-        submissions,
+        submissions: enrichedSubmissions,
         stats: {
-          total: submissions.length,
+          total: enrichedSubmissions.length,
           byStatus: statusCounts.reduce((acc: any, curr: any) => {
             acc[curr.reviewStatus] = Number(curr.count);
             return acc;
@@ -17962,6 +18007,157 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('[ARCHIVES_API] Error fetching archive stats:', error);
       res.status(500).json({ success: false, message: 'Failed to fetch archive statistics' });
+    }
+  });
+
+  // ✅ NEW: Get hierarchical archive data (Year → Class → Documents) from bulletinComprehensive
+  app.get('/api/director/archives/hierarchical', requireAuth, requireAnyRole(['Director', 'Admin']), async (req: Request, res: Response) => {
+    try {
+      const user = req.user as any;
+      const userSchoolId = user.schoolId;
+      
+      if (!userSchoolId) {
+        return res.status(400).json({ success: false, message: 'School ID required' });
+      }
+      
+      console.log('[ARCHIVES_HIERARCHICAL] Fetching for school:', userSchoolId);
+      
+      // Get all bulletins from bulletinComprehensive grouped by academic year and class
+      const bulletins = await db
+        .select({
+          id: bulletinComprehensive.id,
+          studentId: bulletinComprehensive.studentId,
+          studentFirstName: bulletinComprehensive.studentFirstName,
+          studentLastName: bulletinComprehensive.studentLastName,
+          studentMatricule: bulletinComprehensive.studentMatricule,
+          classId: bulletinComprehensive.classId,
+          className: bulletinComprehensive.className,
+          term: bulletinComprehensive.term,
+          academicYear: bulletinComprehensive.academicYear,
+          generalAverage: bulletinComprehensive.generalAverage,
+          studentRank: bulletinComprehensive.studentRank,
+          overallGrade: bulletinComprehensive.overallGrade,
+          createdAt: bulletinComprehensive.createdAt,
+          updatedAt: bulletinComprehensive.updatedAt
+        })
+        .from(bulletinComprehensive)
+        .where(eq(bulletinComprehensive.schoolId, userSchoolId))
+        .orderBy(
+          desc(bulletinComprehensive.academicYear),
+          bulletinComprehensive.className,
+          bulletinComprehensive.term,
+          bulletinComprehensive.studentRank
+        );
+      
+      // Organize hierarchically: Year → Class → Term → Documents
+      const hierarchy: Record<string, Record<string, Record<string, any[]>>> = {};
+      
+      bulletins.forEach(bulletin => {
+        const year = bulletin.academicYear || '2024-2025';
+        const className = bulletin.className || 'Non classé';
+        const term = bulletin.term || 'T1';
+        
+        if (!hierarchy[year]) hierarchy[year] = {};
+        if (!hierarchy[year][className]) hierarchy[year][className] = {};
+        if (!hierarchy[year][className][term]) hierarchy[year][className][term] = [];
+        
+        hierarchy[year][className][term].push({
+          id: bulletin.id,
+          studentName: `${bulletin.studentFirstName || ''} ${bulletin.studentLastName || ''}`.trim(),
+          studentMatricule: bulletin.studentMatricule,
+          studentId: bulletin.studentId,
+          generalAverage: bulletin.generalAverage,
+          studentRank: bulletin.studentRank,
+          overallGrade: bulletin.overallGrade,
+          createdAt: bulletin.createdAt,
+          type: 'bulletin'
+        });
+      });
+      
+      // Convert to array format for easier frontend consumption
+      const years = Object.entries(hierarchy).map(([year, classData]) => ({
+        year,
+        classes: Object.entries(classData).map(([className, termData]) => ({
+          className,
+          terms: Object.entries(termData).map(([term, documents]) => ({
+            term,
+            documents,
+            count: documents.length
+          })),
+          totalDocuments: Object.values(termData).reduce((sum, docs) => sum + docs.length, 0)
+        })),
+        totalDocuments: Object.values(classData).reduce(
+          (sum, termData) => sum + Object.values(termData).reduce((s, d) => s + d.length, 0), 
+          0
+        )
+      }));
+      
+      // Stats
+      const stats = {
+        totalYears: years.length,
+        totalBulletins: bulletins.length,
+        yearsList: years.map(y => y.year)
+      };
+      
+      console.log('[ARCHIVES_HIERARCHICAL] ✅ Found', bulletins.length, 'bulletins across', years.length, 'years');
+      
+      res.json({
+        success: true,
+        data: { years, stats }
+      });
+      
+    } catch (error) {
+      console.error('[ARCHIVES_HIERARCHICAL] Error:', error);
+      res.status(500).json({ success: false, message: 'Failed to fetch hierarchical archives' });
+    }
+  });
+
+  // ✅ NEW: Download bulletin PDF by bulletinComprehensive ID
+  app.get('/api/director/bulletins/:id/download-pdf', requireAuth, requireAnyRole(['Director', 'Admin']), async (req: Request, res: Response) => {
+    try {
+      const user = req.user as any;
+      const bulletinId = parseInt(req.params.id);
+      
+      if (isNaN(bulletinId)) {
+        return res.status(400).json({ success: false, message: 'Invalid bulletin ID' });
+      }
+      
+      console.log('[BULLETIN_DOWNLOAD] Generating PDF for bulletin:', bulletinId);
+      
+      // Get the full bulletin data
+      const [bulletin] = await db
+        .select()
+        .from(bulletinComprehensive)
+        .where(and(
+          eq(bulletinComprehensive.id, bulletinId),
+          eq(bulletinComprehensive.schoolId, user.schoolId)
+        ))
+        .limit(1);
+      
+      if (!bulletin) {
+        return res.status(404).json({ success: false, message: 'Bulletin not found' });
+      }
+      
+      // Generate filename
+      const studentName = `${bulletin.studentFirstName || ''}_${bulletin.studentLastName || ''}`.trim().replace(/\s+/g, '_');
+      const filename = `Bulletin_${studentName}_${bulletin.term}_${bulletin.academicYear}.pdf`;
+      
+      // Return bulletin data as JSON for now - frontend will render and print
+      // Full PDF generation can be added later with puppeteer
+      res.json({
+        success: true,
+        bulletin: {
+          ...bulletin,
+          subjects: bulletin.subjectsData ? JSON.parse(bulletin.subjectsData as string) : [],
+          discipline: bulletin.disciplineData ? JSON.parse(bulletin.disciplineData as string) : {}
+        },
+        filename,
+        message: 'Use frontend to print this bulletin'
+      });
+      
+    } catch (error) {
+      console.error('[BULLETIN_DOWNLOAD] Error:', error);
+      res.status(500).json({ success: false, message: 'Failed to download bulletin' });
     }
   });
 

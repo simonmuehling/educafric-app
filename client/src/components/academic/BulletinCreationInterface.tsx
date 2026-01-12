@@ -1696,6 +1696,7 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
                     console.log('[BULLETIN] Pre-filling subjects with approved grades:', selectedStudent.grades);
                     
                     // Create subjects from approved grades with all necessary fields
+                    // ✅ FIX: Import competencies from teacher submission instead of hardcoding
                     const newSubjects = selectedStudent.grades.map((gradeData: any, index: number) => ({
                       id: (index + 1).toString(),
                       name: gradeData.subjectName || '',
@@ -1705,10 +1706,14 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
                       remark: gradeData.remark || '',
                       comments: gradeData.remark ? [gradeData.remark] : [],
                       note1: gradeData.note1 || gradeData.finalGrade || 0,
+                      note2: gradeData.note2 || 0,
+                      note3: gradeData.note3 || 0,
                       moyenneFinale: gradeData.finalGrade || 0,
-                      competence1: 'Communication orale et écrite',
-                      competence2: 'Raisonnement mathématique',
-                      competence3: 'Résolution de problèmes',
+                      // ✅ Use competencies from teacher submission, with fallback to defaults
+                      competence1: gradeData.competence1 || gradeData.competencies?.split('\n')?.[0] || '',
+                      competence2: gradeData.competence2 || gradeData.competencies?.split('\n')?.[1] || '',
+                      competence3: gradeData.competence3 || gradeData.competencies?.split('\n')?.[2] || '',
+                      competencies: gradeData.competencies || '',
                       totalPondere: (gradeData.finalGrade || 0) * (gradeData.coefficient || 1),
                       cote: calculateCote(gradeData.finalGrade || 0)
                     }));
@@ -3999,16 +4004,24 @@ function StudentSelector({ onStudentSelect, language, selectedClassId, selectedT
       console.log('[STUDENT_SELECTOR] Found approved grades:', studentGrades.length, studentGrades);
       
       // Transform approved grades into the format expected by bulletin
+      // ✅ FIX: Include competencies from teacher submissions
       const gradesForBulletin = studentGrades.map((submission: any) => ({
         subjectId: submission.subjectId,
         subjectName: submission.subjectName,
         finalGrade: parseFloat(submission.termAverage || submission.firstEvaluation || '0'),
         note1: parseFloat(submission.firstEvaluation || '0'),
+        note2: parseFloat(submission.secondEvaluation || '0'),
+        note3: parseFloat(submission.thirdEvaluation || '0'),
         coefficient: submission.coefficient || 1,
-        remark: submission.subjectComments || '',
+        remark: submission.subjectComments || submission.appreciation || submission.comment || '',
         teacherFirstName: submission.teacherFirstName || '',
         teacherLastName: submission.teacherLastName || '',
-        teacher: `${submission.teacherFirstName || ''} ${submission.teacherLastName || ''}`.trim()
+        teacher: `${submission.teacherFirstName || ''} ${submission.teacherLastName || ''}`.trim(),
+        // ✅ NEW: Import competencies evaluated by teacher
+        competence1: submission.competence1 || submission.evaluatedCompetencies?.[0] || '',
+        competence2: submission.competence2 || submission.evaluatedCompetencies?.[1] || '',
+        competence3: submission.competence3 || submission.evaluatedCompetencies?.[2] || '',
+        competencies: submission.competencies || submission.evaluatedCompetencies || ''
       }));
       
       const studentWithGrades = {
