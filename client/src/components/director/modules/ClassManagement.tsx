@@ -1332,7 +1332,7 @@ const ClassManagement: React.FC = () => {
                               <div className="flex-1">
                                 <span className="font-medium text-sm">{subject.name}</span>
                                 <div className="text-xs text-gray-500">
-                                  Coeff. {subject.coefficient} • {subject.hoursPerWeek}h/sem • {subject.category}
+                                  {language === 'fr' ? 'Coeff.' : 'Coef.'} {subject.coefficient} • {subject.hoursPerWeek}{language === 'fr' ? 'h/sem' : 'h/wk'} • {subject.category}
                                   {isTechnicalSchool && subject.bulletinSection && (
                                     <span className="ml-2 text-blue-600 font-medium">
                                       → {language === 'fr' ? 'Bulletin' : 'Report'}: {subject.bulletinSection}
@@ -1384,24 +1384,30 @@ const ClassManagement: React.FC = () => {
                           />
                         </div>
                         <div className="flex gap-1">
-                          <Input
-                            type="number"
-                            placeholder={language === 'fr' ? "Coeff" : "Coef"}
-                            value={newSubject.coefficient}
-                            onChange={(e) => setNewSubject(prev => ({ ...prev, coefficient: parseInt(e.target.value) || 1 }))}
-                            className="bg-white text-sm"
-                            min="1"
-                            max="10"
-                          />
-                          <Input
-                            type="number"
-                            placeholder={language === 'fr' ? "H/sem" : "H/wk"}
-                            value={newSubject.hoursPerWeek}
-                            onChange={(e) => setNewSubject(prev => ({ ...prev, hoursPerWeek: parseInt(e.target.value) || 1 }))}
-                            className="bg-white text-sm"
-                            min="1"
-                            max="15"
-                          />
+                          <div className="flex flex-col">
+                            <Input
+                              type="number"
+                              placeholder={language === 'fr' ? "Coeff" : "Coef"}
+                              value={newSubject.coefficient}
+                              onChange={(e) => setNewSubject(prev => ({ ...prev, coefficient: parseInt(e.target.value) || 1 }))}
+                              className="bg-white text-sm"
+                              min="1"
+                              max="10"
+                            />
+                            <span className="text-xs text-gray-500 mt-0.5">{language === 'fr' ? 'Coefficient' : 'Coefficient'}</span>
+                          </div>
+                          <div className="flex flex-col">
+                            <Input
+                              type="number"
+                              placeholder={language === 'fr' ? "H/sem" : "H/wk"}
+                              value={newSubject.hoursPerWeek}
+                              onChange={(e) => setNewSubject(prev => ({ ...prev, hoursPerWeek: parseInt(e.target.value) || 1 }))}
+                              className="bg-white text-sm"
+                              min="1"
+                              max="15"
+                            />
+                            <span className="text-xs text-gray-500 mt-0.5">{language === 'fr' ? 'Heures/sem' : 'Hours/wk'}</span>
+                          </div>
                         </div>
                       </div>
                       <div className="flex gap-2 mb-2">
@@ -1658,7 +1664,7 @@ const ClassManagement: React.FC = () => {
                               <div className="flex-1">
                                 <span className="font-medium text-sm">{subject.name || subject.nameFr || subject.nameEn || 'N/A'}</span>
                                 <div className="text-xs text-gray-500">
-                                  Coeff. {subject.coefficient || 1} • {subject.hoursPerWeek || 2}h/sem • {subject.category || 'general'}
+                                  {language === 'fr' ? 'Coeff.' : 'Coef.'} {subject.coefficient || 1} • {subject.hoursPerWeek || 2}{language === 'fr' ? 'h/sem' : 'h/wk'} • {subject.category || 'general'}
                                   {isTechnicalSchool && subject.bulletinSection && (
                                     <span className="ml-2 text-blue-600 font-medium">
                                       → {language === 'fr' ? 'Bulletin' : 'Report'}: {subject.bulletinSection}
@@ -1713,26 +1719,32 @@ const ClassManagement: React.FC = () => {
                           />
                         </div>
                         <div className="flex gap-1">
-                          <Input
-                            type="number"
-                            placeholder={language === 'fr' ? "Coeff" : "Coef"}
-                            value={editSubject.coefficient}
-                            onChange={(e) => setEditSubject(prev => ({ ...prev, coefficient: parseInt(e.target.value) || 1 }))}
-                            className="bg-white text-sm"
-                            min="1"
-                            max="10"
-                            data-testid="input-subject-coefficient"
-                          />
-                          <Input
-                            type="number"
-                            placeholder={language === 'fr' ? "H/sem" : "H/wk"}
-                            value={editSubject.hoursPerWeek}
-                            onChange={(e) => setEditSubject(prev => ({ ...prev, hoursPerWeek: parseInt(e.target.value) || 1 }))}
-                            className="bg-white text-sm"
-                            min="1"
-                            max="15"
-                            data-testid="input-subject-hours"
-                          />
+                          <div className="flex flex-col">
+                            <Input
+                              type="number"
+                              placeholder={language === 'fr' ? "Coeff" : "Coef"}
+                              value={editSubject.coefficient}
+                              onChange={(e) => setEditSubject(prev => ({ ...prev, coefficient: parseInt(e.target.value) || 1 }))}
+                              className="bg-white text-sm"
+                              min="1"
+                              max="10"
+                              data-testid="input-subject-coefficient"
+                            />
+                            <span className="text-xs text-gray-500 mt-0.5">{language === 'fr' ? 'Coefficient' : 'Coefficient'}</span>
+                          </div>
+                          <div className="flex flex-col">
+                            <Input
+                              type="number"
+                              placeholder={language === 'fr' ? "H/sem" : "H/wk"}
+                              value={editSubject.hoursPerWeek}
+                              onChange={(e) => setEditSubject(prev => ({ ...prev, hoursPerWeek: parseInt(e.target.value) || 1 }))}
+                              className="bg-white text-sm"
+                              min="1"
+                              max="15"
+                              data-testid="input-subject-hours"
+                            />
+                            <span className="text-xs text-gray-500 mt-0.5">{language === 'fr' ? 'Heures/sem' : 'Hours/wk'}</span>
+                          </div>
                         </div>
                       </div>
                       <div className="flex gap-2 mb-2">
@@ -2591,8 +2603,8 @@ const ClassManagement: React.FC = () => {
                         <div key={index} className="p-3 bg-gray-50 rounded-lg border">
                           <div className="font-medium text-sm">{subject.name}</div>
                           <div className="text-xs text-gray-500 mt-1">
-                            {language === 'fr' ? 'Coef' : 'Coeff'}: {subject.coefficient || 1} • 
-                            {subject.hoursPerWeek || 2}h/{language === 'fr' ? 'sem' : 'week'}
+                            {language === 'fr' ? 'Coeff.' : 'Coef.'} {subject.coefficient || 1} • 
+                            {subject.hoursPerWeek || 2}{language === 'fr' ? 'h/sem' : 'h/wk'}
                           </div>
                           <Badge variant="outline" className="mt-2 text-xs">
                             {subject.category === 'general' ? (language === 'fr' ? 'Générale' : 'General') :
