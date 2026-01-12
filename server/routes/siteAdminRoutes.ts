@@ -74,22 +74,34 @@ export function registerSiteAdminRoutes(app: Express, requireAuth: any) {
   // Update Platform User
   app.put("/api/siteadmin/users/:userId", requireAuth, requireSiteAdminAccess, async (req, res) => {
     try {
-      console.log(`[SITE_ADMIN_API] Updating user ${req.params.userId}`);
+      console.log(`[SITE_ADMIN_API] Updating user ${req.params.userId}:`, req.body);
 
       const { userId } = req.params;
-      const updates = req.body;
+      const { 
+        firstName, lastName, email, phone, role, isActive, status,
+        secondaryRoles, schoolId 
+      } = req.body;
       
+      // Build update object with only defined values
+      const updateData: any = { updatedAt: new Date() };
+      if (firstName !== undefined) updateData.firstName = firstName;
+      if (lastName !== undefined) updateData.lastName = lastName;
+      if (email !== undefined) updateData.email = email;
+      if (phone !== undefined) updateData.phone = phone;
+      if (role !== undefined) updateData.role = role;
+      if (isActive !== undefined) updateData.isActive = isActive;
+      if (status !== undefined) updateData.isActive = status === 'active';
+      if (secondaryRoles !== undefined) updateData.secondaryRoles = secondaryRoles;
+      if (schoolId !== undefined) updateData.schoolId = schoolId;
+
       // Update user in database
-      await storage.updateUser(parseInt(userId), {
-        ...updates,
-        updatedAt: new Date()
-      });
+      await storage.updateUser(parseInt(userId), updateData);
 
       console.log(`[SITE_ADMIN_API] ✅ User ${userId} updated successfully`);
-      res.json({ message: 'User updated successfully' });
+      res.json({ success: true, message: 'User updated successfully' });
     } catch (error: any) {
       console.error('[SITE_ADMIN_API] Error updating user:', error);
-      res.status(500).json({ message: 'Failed to update user' });
+      res.status(500).json({ success: false, message: 'Failed to update user' });
     }
   });
 
@@ -508,22 +520,29 @@ export function registerSiteAdminRoutes(app: Express, requireAuth: any) {
   app.put("/api/siteadmin/schools/:schoolId", requireAuth, requireSiteAdminAccess, async (req, res) => {
     try {
       const { schoolId } = req.params;
-      const { name, address, city, country, phone, email, website, type, level } = req.body;
+      const { 
+        name, address, city, country, countryCode, phone, email, website, 
+        type, level, currency, educafricNumber 
+      } = req.body;
       
-      console.log(`[SITE_ADMIN_API] Updating school ${schoolId}`);
+      console.log(`[SITE_ADMIN_API] Updating school ${schoolId}:`, req.body);
 
-      await storage.updateSchool(parseInt(schoolId), {
-        name,
-        address,
-        city,
-        country,
-        phone,
-        email,
-        website,
-        type,
-        level,
-        updatedAt: new Date()
-      });
+      // Build update object with only defined values
+      const updateData: any = { updatedAt: new Date() };
+      if (name !== undefined) updateData.name = name;
+      if (address !== undefined) updateData.address = address;
+      if (city !== undefined) updateData.city = city;
+      if (country !== undefined) updateData.country = country;
+      if (countryCode !== undefined) updateData.countryCode = countryCode;
+      if (phone !== undefined) updateData.phone = phone;
+      if (email !== undefined) updateData.email = email;
+      if (website !== undefined) updateData.website = website;
+      if (type !== undefined) updateData.type = type;
+      if (level !== undefined) updateData.level = level;
+      if (currency !== undefined) updateData.currency = currency;
+      if (educafricNumber !== undefined) updateData.educafricNumber = educafricNumber;
+
+      await storage.updateSchool(parseInt(schoolId), updateData);
 
       console.log(`[SITE_ADMIN_API] ✅ School ${schoolId} updated successfully`);
       res.json({ 

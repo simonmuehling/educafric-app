@@ -2,11 +2,27 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { BarChart3, TrendingUp, DollarSign, Users, Calendar, Target, Award, Phone } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import { BarChart3, TrendingUp, DollarSign, Users, Calendar, Target, Award, Phone, Loader2, AlertCircle } from 'lucide-react';
 
 const CommercialStatistics = () => {
   const { language } = useLanguage();
   const [selectedPeriod, setSelectedPeriod] = useState('month');
+
+  // Fetch statistics from real API
+  const { data: apiStats, isLoading, error } = useQuery({
+    queryKey: ['/api/commercial/statistics', selectedPeriod],
+    queryFn: async () => {
+      const response = await fetch(`/api/commercial/statistics?period=${selectedPeriod}`, {
+        credentials: 'include'
+      });
+      if (!response.ok) {
+        throw new Error('Failed to fetch statistics');
+      }
+      return response.json();
+    },
+    refetchOnWindowFocus: false
+  });
 
   const text = {
     fr: {
@@ -65,60 +81,22 @@ const CommercialStatistics = () => {
 
   const t = text[language as keyof typeof text];
 
-  // Mock statistics data based on period
-  const getStatsForPeriod = (period: string) => {
-    switch (period) {
-      case 'month':
-        return {
-          prospectSchools: 42,
-          conversions: 8,
-          monthlyCommission: 850000,
-          monthlyRevenue: 4200000,
-          pendingContracts: 12,
-          conversionRate: 19,
-          averageContractValue: 525000,
-          schoolsAcquired: 8,
-          callsThisMonth: 156,
-          meetingsScheduled: 24,
-          proposalsSent: 18,
-          contractsSigned: 8
-        };
-      case 'quarter':
-        return {
-          prospectSchools: 124,
-          conversions: 23,
-          monthlyCommission: 2400000,
-          monthlyRevenue: 12600000,
-          pendingContracts: 18,
-          conversionRate: 18.5,
-          averageContractValue: 548000,
-          schoolsAcquired: 23,
-          callsThisMonth: 468,
-          meetingsScheduled: 72,
-          proposalsSent: 54,
-          contractsSigned: 23
-        };
-      case 'year':
-        return {
-          prospectSchools: 485,
-          conversions: 89,
-          monthlyCommission: 9200000,
-          monthlyRevenue: 47800000,
-          pendingContracts: 31,
-          conversionRate: 18.4,
-          averageContractValue: 537000,
-          schoolsAcquired: 89,
-          callsThisMonth: 1820,
-          meetingsScheduled: 278,
-          proposalsSent: 205,
-          contractsSigned: 89
-        };
-      default:
-        return getStatsForPeriod('month');
-    }
+  // Use API data when available, fallback to zeros if no data
+  const apiData = apiStats?.data || {};
+  const stats = {
+    prospectSchools: apiData.totalProspects || 0,
+    conversions: apiData.activeClients || 0,
+    monthlyCommission: 0,
+    monthlyRevenue: apiData.monthlyRevenue || 0,
+    pendingContracts: 0,
+    conversionRate: apiData.conversionRate || 0,
+    averageContractValue: apiData.averageDealSize || 0,
+    schoolsAcquired: apiData.schoolsUnderContract || 0,
+    callsThisMonth: apiData.contactsThisMonth || 0,
+    meetingsScheduled: apiData.appointmentsThisWeek || 0,
+    proposalsSent: 0,
+    contractsSigned: apiData.schoolsUnderContract || 0
   };
-
-  const stats = getStatsForPeriod(selectedPeriod);
 
   const formatCurrency = (amount: number) => {
     return `${amount.toLocaleString()} CFA`;
@@ -130,13 +108,22 @@ const CommercialStatistics = () => {
     { key: 'year', label: t.thisYear }
   ];
 
-  const regionData = [
-    { name: 'Yaoundé', schools: 15, revenue: 8500000, growth: '+12%' },
-    { name: 'Douala', schools: 12, revenue: 7200000, growth: '+8%' },
-    { name: 'Bafoussam', schools: 8, revenue: 4800000, growth: '+15%' },
-    { name: 'Garoua', schools: 6, revenue: 3600000, growth: '+6%' },
-    { name: 'Bamenda', schools: 4, revenue: 2400000, growth: '+10%' }
-  ];
+  // Use API region data when available
+  const regionData = Array.isArray(apiData.topRegions) && apiData.topRegions.length > 0 
+    ? apiData.topRegions 
+    : [];
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="w-8 h-8 animate-spin text-[#7C5CFC]" />
+        <span className="ml-2 text-gray-600">
+          {language === 'fr' ? 'Chargement...' : 'Loading...'}
+        </span>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -286,23 +273,30 @@ const CommercialStatistics = () => {
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {(Array.isArray(regionData) ? regionData : []).map((region, index) => (
-                <div key={region.name || ''} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold">
-                      {index + 1}
-                    </div>
-                    <div>
-                      <div className="font-medium">{region.name || ''}</div>
-                      <div className="text-sm text-gray-600">{region.schools} {language === 'fr' ? 'écoles' : 'schools'}</div>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <div className="font-semibold">{formatCurrency(region.revenue)}</div>
-                    <div className="text-sm text-green-600">{region.growth}</div>
-                  </div>
+              {regionData.length === 0 ? (
+                <div className="text-center py-6 text-gray-500">
+                  <Users className="w-12 h-12 mx-auto mb-2 text-gray-300" />
+                  <p>{language === 'fr' ? 'Aucune donnée régionale disponible' : 'No regional data available'}</p>
                 </div>
-              ))}
+              ) : (
+                (Array.isArray(regionData) ? regionData : []).map((region, index) => (
+                  <div key={region.name || ''} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold">
+                        {index + 1}
+                      </div>
+                      <div>
+                        <div className="font-medium">{region.name || ''}</div>
+                        <div className="text-sm text-gray-600">{region.schools} {language === 'fr' ? 'écoles' : 'schools'}</div>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="font-semibold">{formatCurrency(region.revenue)}</div>
+                      <div className="text-sm text-green-600">{region.growth}</div>
+                    </div>
+                  </div>
+                ))
+              )}
             </div>
           </CardContent>
         </Card>
