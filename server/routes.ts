@@ -14572,9 +14572,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         for (const subject of subjectsData) {
           try {
             // PRIORITY 1: Use subjectId directly from bulletin data if available
-            let subjectId = subject.subjectId || subject.id || 0;
+            // IMPORTANT: Ignore client-generated IDs like "subject-1323" - only accept numeric IDs
+            let subjectId = 0;
+            const rawId = subject.subjectId || subject.id;
+            if (rawId && typeof rawId === 'number' && !isNaN(rawId)) {
+              subjectId = rawId;
+            } else if (rawId && typeof rawId === 'string' && /^\d+$/.test(rawId)) {
+              // Accept numeric strings like "123" but reject "subject-1323"
+              subjectId = parseInt(rawId, 10);
+            }
+            console.log(`[DIRECTOR_BULLETINS] 🔍 Subject "${subject.name}" raw ID: ${rawId}, parsed subjectId: ${subjectId}`);
             
-            // PRIORITY 2: If no direct ID, try case-insensitive name lookup (supports nameFr and nameEn columns)
+            // PRIORITY 2: If no valid numeric ID, try case-insensitive name lookup (supports nameFr and nameEn columns)
             if (!subjectId && subject.name) {
               const subjectNameLower = subject.name.toLowerCase().trim();
               const [subjectRecord] = await db.select({ id: subjects.id, nameFr: subjects.nameFr, nameEn: subjects.nameEn })
@@ -14631,23 +14640,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
             // Support ALL 6 bulletin types: general-fr, general-en, literary-fr, scientific-fr, professional-fr, technical-en
             const bulletinType = bulletin.bulletinType || 'general-fr';
             const isAnglophone = bulletinType === 'general-en' || bulletinType === 'technical-en';
+            const isTechnical = bulletinType === 'technical-en' || bulletinType === 'professional-fr';
             
-            // Extract grade values based on bulletin type
-            let firstEval, secondEval, thirdEval, termAvg;
+            console.log(`[DIRECTOR_BULLETINS] 📋 Bulletin type: ${bulletinType} (anglophone: ${isAnglophone}, technical: ${isTechnical})`);
+            console.log(`[DIRECTOR_BULLETINS] 📋 Subject data keys: ${Object.keys(subject).join(', ')}`);
             
-            if (isAnglophone) {
-              // Anglophone format: mk20, av20, competence1/2/3
-              firstEval = parseFloat(subject.mk20) || parseFloat(subject.note1) || parseFloat(subject.grade) || 0;
-              secondEval = parseFloat(subject.competence1) || parseFloat(subject.c1) || 0;
-              thirdEval = parseFloat(subject.competence2) || parseFloat(subject.c2) || 0;
-              termAvg = parseFloat(subject.av20) || parseFloat(subject.moyenneFinale) || parseFloat(subject.average) || firstEval;
-            } else {
-              // Francophone format: note1, note2, note3, moyenneFinale
-              firstEval = parseFloat(subject.note1) || parseFloat(subject.n1) || parseFloat(subject.grade) || 0;
-              secondEval = parseFloat(subject.note2) || parseFloat(subject.n2) || 0;
-              thirdEval = parseFloat(subject.note3) || parseFloat(subject.n3) || 0;
-              termAvg = parseFloat(subject.moyenneFinale) || parseFloat(subject.m20) || parseFloat(subject.average) || firstEval;
-            }
+            // Extract grade values based on bulletin type - UNIVERSAL FALLBACK CHAIN
+            // Try all possible field names to maximize compatibility
+            let firstEval = 0, secondEval = 0, thirdEval = 0, termAvg = 0;
+            
+            // First evaluation: try multiple field names
+            firstEval = parseFloat(subject.note1) || parseFloat(subject.n1) || parseFloat(subject.mk20) || 
+                        parseFloat(subject.grade) || parseFloat(subject.firstEval) || parseFloat(subject.eval1) || 0;
+            
+            // Second evaluation
+            secondEval = parseFloat(subject.note2) || parseFloat(subject.n2) || parseFloat(subject.competence1) || 
+                         parseFloat(subject.c1) || parseFloat(subject.secondEval) || parseFloat(subject.eval2) || 0;
+            
+            // Third evaluation
+            thirdEval = parseFloat(subject.note3) || parseFloat(subject.n3) || parseFloat(subject.competence2) || 
+                        parseFloat(subject.c2) || parseFloat(subject.thirdEval) || parseFloat(subject.eval3) || 0;
+            
+            // Term average: prioritize final average fields, fallback to first eval if nothing else
+            termAvg = parseFloat(subject.moyenneFinale) || parseFloat(subject.average) || parseFloat(subject.av20) || 
+                      parseFloat(subject.m20) || parseFloat(subject.termAverage) || parseFloat(subject.finalGrade) ||
+                      parseFloat(subject.grade) || firstEval || 0;
+            
+            // Extract teacher comment/appreciation - try multiple field names
+            const teacherComment = subject.appreciation || subject.remark || subject.comment || 
+                                   subject.teacherComment || subject.observation || subject.remarque || '';
+            
+            // Extract coefficient - handle string and number formats
+            const coefficient = parseInt(subject.coefficient) || parseInt(subject.coef) || 
+                               parseInt(subject.coeff) || 1;
             
             const gradeData = {
               teacherId: bulletin.teacherId,
@@ -14660,9 +14685,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
               firstEvaluation: String(firstEval),
               secondEvaluation: String(secondEval),
               thirdEvaluation: String(thirdEval),
-              coefficient: parseInt(subject.coefficient) || parseInt(subject.coef) || 1,
+              coefficient: coefficient,
               termAverage: String(termAvg),
-              subjectComments: subject.appreciation || subject.remark || subject.comment || '',
+              subjectComments: teacherComment,
               isSubmitted: true,
               submittedAt: new Date(),
               reviewStatus: 'approved',
@@ -14670,6 +14695,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
               reviewedAt: new Date(),
               reviewFeedback: `Approved from bulletin #${bulletinId} (${bulletinType})`
             };
+            
+            console.log(`[DIRECTOR_BULLETINS] ✅ Grade data prepared: first=${firstEval}, second=${secondEval}, third=${thirdEval}, avg=${termAvg}, coef=${coefficient}, comment="${teacherComment.substring(0, 30)}..."`);
             
             console.log(`[DIRECTOR_BULLETINS] 📝 Grade mapping (${bulletinType}): first=${firstEval}, second=${secondEval}, third=${thirdEval}, avg=${termAvg}`);
             
