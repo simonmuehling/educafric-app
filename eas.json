@@ -3,17 +3,29 @@
     "version": ">= 5.2.0"
   },
   "build": {
+    "base": {
+      "node": "20.0.0",
+      "android": {
+        "image": "ubuntu-22.04-jdk-17-ndk-26b"
+      }
+    },
     "development": {
+      "extends": "base",
       "developmentClient": true,
-      "distribution": "internal"
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk"
+      }
     },
     "preview": {
+      "extends": "base",
       "distribution": "internal",
       "android": {
         "buildType": "apk"
       }
     },
     "production": {
+      "extends": "base",
       "android": {
         "buildType": "aab"
       }
