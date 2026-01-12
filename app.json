@@ -38,29 +38,12 @@
         "VIBRATE",
         "RECEIVE_BOOT_COMPLETED",
         "FOREGROUND_SERVICE"
-      ],
-      "useNextNotificationsApi": true
+      ]
     },
     "web": {
       "favicon": "./public/favicon.ico",
       "bundler": "metro"
     },
-    "plugins": [
-      [
-        "expo-notifications",
-        {
-          "icon": "./public/android-icon-192x192.png",
-          "color": "#7C5CFC"
-        }
-      ],
-      [
-        "expo-location",
-        {
-          "locationAlwaysAndWhenInUsePermission": "Cette application utilise la localisation pour la sécurité des étudiants et le suivi de présence.",
-          "isAndroidBackgroundLocationEnabled": true
-        }
-      ]
-    ],
     "extra": {
       "eas": {
         "projectId": "educafric-cameroon-app"
