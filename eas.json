@@ -27,7 +27,7 @@
     "production": {
       "extends": "base",
       "android": {
-        "buildType": "aab"
+        "buildType": "app-bundle"
       }
     }
   },
