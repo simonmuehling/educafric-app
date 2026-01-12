@@ -1,5 +1,5 @@
 import { db } from '../db';
-import { bulletinComprehensive, teacherGradeSubmissions, classes, subjects, users } from '../../shared/schema';
+import { bulletinComprehensive, teacherGradeSubmissions, classes, subjects, users, bulletinSubjectCodes } from '../../shared/schema';
 import { eq, and, sql } from 'drizzle-orm';
 import { enrollments } from '../../shared/schemas/classEnrollmentSchema';
 
@@ -155,6 +155,29 @@ export class BulletinAutoSyncService {
 
       console.log('[BULLETIN_AUTO_SYNC] 📈 Calculated average:', generalAverage, 'from', subjectsData.length, 'subjects');
 
+      // Helper function to sync subject codes to bulletin_subject_codes table
+      const syncSubjectCodes = async (bulletinId: number) => {
+        try {
+          // Delete existing subject codes for this bulletin
+          await db.execute(sql`
+            DELETE FROM bulletin_subject_codes 
+            WHERE bulletin_comprehensive_id = ${bulletinId} AND student_id = ${studentId}
+          `);
+          
+          // Insert new subject codes
+          for (const s of subjectsData) {
+            await db.execute(sql`
+              INSERT INTO bulletin_subject_codes 
+              (bulletin_comprehensive_id, student_id, subject_id, subject_name, cote, created_at, updated_at)
+              VALUES (${bulletinId}, ${studentId}, ${s.subjectId || 0}, ${s.subjectName}, ${String(s.grade)}, NOW(), NOW())
+            `);
+          }
+          console.log('[BULLETIN_AUTO_SYNC] 📋 Synced', subjectsData.length, 'subject codes to bulletin_subject_codes');
+        } catch (err) {
+          console.error('[BULLETIN_AUTO_SYNC] ⚠️ Error syncing subject codes:', err);
+        }
+      };
+
       if (existingBulletin) {
         console.log('[BULLETIN_AUTO_SYNC] 📝 Updating existing bulletin:', existingBulletin.id);
         
@@ -170,6 +193,9 @@ export class BulletinAutoSyncService {
         `);
 
         console.log('[BULLETIN_AUTO_SYNC] ✅ Bulletin updated with', subjectsData.length, 'subjects');
+
+        // Sync subject codes to bulletin_subject_codes table
+        await syncSubjectCodes(existingBulletin.id);
 
         return {
           bulletinId: existingBulletin.id,
@@ -194,6 +220,11 @@ export class BulletinAutoSyncService {
         const newBulletinId = insertResult.rows?.[0]?.id || insertResult[0]?.id;
 
         console.log('[BULLETIN_AUTO_SYNC] ✅ New bulletin created:', newBulletinId);
+
+        // Sync subject codes to bulletin_subject_codes table
+        if (newBulletinId) {
+          await syncSubjectCodes(newBulletinId);
+        }
 
         return {
           bulletinId: newBulletinId,
