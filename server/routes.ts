@@ -377,11 +377,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.sendFile(path.join(process.cwd(), 'public/sw.js'));
   });
 
-  // Manifest PWA
-  app.get('/manifest.json', (req, res) => {
-    res.setHeader('Content-Type', 'application/json');
-    res.sendFile(path.join(process.cwd(), 'public/manifest.json'));
-  });
+  // Manifest PWA - Route définie dans server/index.ts avec MIME type correct
 
   // Serve static files - MEMORY FIX: Remove duplicate static middleware that was causing 265MB memory leak
   app.use('/uploads', express.static(path.join(process.cwd(), 'public/uploads')));
