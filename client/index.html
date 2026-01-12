@@ -38,6 +38,8 @@
     
     <!-- Multilingual SEO - Hreflang Tags -->
     <link rel="alternate" hreflang="x-default" href="https://educafric.com/" />
+    <link rel="alternate" hreflang="en" href="https://educafric.com/?lang=en" />
+    <link rel="alternate" hreflang="fr" href="https://educafric.com/?lang=fr" />
     
     <!-- Open Graph Meta Tags for Social Media -->
     <meta property="og:type" content="website" />
@@ -154,10 +156,7 @@
         },
         "potentialAction": {
           "@type": "SearchAction",
-          "target": {
-            "@type": "EntryPoint",
-            "urlTemplate": "https://educafric.com/search?q={search_term_string}"
-          },
+          "target": "https://educafric.com/?search={search_term_string}",
           "query-input": "required name=search_term_string"
         }
       },

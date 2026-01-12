@@ -1,0 +1,21 @@
+# Educafric - African Educational Technology Platform
+# https://educafric.com
+
+User-agent: *
+Allow: /
+
+# Disallow admin and API routes
+Disallow: /api/
+Disallow: /admin/
+Disallow: /director/
+Disallow: /teacher/
+Disallow: /student/
+Disallow: /parent/
+Disallow: /commercial/
+Disallow: /siteadmin/
+
+# Sitemap location
+Sitemap: https://educafric.com/sitemap.xml
+
+# Crawl-delay for polite crawling
+Crawl-delay: 1
