@@ -2557,7 +2557,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
             parentName: student.guardian || null,
             matricule: student.educafricNumber || null,
             redoublant: student.isRepeater || false,
+            // ✅ FIX: Map profilePictureUrl to ALL possible frontend field names
             photo: student.profilePictureUrl || null,
+            photoURL: student.profilePictureUrl || null,
+            profilePicture: student.profilePictureUrl || null,
+            photoFilename: student.profilePictureUrl || null,
             age: age || null,
             average: 0,
             attendance: 100,
@@ -2593,7 +2597,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           parentName: student.guardian || null,
           matricule: student.educafricNumber || null,
           redoublant: student.isRepeater || false,
+          // ✅ FIX: Map profilePictureUrl to ALL possible frontend field names
           photo: student.profilePictureUrl || null,
+          photoURL: student.profilePictureUrl || null,
+          profilePicture: student.profilePictureUrl || null,
+          photoFilename: student.profilePictureUrl || null,
           // Calculated fields
           age: age || null,
           // Default academic values (will be fetched from grades/attendance tables if needed)
