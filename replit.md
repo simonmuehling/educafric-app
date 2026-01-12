@@ -1,5 +1,5 @@
 # Overview
-Educafric is a mobile-first, bilingual Progressive Web App (PWA) EdTech platform for African educational institutions. Its purpose is to modernize academic administration, communication, and financial management using a Competency-Based Approach (CBA). The platform aims to be culturally relevant, user-friendly, and scalable, enhancing educational outcomes and administrative efficiency across Africa.
+Educafric is a mobile-first, bilingual Progressive Web App (PWA) EdTech platform for African educational institutions. It modernizes academic administration, communication, and financial management using a Competency-Based Approach (CBA). The platform aims to be culturally relevant, user-friendly, and scalable, enhancing educational outcomes and administrative efficiency across Africa.
 
 # User Preferences
 - Module FunctionalTeacherAssignments.tsx entièrement bilingue (formulaire, labels, boutons, toasts). Onglets responsives (flex-col sm:flex-row, min-h-[44px]). Profils modifiables pour Teacher/Parent/Commercial via PUT endpoints. Fix WhatsApp password recovery (u.phone pas u.phoneNumber). ParentSubscription avec gestion erreurs. FIX CRITIQUE: fastModuleLoader.ts ligne 100 mapping 'subscription' corrigé vers ParentSubscription (pas SubscriptionStatusCard).
