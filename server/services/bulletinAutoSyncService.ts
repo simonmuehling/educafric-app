@@ -158,14 +158,16 @@ export class BulletinAutoSyncService {
       if (existingBulletin) {
         console.log('[BULLETIN_AUTO_SYNC] 📝 Updating existing bulletin:', existingBulletin.id);
         
-        await db.update(bulletinComprehensive)
-          .set({
-            generalAverage: String(generalAverage),
-            numberOfAverages: subjectsData.length,
-            updatedAt: new Date(),
-            status: existingBulletin.status === 'draft' ? 'pending_review' : existingBulletin.status
-          })
-          .where(eq(bulletinComprehensive.id, existingBulletin.id));
+        // Use raw SQL to avoid TypeScript issues with column names
+        const newStatus = existingBulletin.status === 'draft' ? 'pending_review' : existingBulletin.status;
+        await db.execute(sql`
+          UPDATE bulletin_comprehensive 
+          SET general_average = ${generalAverage}, 
+              number_of_averages = ${subjectsData.length}, 
+              updated_at = NOW(),
+              status = ${newStatus}
+          WHERE id = ${existingBulletin.id}
+        `);
 
         console.log('[BULLETIN_AUTO_SYNC] ✅ Bulletin updated with', subjectsData.length, 'subjects');
 

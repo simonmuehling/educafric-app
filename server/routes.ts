@@ -14690,6 +14690,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         console.log(`[DIRECTOR_BULLETINS] ✅ Auto-populated ${gradesInserted} grades for student ${bulletin.studentId} (${gradesSkipped} skipped)`);
         totalGradesInserted = gradesInserted;
+        
+        // ✅ CRITICAL FIX: Sync approved grades to bulletinComprehensive table for report cards
+        try {
+          console.log('[DIRECTOR_BULLETINS] 📋 Syncing to bulletinComprehensive for report cards...');
+          const { BulletinAutoSyncService } = await import('./services/bulletinAutoSyncService');
+          
+          const syncResult = await BulletinAutoSyncService.syncApprovedGradesToBulletin(
+            bulletin.studentId,
+            bulletin.classId,
+            bulletin.term as 'T1' | 'T2' | 'T3',
+            bulletin.academicYear,
+            bulletin.schoolId
+          );
+          
+          if (syncResult) {
+            console.log(`[DIRECTOR_BULLETINS] ✅ Synced to bulletinComprehensive: bulletinId=${syncResult.bulletinId}, average=${syncResult.newAverage}`);
+          } else {
+            console.log('[DIRECTOR_BULLETINS] ⚠️ No sync result - bulletinComprehensive may need manual update');
+          }
+        } catch (syncError) {
+          console.error('[DIRECTOR_BULLETINS] ❌ Failed to sync to bulletinComprehensive:', syncError);
+          // Don't fail the request - grades are already saved in teacherGradeSubmissions
+        }
       }
       
       console.log('[DIRECTOR_BULLETINS] ✅ Bulletin reviewed successfully');
