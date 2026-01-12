@@ -4,7 +4,7 @@ import bcrypt from "bcryptjs";
 import { createSchoolSchema } from "../../shared/schemas";
 import { db } from "../db";
 import { users, schools, payments } from "../../shared/schema";
-import { eq, inArray, desc } from "drizzle-orm";
+import { eq, inArray, desc, sql } from "drizzle-orm";
 
 // Security middleware for SiteAdmin features
 const requireSiteAdminAccess = (req: any, res: any, next: any) => {
@@ -504,6 +504,41 @@ export function registerSiteAdminRoutes(app: Express, requireAuth: any) {
     }
   });
 
+  // Update school
+  app.put("/api/siteadmin/schools/:schoolId", requireAuth, requireSiteAdminAccess, async (req, res) => {
+    try {
+      const { schoolId } = req.params;
+      const { name, address, city, country, phone, email, website, type, level } = req.body;
+      
+      console.log(`[SITE_ADMIN_API] Updating school ${schoolId}`);
+
+      await storage.updateSchool(parseInt(schoolId), {
+        name,
+        address,
+        city,
+        country,
+        phone,
+        email,
+        website,
+        type,
+        level,
+        updatedAt: new Date()
+      });
+
+      console.log(`[SITE_ADMIN_API] ✅ School ${schoolId} updated successfully`);
+      res.json({ 
+        success: true,
+        message: 'School updated successfully' 
+      });
+    } catch (error: any) {
+      console.error('[SITE_ADMIN_API] Error updating school:', error);
+      res.status(500).json({ 
+        success: false,
+        message: 'Failed to update school' 
+      });
+    }
+  });
+
   // Block/Unblock school
   app.patch("/api/siteadmin/schools/:schoolId/block", requireAuth, requireSiteAdminAccess, async (req, res) => {
     try {
@@ -625,9 +660,9 @@ export function registerSiteAdminRoutes(app: Express, requireAuth: any) {
       const { schoolId } = req.params;
       console.log(`[SITE_ADMIN_API] Fetching parent pricing for school ${schoolId}`);
       
-      const result = await db.execute(`
-        SELECT * FROM school_parent_pricing WHERE school_id = $1
-      `, [parseInt(schoolId)]);
+      const result = await db.execute(sql`
+        SELECT * FROM school_parent_pricing WHERE school_id = ${parseInt(schoolId)}
+      `);
       
       const pricing = (result as any).rows?.[0] || null;
       
@@ -689,51 +724,42 @@ export function registerSiteAdminRoutes(app: Express, requireAuth: any) {
       console.log(`[SITE_ADMIN_API] Updating parent pricing for school ${schoolId}:`, req.body);
       
       // Check if pricing exists
-      const existing = await db.execute(`
-        SELECT id FROM school_parent_pricing WHERE school_id = $1
-      `, [parseInt(schoolId)]);
+      const existing = await db.execute(sql`
+        SELECT id FROM school_parent_pricing WHERE school_id = ${parseInt(schoolId)}
+      `);
       
       const existingRow = (existing as any).rows?.[0];
       
       if (existingRow) {
         // Update existing
-        await db.execute(`
+        await db.execute(sql`
           UPDATE school_parent_pricing SET
-            communication_enabled = COALESCE($2, communication_enabled),
-            communication_price = COALESCE($3, communication_price),
-            geolocation_enabled = COALESCE($4, geolocation_enabled),
-            geolocation_price = COALESCE($5, geolocation_price),
-            discount_2_children = COALESCE($6, discount_2_children),
-            discount_3plus_children = COALESCE($7, discount_3plus_children),
-            updated_by = $8,
+            communication_enabled = COALESCE(${communicationEnabled}, communication_enabled),
+            communication_price = COALESCE(${communicationPrice}, communication_price),
+            geolocation_enabled = COALESCE(${geolocationEnabled}, geolocation_enabled),
+            geolocation_price = COALESCE(${geolocationPrice}, geolocation_price),
+            discount_2_children = COALESCE(${discount2Children}, discount_2_children),
+            discount_3plus_children = COALESCE(${discount3PlusChildren}, discount_3plus_children),
+            updated_by = ${req.user?.id},
             updated_at = NOW()
-          WHERE school_id = $1
-        `, [
-          parseInt(schoolId),
-          communicationEnabled,
-          communicationPrice,
-          geolocationEnabled,
-          geolocationPrice,
-          discount2Children,
-          discount3PlusChildren,
-          req.user?.id
-        ]);
+          WHERE school_id = ${parseInt(schoolId)}
+        `);
       } else {
         // Insert new
-        await db.execute(`
+        await db.execute(sql`
           INSERT INTO school_parent_pricing 
             (school_id, communication_enabled, communication_price, geolocation_enabled, geolocation_price, discount_2_children, discount_3plus_children, updated_by)
-          VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-        `, [
-          parseInt(schoolId),
-          communicationEnabled ?? true,
-          communicationPrice ?? 5000,
-          geolocationEnabled ?? true,
-          geolocationPrice ?? 5000,
-          discount2Children ?? 20,
-          discount3PlusChildren ?? 40,
-          req.user?.id
-        ]);
+          VALUES (
+            ${parseInt(schoolId)},
+            ${communicationEnabled ?? true},
+            ${communicationPrice ?? 5000},
+            ${geolocationEnabled ?? true},
+            ${geolocationPrice ?? 5000},
+            ${discount2Children ?? 20},
+            ${discount3PlusChildren ?? 40},
+            ${req.user?.id}
+          )
+        `);
       }
       
       console.log(`[SITE_ADMIN_API] ✅ Parent pricing updated for school ${schoolId}`);

@@ -98,6 +98,8 @@ const SchoolManagement = () => {
   // New state for school management functionality
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [showSubscriptionDialog, setShowSubscriptionDialog] = useState(false);
+  const [showEditDialog, setShowEditDialog] = useState(false);
+  const [editingSchool, setEditingSchool] = useState<School | null>(null);
   const [selectedSchoolForSubscription, setSelectedSchoolForSubscription] = useState<School | null>(null);
   const [newSchoolData, setNewSchoolData] = useState({
     name: '',
@@ -575,6 +577,45 @@ const SchoolManagement = () => {
     }
   };
 
+  const handleEditSchool = (school: School) => {
+    setEditingSchool(school);
+    setNewSchoolData({
+      name: school.name || '',
+      address: school.address || '',
+      city: school.city || '',
+      country: school.country || 'Cameroun',
+      countryCode: 'CM' as CountryCode,
+      phone: school.phone || '',
+      email: school.email || '',
+      website: school.website || '',
+      type: school.type || 'private',
+      level: school.level || 'mixed',
+      educafricNumber: '',
+      currency: 'XAF'
+    });
+    setShowEditDialog(true);
+  };
+
+  const handleSaveEditSchool = async () => {
+    if (!editingSchool) return;
+    try {
+      await apiRequest('PUT', `/api/siteadmin/schools/${editingSchool.id}`, newSchoolData);
+      toast({
+        title: language === 'fr' ? 'Succès' : 'Success',
+        description: language === 'fr' ? 'École mise à jour' : 'School updated'
+      });
+      setShowEditDialog(false);
+      setEditingSchool(null);
+      queryClient.invalidateQueries({ queryKey: ['/api/siteadmin/schools'] });
+    } catch (error) {
+      toast({
+        title: language === 'fr' ? 'Erreur' : 'Error',
+        description: language === 'fr' ? 'Échec de la mise à jour' : 'Update failed',
+        variant: "destructive"
+      });
+    }
+  };
+
   const renderSchoolStats = () => (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
       <ModernCard className="p-6">
@@ -945,6 +986,14 @@ const SchoolManagement = () => {
                       <Button 
                         size="sm" 
                         variant="outline"
+                        onClick={() => handleEditSchool(school)}
+                        title={language === 'fr' ? 'Modifier' : 'Edit'}
+                      >
+                        <Edit className="w-4 h-4" />
+                      </Button>
+                      <Button 
+                        size="sm" 
+                        variant="outline"
                         onClick={() => handleManageSubscription(school)}
                         disabled={manageSubscriptionMutation.isPending}
                         title="Gérer Abonnement et Premium Offline"
@@ -1214,6 +1263,114 @@ const SchoolManagement = () => {
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowSubscriptionDialog(false)} data-testid="button-close-settings">
               {t.cancel}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit School Dialog */}
+      <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
+        <DialogContent className="bg-white max-w-md">
+          <DialogHeader>
+            <DialogTitle>
+              {language === 'fr' ? 'Modifier École' : 'Edit School'}
+            </DialogTitle>
+            <DialogDescription>
+              {language === 'fr' 
+                ? 'Modifier les informations de l\'école' 
+                : 'Edit school information'}
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4 max-h-[60vh] overflow-y-auto">
+            <div>
+              <Label>{language === 'fr' ? 'Nom de l\'école' : 'School Name'}</Label>
+              <Input
+                value={newSchoolData.name}
+                onChange={(e) => setNewSchoolData({...newSchoolData, name: e.target.value})}
+              />
+            </div>
+            <div>
+              <Label>{t.address}</Label>
+              <Input
+                value={newSchoolData.address}
+                onChange={(e) => setNewSchoolData({...newSchoolData, address: e.target.value})}
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label>{t.city}</Label>
+                <Input
+                  value={newSchoolData.city}
+                  onChange={(e) => setNewSchoolData({...newSchoolData, city: e.target.value})}
+                />
+              </div>
+              <div>
+                <Label>{t.country}</Label>
+                <Input
+                  value={newSchoolData.country}
+                  onChange={(e) => setNewSchoolData({...newSchoolData, country: e.target.value})}
+                />
+              </div>
+            </div>
+            <div>
+              <Label>{t.email}</Label>
+              <Input
+                type="email"
+                value={newSchoolData.email}
+                onChange={(e) => setNewSchoolData({...newSchoolData, email: e.target.value})}
+              />
+            </div>
+            <div>
+              <Label>{t.phone}</Label>
+              <Input
+                value={newSchoolData.phone}
+                onChange={(e) => setNewSchoolData({...newSchoolData, phone: e.target.value})}
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label>{t.type}</Label>
+                <Select 
+                  value={newSchoolData.type} 
+                  onValueChange={(value: 'public' | 'private') => setNewSchoolData({...newSchoolData, type: value})}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="public">{t.public}</SelectItem>
+                    <SelectItem value="private">{t.private}</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>{t.level}</Label>
+                <Select 
+                  value={newSchoolData.level} 
+                  onValueChange={(value) => setNewSchoolData({...newSchoolData, level: value})}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="primary">{t.primary}</SelectItem>
+                    <SelectItem value="secondary">{t.secondary}</SelectItem>
+                    <SelectItem value="university">{t.university}</SelectItem>
+                    <SelectItem value="mixed">{t.mixed}</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowEditDialog(false)}>
+              {t.cancel}
+            </Button>
+            <Button onClick={handleSaveEditSchool}>
+              <Save className="w-4 h-4 mr-2" />
+              {t.save}
             </Button>
           </DialogFooter>
         </DialogContent>

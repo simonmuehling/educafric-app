@@ -8,6 +8,10 @@ import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
 import { 
   Users, 
   UserPlus, 
@@ -41,6 +45,16 @@ interface User {
   isTestAccount: boolean;
   phone: string | null;
   schoolId: number | null;
+  secondaryRoles?: string[];
+}
+
+interface EditUserData {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  role: string;
+  secondaryRoles: string[];
 }
 
 const UserManagement = () => {
@@ -54,6 +68,18 @@ const UserManagement = () => {
   const [statusFilter, setStatusFilter] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedUsers, setSelectedUsers] = useState<number[]>([]);
+  const [showEditDialog, setShowEditDialog] = useState(false);
+  const [editingUser, setEditingUser] = useState<User | null>(null);
+  const [editFormData, setEditFormData] = useState<EditUserData>({
+    firstName: '',
+    lastName: '',
+    email: '',
+    phone: '',
+    role: '',
+    secondaryRoles: []
+  });
+
+  const allRoles = ['SiteAdmin', 'Admin', 'Director', 'Teacher', 'Parent', 'Student', 'Commercial', 'Freelancer'];
 
   const text = {
     fr: {
@@ -160,31 +186,31 @@ const UserManagement = () => {
 
   // Fetch users with filtering and pagination
   const { data: usersData, isLoading, error } = useQuery({
-    queryKey: ['/api/admin/users', { 
+    queryKey: ['/api/siteadmin/users', { 
       search: searchTerm, 
       role: roleFilter, 
       status: statusFilter, 
       page: currentPage 
     }],
-    queryFn: () => apiRequest('GET', `/api/admin/users?search=${encodeURIComponent(searchTerm)}&role=${roleFilter}&status=${statusFilter}&page=${currentPage}&limit=20`)
+    queryFn: () => apiRequest('GET', `/api/siteadmin/users?search=${encodeURIComponent(searchTerm)}&role=${roleFilter}&status=${statusFilter}&page=${currentPage}&limit=20`)
   });
 
   // User statistics
   const { data: userStats } = useQuery({
-    queryKey: ['/api/admin/user-stats'],
-    queryFn: () => apiRequest('GET', '/api/admin/user-stats')
+    queryKey: ['/api/siteadmin/user-stats'],
+    queryFn: () => apiRequest('GET', '/api/siteadmin/user-stats')
   });
 
   // Delete user mutation
   const deleteUserMutation = useMutation({
-    mutationFn: (userId: number) => apiRequest('DELETE', `/api/admin/users/${userId}`),
+    mutationFn: (userId: number) => apiRequest('DELETE', `/api/siteadmin/users/${userId}`),
     onSuccess: () => {
       toast({
         title: t.success,
         description: t.userDeleted
       });
-      queryClient.invalidateQueries({ queryKey: ['/api/admin/users'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/admin/user-stats'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/siteadmin/users'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/siteadmin/user-stats'] });
     },
     onError: () => {
       toast({
@@ -198,15 +224,65 @@ const UserManagement = () => {
   // Update user status mutation
   const updateUserStatusMutation = useMutation({
     mutationFn: ({ userId, status }: { userId: number; status: string }) => 
-      apiRequest('PATCH', `/api/admin/users/${userId}/status`, { status }),
+      apiRequest('PATCH', `/api/siteadmin/users/${userId}/status`, { status }),
     onSuccess: () => {
       toast({
         title: t.success,
         description: t.userUpdated
       });
-      queryClient.invalidateQueries({ queryKey: ['/api/admin/users'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/siteadmin/users'] });
     }
   });
+
+  // Update user mutation
+  const updateUserMutation = useMutation({
+    mutationFn: ({ userId, data }: { userId: number; data: EditUserData }) => 
+      apiRequest('PUT', `/api/siteadmin/users/${userId}`, data),
+    onSuccess: () => {
+      toast({
+        title: t.success,
+        description: t.userUpdated
+      });
+      setShowEditDialog(false);
+      setEditingUser(null);
+      queryClient.invalidateQueries({ queryKey: ['/api/siteadmin/users'] });
+    },
+    onError: () => {
+      toast({
+        title: t.error,
+        description: language === 'fr' ? 'Échec de la mise à jour' : 'Update failed',
+        variant: "destructive"
+      });
+    }
+  });
+
+  const handleEditUser = (userData: User) => {
+    setEditingUser(userData);
+    setEditFormData({
+      firstName: userData.firstName || '',
+      lastName: userData.lastName || '',
+      email: userData.email || '',
+      phone: userData.phone || '',
+      role: userData.role,
+      secondaryRoles: userData.secondaryRoles || []
+    });
+    setShowEditDialog(true);
+  };
+
+  const handleSaveUser = () => {
+    if (!editingUser) return;
+    updateUserMutation.mutate({ userId: editingUser.id, data: editFormData });
+  };
+
+  const toggleSecondaryRole = (role: string) => {
+    if (role === editFormData.role) return;
+    setEditFormData(prev => ({
+      ...prev,
+      secondaryRoles: prev.secondaryRoles.includes(role)
+        ? prev.secondaryRoles.filter(r => r !== role)
+        : [...prev.secondaryRoles, role]
+    }));
+  };
 
   const formatDate = (dateString: string | null) => {
     if (!dateString) return t.never;
@@ -447,10 +523,15 @@ const UserManagement = () => {
                   </td>
                   <td className="py-3 px-4">
                     <div className="flex items-center gap-2">
-                      <Button size="sm" variant="outline">
+                      <Button size="sm" variant="outline" title={language === 'fr' ? 'Voir' : 'View'}>
                         <Eye className="w-4 h-4" />
                       </Button>
-                      <Button size="sm" variant="outline">
+                      <Button 
+                        size="sm" 
+                        variant="outline"
+                        onClick={() => handleEditUser(userData)}
+                        title={language === 'fr' ? 'Modifier' : 'Edit'}
+                      >
                         <Edit className="w-4 h-4" />
                       </Button>
                       <Button 
@@ -525,6 +606,121 @@ const UserManagement = () => {
 
       {/* User Table */}
       {renderUserTable()}
+
+      {/* Edit User Dialog */}
+      <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
+        <DialogContent className="bg-white max-w-md">
+          <DialogHeader>
+            <DialogTitle>
+              {language === 'fr' ? 'Modifier Utilisateur' : 'Edit User'}
+            </DialogTitle>
+            <DialogDescription>
+              {language === 'fr' 
+                ? 'Modifier les informations et rôles de cet utilisateur' 
+                : 'Edit user information and roles'}
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label>{language === 'fr' ? 'Prénom' : 'First Name'}</Label>
+                <Input
+                  value={editFormData.firstName}
+                  onChange={(e) => setEditFormData({...editFormData, firstName: e.target.value})}
+                />
+              </div>
+              <div>
+                <Label>{language === 'fr' ? 'Nom' : 'Last Name'}</Label>
+                <Input
+                  value={editFormData.lastName}
+                  onChange={(e) => setEditFormData({...editFormData, lastName: e.target.value})}
+                />
+              </div>
+            </div>
+
+            <div>
+              <Label>Email</Label>
+              <Input
+                type="email"
+                value={editFormData.email}
+                onChange={(e) => setEditFormData({...editFormData, email: e.target.value})}
+              />
+            </div>
+
+            <div>
+              <Label>{language === 'fr' ? 'Téléphone' : 'Phone'}</Label>
+              <Input
+                value={editFormData.phone}
+                onChange={(e) => setEditFormData({...editFormData, phone: e.target.value})}
+              />
+            </div>
+
+            <div>
+              <Label>{language === 'fr' ? 'Rôle Principal' : 'Primary Role'}</Label>
+              <Select 
+                value={editFormData.role} 
+                onValueChange={(value) => setEditFormData({
+                  ...editFormData, 
+                  role: value,
+                  secondaryRoles: editFormData.secondaryRoles.filter(r => r !== value)
+                })}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {allRoles.map(role => (
+                    <SelectItem key={role} value={role}>{role}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label className="mb-2 block">
+                {language === 'fr' ? 'Rôles Secondaires' : 'Secondary Roles'}
+              </Label>
+              <div className="grid grid-cols-2 gap-2">
+                {allRoles.filter(r => r !== editFormData.role).map(role => (
+                  <div key={role} className="flex items-center space-x-2">
+                    <Checkbox
+                      id={`role-${role}`}
+                      checked={editFormData.secondaryRoles.includes(role)}
+                      onCheckedChange={() => toggleSecondaryRole(role)}
+                    />
+                    <label 
+                      htmlFor={`role-${role}`}
+                      className="text-sm cursor-pointer"
+                    >
+                      {role}
+                    </label>
+                  </div>
+                ))}
+              </div>
+              <p className="text-xs text-gray-500 mt-2">
+                {language === 'fr' 
+                  ? 'Les rôles secondaires permettent à l\'utilisateur de changer de profil' 
+                  : 'Secondary roles allow the user to switch profiles'}
+              </p>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowEditDialog(false)}>
+              {language === 'fr' ? 'Annuler' : 'Cancel'}
+            </Button>
+            <Button 
+              onClick={handleSaveUser}
+              disabled={updateUserMutation.isPending}
+            >
+              {updateUserMutation.isPending 
+                ? (language === 'fr' ? 'Enregistrement...' : 'Saving...')
+                : (language === 'fr' ? 'Enregistrer' : 'Save')}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
