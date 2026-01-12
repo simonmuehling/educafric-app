@@ -4,7 +4,22 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     
-    <!-- Google Tag Manager -->
+    <!-- Preconnect to critical origins for faster loading -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
+    
+    <!-- Google Fonts - preload with display=swap for non-blocking -->
+    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&family=Roboto:wght@400;500;700&display=swap" />
+    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400..600&display=swap" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&family=Roboto:wght@400;500;700&display=swap" media="print" onload="this.media='all'" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400..600&display=swap" media="print" onload="this.media='all'" />
+    <noscript>
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&family=Roboto:wght@400;500;700&display=swap" />
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400..600&display=swap" />
+    </noscript>
+    
+    <!-- Google Tag Manager - defer to not block rendering -->
     <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
     new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
     j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
@@ -184,8 +199,8 @@
       // Service Worker registration disabled to avoid errors during development
       console.log('Service Worker registration disabled for development');
     </script>
-    <!-- 🔔 PWA Notifications Fix Script -->
-    <script src="/pwa-notifications-fix.js"></script>
+    <!-- 🔔 PWA Notifications Fix Script - async to not block rendering -->
+    <script src="/pwa-notifications-fix.js" async></script>
     
     <!-- 🔧 WebSocket Error Handler - Fix DOMException -->
     <script>
@@ -278,7 +293,14 @@
     
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
-    <!-- This is a replit script which adds a banner on the top of the page when opened in development mode outside the replit environment -->
-    <script type="text/javascript" src="https://replit.com/public/js/replit-dev-banner.js"></script>
+    <!-- Replit dev banner - only in development mode -->
+    <script>
+      if (location.hostname === 'localhost' || location.hostname.includes('replit') || location.hostname.includes('.dev')) {
+        var s = document.createElement('script');
+        s.src = 'https://replit.com/public/js/replit-dev-banner.js';
+        s.async = true;
+        document.body.appendChild(s);
+      }
+    </script>
   </body>
 </html>
