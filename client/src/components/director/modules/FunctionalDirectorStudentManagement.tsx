@@ -541,6 +541,47 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
     }
   });
 
+  // ✅ Image compression utility - reduces size to max ~50KB for fast uploads
+  const compressImage = async (imageSource: string | File, maxWidth = 300, quality = 0.7): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let width = img.width;
+        let height = img.height;
+        
+        if (width > maxWidth) {
+          height = (height * maxWidth) / width;
+          width = maxWidth;
+        }
+        
+        canvas.width = width;
+        canvas.height = height;
+        
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          reject(new Error('Canvas context not available'));
+          return;
+        }
+        
+        ctx.drawImage(img, 0, 0, width, height);
+        const compressedBase64 = canvas.toDataURL('image/jpeg', quality);
+        console.log('[IMAGE_COMPRESS] Compressed:', Math.round(compressedBase64.length / 1024), 'KB');
+        resolve(compressedBase64);
+      };
+      img.onerror = () => reject(new Error('Failed to load image'));
+      
+      if (imageSource instanceof File) {
+        const reader = new FileReader();
+        reader.onload = () => { img.src = reader.result as string; };
+        reader.onerror = () => reject(new Error('Failed to read file'));
+        reader.readAsDataURL(imageSource);
+      } else {
+        img.src = imageSource;
+      }
+    });
+  };
+
   const handleCreateStudent = async () => {
     // Validate: Name is required
     if (!studentForm.name || !studentForm.name.trim()) {
@@ -552,20 +593,19 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
       return;
     }
     
-    // Convert File to base64 if a file was uploaded (not camera capture)
-    let photoData: string | null = capturedPhoto;
-    if (!photoData && studentForm.photo instanceof File) {
-      try {
-        photoData = await new Promise<string>((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onload = () => resolve(reader.result as string);
-          reader.onerror = reject;
-          reader.readAsDataURL(studentForm.photo as File);
-        });
-        console.log('[STUDENT_PHOTO] Converted file to base64, length:', photoData?.length);
-      } catch (err) {
-        console.error('[STUDENT_PHOTO] Failed to convert file to base64:', err);
+    // ✅ OPTIMIZED: Compress photo to reduce size before sending (max 300px, ~50KB)
+    let photoData: string | null = null;
+    try {
+      if (capturedPhoto && capturedPhoto.startsWith('data:')) {
+        photoData = await compressImage(capturedPhoto);
+      } else if (studentForm.photo instanceof File) {
+        photoData = await compressImage(studentForm.photo);
       }
+      if (photoData) {
+        console.log('[STUDENT_PHOTO] Compressed photo, length:', photoData.length);
+      }
+    } catch (err) {
+      console.error('[STUDENT_PHOTO] Failed to compress photo:', err);
     }
     
     const studentData = {
@@ -636,21 +676,21 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
       const firstName = nameParts[0] || selectedStudent.firstName;
       const lastName = nameParts.slice(1).join(' ') || selectedStudent.lastName;
       
-      // ✅ Convert photo to base64 if provided
+      // ✅ OPTIMIZED: Compress photo to reduce size (max 300px width, 70% quality = ~50KB)
       let photoData: string | null = null;
-      if (capturedPhoto && capturedPhoto.startsWith('data:')) {
-        photoData = capturedPhoto;
-      } else if (studentForm.photo instanceof File) {
-        try {
-          photoData = await new Promise<string>((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onload = () => resolve(reader.result as string);
-            reader.onerror = reject;
-            reader.readAsDataURL(studentForm.photo as File);
-          });
-        } catch (err) {
-          console.error('[STUDENT_UPDATE] Failed to convert photo:', err);
+      try {
+        if (capturedPhoto && capturedPhoto.startsWith('data:')) {
+          photoData = await compressImage(capturedPhoto);
+        } else if (studentForm.photo instanceof File) {
+          photoData = await compressImage(studentForm.photo);
         }
+      } catch (err) {
+        console.error('[STUDENT_UPDATE] Failed to compress photo:', err);
+        toast({
+          title: language === 'fr' ? '⚠️ Photo non sauvegardée' : '⚠️ Photo not saved',
+          description: language === 'fr' ? 'Erreur de compression' : 'Compression error',
+          variant: 'destructive'
+        });
       }
       
       const updateData = {
