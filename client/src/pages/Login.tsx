@@ -341,21 +341,31 @@ export default function Login() {
         setShowCelebration({
           show: true,
           type: 'signup',
-          title: `🎉 Welcome ${userDisplayName}!`,
-          message: `Your ${formData.role} account has been created successfully!`,
+          title: language === 'fr' ? `🎉 Bienvenue ${userDisplayName}!` : `🎉 Welcome ${userDisplayName}!`,
+          message: language === 'fr' 
+            ? `Votre compte ${formData.role} a été créé. Redirection vers votre tableau de bord...`
+            : `Your ${formData.role} account has been created. Redirecting to your dashboard...`,
           userRole: formData.role
         });
         
         toast({
           title: String(t('success') || 'Success'),
           description: String(getErrorMessage('accountCreated') || 'Account created successfully'),
-          duration: 5000,
+          duration: 3000,
         });
         
-        // Switch to login mode after celebration
-        setTimeout(() => {
-          setIsRegisterMode(false);
-        }, 2000);
+        // Auto-login after successful registration and redirect to dashboard
+        setTimeout(async () => {
+          try {
+            const emailOrPhone = formData.email || formData.phoneNumber;
+            await login(emailOrPhone, formData.password);
+            // Login will redirect to dashboard automatically
+          } catch (loginError) {
+            console.error('[LOGIN] Auto-login after registration failed:', loginError);
+            // Fallback: switch to login mode so user can login manually
+            setIsRegisterMode(false);
+          }
+        }, 1500);
       } else {
         const emailOrPhone = formData.email || formData.phoneNumber;
         await login(emailOrPhone, formData.password);
