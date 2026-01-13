@@ -714,13 +714,17 @@ const ClassManagement: React.FC = () => {
       return result;
     },
     onSuccess: async (data) => {
-      // ✅ IMMEDIATE VISUAL FEEDBACK - Invalidate ALL related queries
+      // ✅ IMMEDIATE VISUAL FEEDBACK - Invalidate ALL related queries including subjects
       queryClient.invalidateQueries({ 
         predicate: (query) => {
           const key = query.queryKey[0];
           return typeof key === 'string' && (
             key.startsWith('/api/director/classes') ||
             key.startsWith('/api/director/students') ||
+            key.startsWith('/api/director/subjects') ||
+            key.startsWith('/api/director/timetables') ||
+            key.startsWith('/api/teacher/subjects') ||
+            key.startsWith('/api/bulletin/class-subjects') ||
             key.startsWith('/api/classes') ||
             key.startsWith('/api/school')
           );
