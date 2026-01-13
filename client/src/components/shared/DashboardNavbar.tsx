@@ -62,10 +62,11 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
     <div className="bg-white border-b border-[#F3F5F7] sticky top-0 z-50 font-['Plus_Jakarta_Sans',sans-serif]">
       <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8">
         <div className="flex items-center justify-between h-14 sm:h-16">
-          {/* Left side: Logo */}
+          {/* Left side: Logo + Branding */}
           <div className="flex items-center space-x-2 sm:space-x-4">
-            <div onClick={handleHomeClick} className="cursor-pointer hover:opacity-80 transition-opacity">
+            <div onClick={handleHomeClick} className="cursor-pointer hover:opacity-80 transition-opacity flex items-center gap-2">
               <Logo size="sm" showText={false} />
+              <span className="font-bold text-[#7C5CFC] text-sm sm:text-base">EDUCAFRIC</span>
             </div>
           </div>
 
