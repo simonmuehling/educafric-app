@@ -2340,30 +2340,30 @@ export default function AcademicManagementSuite() {
         <Card>
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <CardHeader className="pb-3">
-            <TabsList ref={tabsListRef} className="grid w-full grid-cols-6">
-              <TabsTrigger value="grade-review" className="flex items-center gap-2" data-testid="tab-grade-review">
-                <UserCheck className="h-4 w-4" />
-                <span className="hidden sm:inline">{language === 'fr' ? 'Révision Notes' : 'Grade Review'}</span>
+            <TabsList ref={tabsListRef} className="grid w-full grid-cols-6 h-auto p-1.5 bg-[#F3F5F7] rounded-xl gap-1">
+              <TabsTrigger value="grade-review" className="flex items-center justify-center gap-2 min-h-[44px] px-2 py-2 text-xs sm:text-sm data-[state=active]:bg-white data-[state=active]:text-[#7C5CFC] data-[state=active]:shadow-sm" data-testid="tab-grade-review">
+                <UserCheck className="w-4 h-4 flex-shrink-0" />
+                <span className="hidden lg:inline truncate">{language === 'fr' ? 'Révision' : 'Review'}</span>
               </TabsTrigger>
-              <TabsTrigger value="bulletins" className="flex items-center gap-2" data-testid="tab-bulletins">
-                <FileText className="h-4 w-4" />
-                <span className="hidden sm:inline">{language === 'fr' ? 'Bulletins' : 'Report Cards'}</span>
+              <TabsTrigger value="bulletins" className="flex items-center justify-center gap-2 min-h-[44px] px-2 py-2 text-xs sm:text-sm data-[state=active]:bg-white data-[state=active]:text-[#7C5CFC] data-[state=active]:shadow-sm" data-testid="tab-bulletins">
+                <FileText className="w-4 h-4 flex-shrink-0" />
+                <span className="hidden lg:inline truncate">{language === 'fr' ? 'Bulletins' : 'Reports'}</span>
               </TabsTrigger>
-              <TabsTrigger value="report-cards" className="flex items-center gap-2" data-testid="tab-report-cards">
-                <FileSpreadsheet className="h-4 w-4" />
-                <span className="hidden sm:inline">{language === 'fr' ? 'Procès Verbal' : 'Mastersheet'}</span>
+              <TabsTrigger value="report-cards" className="flex items-center justify-center gap-2 min-h-[44px] px-2 py-2 text-xs sm:text-sm data-[state=active]:bg-white data-[state=active]:text-[#7C5CFC] data-[state=active]:shadow-sm" data-testid="tab-report-cards">
+                <FileSpreadsheet className="w-4 h-4 flex-shrink-0" />
+                <span className="hidden lg:inline truncate">{language === 'fr' ? 'P.V.' : 'Sheet'}</span>
               </TabsTrigger>
-              <TabsTrigger value="mastersheet" className="flex items-center gap-2" data-testid="tab-mastersheet">
-                <CheckCircle className="h-4 w-4" />
-                <span className="hidden sm:inline">{language === 'fr' ? 'Liste Bulletins' : 'Bulletins List'}</span>
+              <TabsTrigger value="mastersheet" className="flex items-center justify-center gap-2 min-h-[44px] px-2 py-2 text-xs sm:text-sm data-[state=active]:bg-white data-[state=active]:text-[#7C5CFC] data-[state=active]:shadow-sm" data-testid="tab-mastersheet">
+                <CheckCircle className="w-4 h-4 flex-shrink-0" />
+                <span className="hidden lg:inline truncate">{language === 'fr' ? 'Liste' : 'List'}</span>
               </TabsTrigger>
-              <TabsTrigger value="transcript" className="flex items-center gap-2" data-testid="tab-transcript">
-                <BookOpen className="h-4 w-4" />
-                <span className="hidden sm:inline">{language === 'fr' ? 'Relevé' : 'Transcript'}</span>
+              <TabsTrigger value="transcript" className="flex items-center justify-center gap-2 min-h-[44px] px-2 py-2 text-xs sm:text-sm data-[state=active]:bg-white data-[state=active]:text-[#7C5CFC] data-[state=active]:shadow-sm" data-testid="tab-transcript">
+                <BookOpen className="w-4 h-4 flex-shrink-0" />
+                <span className="hidden lg:inline truncate">{language === 'fr' ? 'Relevé' : 'Transcript'}</span>
               </TabsTrigger>
-              <TabsTrigger value="archives" className="flex items-center gap-2" data-testid="tab-archives">
-                <Archive className="h-4 w-4" />
-                <span className="hidden sm:inline">{language === 'fr' ? 'Archives' : 'Archives'}</span>
+              <TabsTrigger value="archives" className="flex items-center justify-center gap-2 min-h-[44px] px-2 py-2 text-xs sm:text-sm data-[state=active]:bg-white data-[state=active]:text-[#7C5CFC] data-[state=active]:shadow-sm" data-testid="tab-archives">
+                <Archive className="w-4 h-4 flex-shrink-0" />
+                <span className="hidden lg:inline truncate">{language === 'fr' ? 'Archives' : 'Archives'}</span>
               </TabsTrigger>
             </TabsList>
           </CardHeader>
