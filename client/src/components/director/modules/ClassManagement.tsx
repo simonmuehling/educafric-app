@@ -701,14 +701,17 @@ const ClassManagement: React.FC = () => {
   // Edit class mutation
   const editClassMutation = useMutation({
     mutationFn: async ({ classId, classData }: { classId: number, classData: any }) => {
+      console.log('[CLASS_EDIT] 📤 Sending PUT request with subjects:', classData.subjects?.length || 0);
       const response = await fetch(`/api/classes/${classId}`, {
-        method: 'PATCH',
+        method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
         body: JSON.stringify(classData)
       });
       if (!response.ok) throw new Error('Failed to edit class');
-      return response.json();
+      const result = await response.json();
+      console.log('[CLASS_EDIT] ✅ Response:', result);
+      return result;
     },
     onSuccess: async (data) => {
       // ✅ IMMEDIATE VISUAL FEEDBACK - Invalidate ALL related queries
