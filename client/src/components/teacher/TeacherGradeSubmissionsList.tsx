@@ -20,7 +20,9 @@ import {
   MessageSquare,
   Filter,
   RefreshCw,
-  Archive
+  Archive,
+  FileText,
+  XCircle
 } from 'lucide-react';
 import ArchivesTab from './ArchivesTab';
 
@@ -290,14 +292,26 @@ export default function TeacherGradeSubmissionsList() {
           setStatusFilter(v as any);
         }
       }}>
-        <TabsList className="grid w-full grid-cols-5">
-          <TabsTrigger value="all" data-testid="tab-all">{t.allSubmissions}</TabsTrigger>
-          <TabsTrigger value="pending" data-testid="tab-pending">{t.pending}</TabsTrigger>
-          <TabsTrigger value="approved" data-testid="tab-approved">{t.approved}</TabsTrigger>
-          <TabsTrigger value="returned" data-testid="tab-returned">{t.returned}</TabsTrigger>
-          <TabsTrigger value="archives" data-testid="tab-archives">
-            <Archive className="h-4 w-4 mr-2" />
-            {t.archives}
+        <TabsList className="grid w-full grid-cols-5 h-auto p-1.5 bg-[#F3F5F7] rounded-xl gap-1">
+          <TabsTrigger value="all" data-testid="tab-all" className="flex items-center justify-center gap-2 min-h-[44px] px-2 py-2 text-xs sm:text-sm data-[state=active]:bg-white data-[state=active]:text-[#7C5CFC] data-[state=active]:shadow-sm">
+            <FileText className="w-4 h-4 flex-shrink-0" />
+            <span className="hidden lg:inline truncate">{t.allSubmissions}</span>
+          </TabsTrigger>
+          <TabsTrigger value="pending" data-testid="tab-pending" className="flex items-center justify-center gap-2 min-h-[44px] px-2 py-2 text-xs sm:text-sm data-[state=active]:bg-white data-[state=active]:text-[#7C5CFC] data-[state=active]:shadow-sm">
+            <Clock className="w-4 h-4 flex-shrink-0" />
+            <span className="hidden lg:inline truncate">{t.pending}</span>
+          </TabsTrigger>
+          <TabsTrigger value="approved" data-testid="tab-approved" className="flex items-center justify-center gap-2 min-h-[44px] px-2 py-2 text-xs sm:text-sm data-[state=active]:bg-white data-[state=active]:text-[#7C5CFC] data-[state=active]:shadow-sm">
+            <CheckCircle className="w-4 h-4 flex-shrink-0" />
+            <span className="hidden lg:inline truncate">{t.approved}</span>
+          </TabsTrigger>
+          <TabsTrigger value="returned" data-testid="tab-returned" className="flex items-center justify-center gap-2 min-h-[44px] px-2 py-2 text-xs sm:text-sm data-[state=active]:bg-white data-[state=active]:text-[#7C5CFC] data-[state=active]:shadow-sm">
+            <XCircle className="w-4 h-4 flex-shrink-0" />
+            <span className="hidden lg:inline truncate">{t.returned}</span>
+          </TabsTrigger>
+          <TabsTrigger value="archives" data-testid="tab-archives" className="flex items-center justify-center gap-2 min-h-[44px] px-2 py-2 text-xs sm:text-sm data-[state=active]:bg-white data-[state=active]:text-[#7C5CFC] data-[state=active]:shadow-sm">
+            <Archive className="w-4 h-4 flex-shrink-0" />
+            <span className="hidden lg:inline truncate">{t.archives}</span>
           </TabsTrigger>
         </TabsList>
 

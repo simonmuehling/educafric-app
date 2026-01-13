@@ -679,21 +679,21 @@ export default function FeesManagement() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-5 h-auto">
-          <TabsTrigger value="dashboard" className="text-xs sm:text-sm py-2">
-            <TrendingUp className="w-4 h-4 mr-1" /><span className="hidden sm:inline">{t.dashboard}</span>
+        <TabsList className="grid w-full grid-cols-5 h-auto p-1.5 bg-[#F3F5F7] rounded-xl gap-1">
+          <TabsTrigger value="dashboard" className="flex items-center justify-center gap-2 min-h-[44px] px-2 py-2 text-xs sm:text-sm data-[state=active]:bg-white data-[state=active]:text-[#7C5CFC] data-[state=active]:shadow-sm">
+            <TrendingUp className="w-4 h-4 flex-shrink-0" /><span className="hidden lg:inline truncate">{t.dashboard}</span>
           </TabsTrigger>
-          <TabsTrigger value="feeGrid" className="text-xs sm:text-sm py-2">
-            <DollarSign className="w-4 h-4 mr-1" /><span className="hidden sm:inline">{t.feeGrid}</span>
+          <TabsTrigger value="feeGrid" className="flex items-center justify-center gap-2 min-h-[44px] px-2 py-2 text-xs sm:text-sm data-[state=active]:bg-white data-[state=active]:text-[#7C5CFC] data-[state=active]:shadow-sm">
+            <DollarSign className="w-4 h-4 flex-shrink-0" /><span className="hidden lg:inline truncate">{t.feeGrid}</span>
           </TabsTrigger>
-          <TabsTrigger value="assigned" className="text-xs sm:text-sm py-2">
-            <Users className="w-4 h-4 mr-1" /><span className="hidden sm:inline">{t.assigned}</span>
+          <TabsTrigger value="assigned" className="flex items-center justify-center gap-2 min-h-[44px] px-2 py-2 text-xs sm:text-sm data-[state=active]:bg-white data-[state=active]:text-[#7C5CFC] data-[state=active]:shadow-sm">
+            <Users className="w-4 h-4 flex-shrink-0" /><span className="hidden lg:inline truncate">{t.assigned}</span>
           </TabsTrigger>
-          <TabsTrigger value="reports" className="text-xs sm:text-sm py-2">
-            <FileBarChart className="w-4 h-4 mr-1" /><span className="hidden sm:inline">{t.reports}</span>
+          <TabsTrigger value="reports" className="flex items-center justify-center gap-2 min-h-[44px] px-2 py-2 text-xs sm:text-sm data-[state=active]:bg-white data-[state=active]:text-[#7C5CFC] data-[state=active]:shadow-sm">
+            <FileBarChart className="w-4 h-4 flex-shrink-0" /><span className="hidden lg:inline truncate">{t.reports}</span>
           </TabsTrigger>
-          <TabsTrigger value="settings" className="text-xs sm:text-sm py-2">
-            <Settings className="w-4 h-4 mr-1" /><span className="hidden sm:inline">{t.settings}</span>
+          <TabsTrigger value="settings" className="flex items-center justify-center gap-2 min-h-[44px] px-2 py-2 text-xs sm:text-sm data-[state=active]:bg-white data-[state=active]:text-[#7C5CFC] data-[state=active]:shadow-sm">
+            <Settings className="w-4 h-4 flex-shrink-0" /><span className="hidden lg:inline truncate">{t.settings}</span>
           </TabsTrigger>
         </TabsList>
 

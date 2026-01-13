@@ -807,26 +807,26 @@ const OnlineClassesManager: React.FC = () => {
         <Card className="shadow-xl">
           <CardContent className="pt-6">
             <Tabs value={activeTab} onValueChange={(value: any) => setActiveTab(value)}>
-              <TabsList className="grid w-full grid-cols-5 mb-6">
-                <TabsTrigger value="sessions" data-testid="tab-sessions" className="flex items-center justify-center">
-                  <Calendar className="h-5 w-5 md:h-4 md:w-4 md:mr-2" />
-                  <span className="hidden md:inline">{t.tabs.sessions}</span>
+              <TabsList className="grid w-full grid-cols-5 h-auto p-1.5 bg-[#F3F5F7] rounded-xl gap-1 mb-6">
+                <TabsTrigger value="sessions" data-testid="tab-sessions" className="flex items-center justify-center gap-2 min-h-[44px] px-2 py-2 text-xs sm:text-sm data-[state=active]:bg-white data-[state=active]:text-[#7C5CFC] data-[state=active]:shadow-sm">
+                  <Calendar className="w-4 h-4 flex-shrink-0" />
+                  <span className="hidden lg:inline truncate">{t.tabs.sessions}</span>
                 </TabsTrigger>
-                <TabsTrigger value="create-session" data-testid="tab-create-session" className="flex items-center justify-center">
-                  <Plus className="h-5 w-5 md:h-4 md:w-4 md:mr-2" />
-                  <span className="hidden md:inline">{t.tabs.createSession}</span>
+                <TabsTrigger value="create-session" data-testid="tab-create-session" className="flex items-center justify-center gap-2 min-h-[44px] px-2 py-2 text-xs sm:text-sm data-[state=active]:bg-white data-[state=active]:text-[#7C5CFC] data-[state=active]:shadow-sm">
+                  <Plus className="w-4 h-4 flex-shrink-0" />
+                  <span className="hidden lg:inline truncate">{t.tabs.createSession}</span>
                 </TabsTrigger>
-                <TabsTrigger value="recurrences" data-testid="tab-recurrences" className="flex items-center justify-center">
-                  <Repeat className="h-5 w-5 md:h-4 md:w-4 md:mr-2" />
-                  <span className="hidden md:inline">{t.tabs.recurrences}</span>
+                <TabsTrigger value="recurrences" data-testid="tab-recurrences" className="flex items-center justify-center gap-2 min-h-[44px] px-2 py-2 text-xs sm:text-sm data-[state=active]:bg-white data-[state=active]:text-[#7C5CFC] data-[state=active]:shadow-sm">
+                  <Repeat className="w-4 h-4 flex-shrink-0" />
+                  <span className="hidden lg:inline truncate">{t.tabs.recurrences}</span>
                 </TabsTrigger>
-                <TabsTrigger value="create-recurrence" data-testid="tab-create-recurrence" className="flex items-center justify-center">
-                  <Plus className="h-5 w-5 md:h-4 md:w-4 md:mr-2" />
-                  <span className="hidden md:inline">{t.tabs.createRecurrence}</span>
+                <TabsTrigger value="create-recurrence" data-testid="tab-create-recurrence" className="flex items-center justify-center gap-2 min-h-[44px] px-2 py-2 text-xs sm:text-sm data-[state=active]:bg-white data-[state=active]:text-[#7C5CFC] data-[state=active]:shadow-sm">
+                  <Plus className="w-4 h-4 flex-shrink-0" />
+                  <span className="hidden lg:inline truncate">{t.tabs.createRecurrence}</span>
                 </TabsTrigger>
-                <TabsTrigger value="calendar" data-testid="tab-calendar" className="flex items-center justify-center">
-                  <CalendarDays className="h-5 w-5 md:h-4 md:w-4 md:mr-2" />
-                  <span className="hidden md:inline">{t.tabs.calendar}</span>
+                <TabsTrigger value="calendar" data-testid="tab-calendar" className="flex items-center justify-center gap-2 min-h-[44px] px-2 py-2 text-xs sm:text-sm data-[state=active]:bg-white data-[state=active]:text-[#7C5CFC] data-[state=active]:shadow-sm">
+                  <CalendarDays className="w-4 h-4 flex-shrink-0" />
+                  <span className="hidden lg:inline truncate">{t.tabs.calendar}</span>
                 </TabsTrigger>
               </TabsList>
 

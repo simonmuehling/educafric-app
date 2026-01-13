@@ -417,26 +417,26 @@ const SchoolAdministration: React.FC = () => {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-5">
-          <TabsTrigger value="overview" className="flex items-center gap-2">
-            <BarChart3 className="w-4 h-4" />
-            {String(currentLang?.overview) || "N/A"}
+        <TabsList className="grid w-full grid-cols-5 h-auto p-1.5 bg-[#F3F5F7] rounded-xl gap-1">
+          <TabsTrigger value="overview" className="flex items-center justify-center gap-2 min-h-[44px] px-2 py-2 text-xs sm:text-sm data-[state=active]:bg-white data-[state=active]:text-[#7C5CFC] data-[state=active]:shadow-sm">
+            <BarChart3 className="w-4 h-4 flex-shrink-0" />
+            <span className="hidden lg:inline truncate">{String(currentLang?.overview) || "N/A"}</span>
           </TabsTrigger>
-          <TabsTrigger value="teachers" className="flex items-center gap-2">
-            <GraduationCap className="w-4 h-4" />
-            {String(currentLang?.teachers) || "N/A"}
+          <TabsTrigger value="teachers" className="flex items-center justify-center gap-2 min-h-[44px] px-2 py-2 text-xs sm:text-sm data-[state=active]:bg-white data-[state=active]:text-[#7C5CFC] data-[state=active]:shadow-sm">
+            <GraduationCap className="w-4 h-4 flex-shrink-0" />
+            <span className="hidden lg:inline truncate">{String(currentLang?.teachers) || "N/A"}</span>
           </TabsTrigger>
-          <TabsTrigger value="students" className="flex items-center gap-2">
-            <Users className="w-4 h-4" />
-            {String(currentLang?.students) || "N/A"}
+          <TabsTrigger value="students" className="flex items-center justify-center gap-2 min-h-[44px] px-2 py-2 text-xs sm:text-sm data-[state=active]:bg-white data-[state=active]:text-[#7C5CFC] data-[state=active]:shadow-sm">
+            <Users className="w-4 h-4 flex-shrink-0" />
+            <span className="hidden lg:inline truncate">{String(currentLang?.students) || "N/A"}</span>
           </TabsTrigger>
-          <TabsTrigger value="parents" className="flex items-center gap-2">
-            <Heart className="w-4 h-4" />
-            {String(currentLang?.parents) || "N/A"}
+          <TabsTrigger value="parents" className="flex items-center justify-center gap-2 min-h-[44px] px-2 py-2 text-xs sm:text-sm data-[state=active]:bg-white data-[state=active]:text-[#7C5CFC] data-[state=active]:shadow-sm">
+            <Heart className="w-4 h-4 flex-shrink-0" />
+            <span className="hidden lg:inline truncate">{String(currentLang?.parents) || "N/A"}</span>
           </TabsTrigger>
-          <TabsTrigger value="administrators" className="flex items-center gap-2">
-            <Settings className="w-4 h-4" />
-            {String(currentLang?.administrators) || "N/A"}
+          <TabsTrigger value="administrators" className="flex items-center justify-center gap-2 min-h-[44px] px-2 py-2 text-xs sm:text-sm data-[state=active]:bg-white data-[state=active]:text-[#7C5CFC] data-[state=active]:shadow-sm">
+            <Settings className="w-4 h-4 flex-shrink-0" />
+            <span className="hidden lg:inline truncate">{String(currentLang?.administrators) || "N/A"}</span>
           </TabsTrigger>
         </TabsList>
 

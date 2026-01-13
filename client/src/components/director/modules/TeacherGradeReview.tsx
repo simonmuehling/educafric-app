@@ -29,7 +29,8 @@ import {
   Bell,
   BarChart3,
   PieChart,
-  Trash2
+  Trash2,
+  FileText
 } from 'lucide-react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { BarChart, Bar, PieChart as RechartsPieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
@@ -573,12 +574,27 @@ export default function TeacherGradeReview() {
           setSelectedStatus(value === 'all' ? '' : value);
         }
       }}>
-        <TabsList className="grid w-full grid-cols-5">
-          <TabsTrigger value="all">{t.all}</TabsTrigger>
-          <TabsTrigger value="pending">{t.pending}</TabsTrigger>
-          <TabsTrigger value="approved">{t.approved}</TabsTrigger>
-          <TabsTrigger value="returned">{t.returned}</TabsTrigger>
-          <TabsTrigger value="analytics">{t.analytics}</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-5 h-auto p-1.5 bg-[#F3F5F7] rounded-xl gap-1">
+          <TabsTrigger value="all" className="flex items-center justify-center gap-2 min-h-[44px] px-2 py-2 text-xs sm:text-sm data-[state=active]:bg-white data-[state=active]:text-[#7C5CFC] data-[state=active]:shadow-sm">
+            <FileText className="w-4 h-4 flex-shrink-0" />
+            <span className="hidden lg:inline truncate">{t.all}</span>
+          </TabsTrigger>
+          <TabsTrigger value="pending" className="flex items-center justify-center gap-2 min-h-[44px] px-2 py-2 text-xs sm:text-sm data-[state=active]:bg-white data-[state=active]:text-[#7C5CFC] data-[state=active]:shadow-sm">
+            <Clock className="w-4 h-4 flex-shrink-0" />
+            <span className="hidden lg:inline truncate">{t.pending}</span>
+          </TabsTrigger>
+          <TabsTrigger value="approved" className="flex items-center justify-center gap-2 min-h-[44px] px-2 py-2 text-xs sm:text-sm data-[state=active]:bg-white data-[state=active]:text-[#7C5CFC] data-[state=active]:shadow-sm">
+            <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
+            <span className="hidden lg:inline truncate">{t.approved}</span>
+          </TabsTrigger>
+          <TabsTrigger value="returned" className="flex items-center justify-center gap-2 min-h-[44px] px-2 py-2 text-xs sm:text-sm data-[state=active]:bg-white data-[state=active]:text-[#7C5CFC] data-[state=active]:shadow-sm">
+            <XCircle className="w-4 h-4 flex-shrink-0" />
+            <span className="hidden lg:inline truncate">{t.returned}</span>
+          </TabsTrigger>
+          <TabsTrigger value="analytics" className="flex items-center justify-center gap-2 min-h-[44px] px-2 py-2 text-xs sm:text-sm data-[state=active]:bg-white data-[state=active]:text-[#7C5CFC] data-[state=active]:shadow-sm">
+            <BarChart3 className="w-4 h-4 flex-shrink-0" />
+            <span className="hidden lg:inline truncate">{t.analytics}</span>
+          </TabsTrigger>
         </TabsList>
 
         {/* Analytics Tab Content */}

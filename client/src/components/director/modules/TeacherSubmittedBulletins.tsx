@@ -935,22 +935,22 @@ const TeacherSubmittedBulletins: React.FC = () => {
       </CardHeader>
       <CardContent>
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="pending" data-testid="tab-pending">
-              <Clock className="w-4 h-4 mr-2" />
-              {t.pending} ({bulletins.filter(b => b.reviewStatus === 'pending').length})
+          <TabsList className="grid w-full grid-cols-4 h-auto p-1.5 bg-[#F3F5F7] rounded-xl gap-1">
+            <TabsTrigger value="pending" data-testid="tab-pending" className="flex items-center justify-center gap-2 min-h-[44px] px-2 py-2 text-xs sm:text-sm data-[state=active]:bg-white data-[state=active]:text-[#7C5CFC] data-[state=active]:shadow-sm">
+              <Clock className="w-4 h-4 flex-shrink-0" />
+              <span className="hidden lg:inline truncate">{t.pending} ({bulletins.filter(b => b.reviewStatus === 'pending').length})</span>
             </TabsTrigger>
-            <TabsTrigger value="approved" data-testid="tab-approved">
-              <CheckCircle className="w-4 h-4 mr-2" />
-              {t.approved} ({bulletins.filter(b => b.reviewStatus === 'approved').length})
+            <TabsTrigger value="approved" data-testid="tab-approved" className="flex items-center justify-center gap-2 min-h-[44px] px-2 py-2 text-xs sm:text-sm data-[state=active]:bg-white data-[state=active]:text-[#7C5CFC] data-[state=active]:shadow-sm">
+              <CheckCircle className="w-4 h-4 flex-shrink-0" />
+              <span className="hidden lg:inline truncate">{t.approved} ({bulletins.filter(b => b.reviewStatus === 'approved').length})</span>
             </TabsTrigger>
-            <TabsTrigger value="rejected" data-testid="tab-rejected">
-              <XCircle className="w-4 h-4 mr-2" />
-              {t.rejected} ({bulletins.filter(b => b.reviewStatus === 'rejected').length})
+            <TabsTrigger value="rejected" data-testid="tab-rejected" className="flex items-center justify-center gap-2 min-h-[44px] px-2 py-2 text-xs sm:text-sm data-[state=active]:bg-white data-[state=active]:text-[#7C5CFC] data-[state=active]:shadow-sm">
+              <XCircle className="w-4 h-4 flex-shrink-0" />
+              <span className="hidden lg:inline truncate">{t.rejected} ({bulletins.filter(b => b.reviewStatus === 'rejected').length})</span>
             </TabsTrigger>
-            <TabsTrigger value="all" data-testid="tab-all">
-              <FileText className="w-4 h-4 mr-2" />
-              {t.all} ({bulletins.length})
+            <TabsTrigger value="all" data-testid="tab-all" className="flex items-center justify-center gap-2 min-h-[44px] px-2 py-2 text-xs sm:text-sm data-[state=active]:bg-white data-[state=active]:text-[#7C5CFC] data-[state=active]:shadow-sm">
+              <FileText className="w-4 h-4 flex-shrink-0" />
+              <span className="hidden lg:inline truncate">{t.all} ({bulletins.length})</span>
             </TabsTrigger>
           </TabsList>
 
