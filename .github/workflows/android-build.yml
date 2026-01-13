@@ -1,48 +1,3 @@
-name: Build Android APK & AAB
-
-on:
-  push:
-    branches: [main, master]
-  workflow_dispatch:
-    inputs:
-      build_type:
-        description: 'Build output type'
-        required: true
-        default: 'both'
-        type: choice
-        options:
-        - apk
-        - aab
-        - both
-
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
-      - uses: actions/setup-java@v4
-        with:
-          java-version: '17'
-          distribution: 'temurin'
-      - uses: android-actions/setup-android@v3
-      - run: yes | sdkmanager --licenses || true
-      - run: npm ci
-      - run: npm run build
-      - run: npx cap sync android
-      - run: cd android && chmod +x gradlew && ./gradlew clean
-
-      - name: Build APK
-        if: inputs.build_type != 'aab'
-        run: cd android && ./gradlew assembleRelease
-
-      - name: Build AAB
-        if: inputs.build_type != 'apk'
-        run: cd android && ./gradlew bundleRelease
-
       - name: Sign APK
         if: inputs.build_type != 'aab'
         uses: r0adkll/sign-android-release@v1
@@ -52,6 +7,8 @@ jobs:
           alias: ${{ secrets.ANDROID_KEY_ALIAS }}
           keyStorePassword: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           keyPassword: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        env:
+          BUILD_TOOLS_VERSION: "34.0.0"
 
       - name: Sign AAB
         if: inputs.build_type != 'apk'
@@ -62,17 +19,5 @@ jobs:
           alias: ${{ secrets.ANDROID_KEY_ALIAS }}
           keyStorePassword: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           keyPassword: ${{ secrets.ANDROID_KEY_PASSWORD }}
-
-      - name: Upload APK
-        if: inputs.build_type != 'aab'
-        uses: actions/upload-artifact@v4
-        with:
-          name: educafric-apk-${{ github.run_number }}
-          path: android/app/build/outputs/apk/release/*.apk
-
-      - name: Upload AAB
-        if: inputs.build_type != 'apk'
-        uses: actions/upload-artifact@v4
-        with:
-          name: educafric-aab-${{ github.run_number }}
-          path: android/app/build/outputs/bundle/release/*.aab
+        env:
+          BUILD_TOOLS_VERSION: "34.0.0"
