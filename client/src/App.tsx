@@ -246,6 +246,12 @@ function Router() {
       <Route path="/about" component={About} />
       <Route path="/services" component={Services} />
       <Route path="/login" component={Login} />
+      <Route path="/register">
+        {() => {
+          window.location.href = '/login?mode=register';
+          return null;
+        }}
+      </Route>
       <Route path="/ui-showcase" component={LazyUIShowcase} />
       <Route path="/micro-interactions" component={MicroInteractionsDemo} />
       <Route path="/bilingual-sandbox" component={BilingualSandboxDashboard} />

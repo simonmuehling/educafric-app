@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Link } from 'wouter';
 import { GraduationCap } from 'lucide-react';
 
-const LOGO_SOURCES = [
+const LOGO_PATHS = [
   '/educafric-logo-128.png',
   '/educafric-logo-512.png',
   '/favicon.ico'
@@ -17,6 +17,21 @@ interface LogoProps {
 const Logo = ({ className = '', showText = true, size = 'md' }: LogoProps) => {
   const [imageError, setImageError] = useState(false);
   const [currentSourceIndex, setCurrentSourceIndex] = useState(0);
+
+  const baseUrl = useMemo(() => {
+    if (typeof window !== 'undefined') {
+      const host = window.location.host;
+      if (host.includes('educafric.com')) {
+        return 'https://educafric.com';
+      }
+      return window.location.origin;
+    }
+    return '';
+  }, []);
+
+  const logoSources = useMemo(() => {
+    return LOGO_PATHS.map(path => `${baseUrl}${path}`);
+  }, [baseUrl]);
 
   const sizeClasses = {
     sm: 'w-6 h-6',
@@ -40,7 +55,7 @@ const Logo = ({ className = '', showText = true, size = 'md' }: LogoProps) => {
   };
 
   const handleImageError = () => {
-    if (currentSourceIndex < LOGO_SOURCES.length - 1) {
+    if (currentSourceIndex < logoSources.length - 1) {
       setCurrentSourceIndex(currentSourceIndex + 1);
     } else {
       setImageError(true);
@@ -56,7 +71,7 @@ const Logo = ({ className = '', showText = true, size = 'md' }: LogoProps) => {
       <div className={`${sizeClasses[size]} overflow-hidden rounded-full bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center`}>
         {!imageError ? (
           <img 
-            src={LOGO_SOURCES[currentSourceIndex]} 
+            src={logoSources[currentSourceIndex]} 
             alt="Educafric Logo" 
             className="w-full h-full object-contain rounded-full"
             onError={handleImageError}
