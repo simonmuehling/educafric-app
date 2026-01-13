@@ -205,28 +205,39 @@ const FunctionalDirectorTeacherManagement: React.FC = () => {
 
   const availableClasses = classesResponse?.classes || [];
 
-  // Function to get subjects from selected classes
+  // Function to get subjects from selected classes - BILINGUAL SUPPORT
   const getAvailableSubjects = () => {
     if (!teacherForm.selectedClasses.length) {
       return []; // No subjects if no classes selected
     }
     
-    const subjects = new Set<string>();
+    const subjectsMap = new Map<string, { name: string, nameFr: string, nameEn: string }>();
     teacherForm.selectedClasses.forEach(className => {
       const classData = availableClasses.find((c: any) => c.name === className);
       console.log('[TEACHER_MANAGEMENT] 🔍 Class data for', className, ':', classData);
       if (classData?.subjects) {
         console.log('[TEACHER_MANAGEMENT] 📚 Subjects found:', classData.subjects);
         classData.subjects.forEach((subject: any) => {
-          subjects.add(subject.name);
+          const key = (subject.nameFr || subject.name || subject.nameEn || '').toLowerCase();
+          if (key && !subjectsMap.has(key)) {
+            subjectsMap.set(key, {
+              name: subject.name || subject.nameFr || subject.nameEn || '',
+              nameFr: subject.nameFr || subject.name || '',
+              nameEn: subject.nameEn || subject.name || subject.nameFr || ''
+            });
+          }
         });
       } else {
         console.log('[TEACHER_MANAGEMENT] ⚠️ No subjects found for class:', className);
       }
     });
     
-    console.log('[TEACHER_MANAGEMENT] 📋 Final subjects list:', Array.from(subjects));
-    return Array.from(subjects);
+    // Return subject names based on current language
+    const subjectsList = Array.from(subjectsMap.values()).map(s => 
+      language === 'fr' ? s.nameFr : s.nameEn
+    );
+    console.log('[TEACHER_MANAGEMENT] 📋 Final subjects list:', subjectsList);
+    return subjectsList;
   };
 
   // Fetch teachers data from PostgreSQL API
@@ -768,11 +779,13 @@ const FunctionalDirectorTeacherManagement: React.FC = () => {
   );
   
   // Extract unique subjects from all classes (from API) for dynamic filter (sorted alphabetically)
-  // ✅ FIXED: Use real subjects from school's classes, not hardcoded values
+  // ✅ BILINGUAL: Use nameFr/nameEn based on current language
   const allSubjectsFromClasses = sortStrings(
     Array.from(new Set(
       (availableClasses || []).flatMap((cls: any) => 
-        Array.isArray(cls.subjects) ? cls.subjects.map((s: any) => s.name || s.nameFr || s.nameEn || s).filter(Boolean) : []
+        Array.isArray(cls.subjects) ? cls.subjects.map((s: any) => 
+          language === 'fr' ? (s.nameFr || s.name || s.nameEn || s) : (s.nameEn || s.name || s.nameFr || s)
+        ).filter(Boolean) : []
       )
     ))
   );

@@ -164,7 +164,7 @@ const TimetableConfiguration: React.FC = () => {
     });
   };
 
-  // Function to get subjects from selected class
+  // Function to get subjects from selected class - BILINGUAL SUPPORT
   const getAvailableSubjects = () => {
     if (!formData.className) {
       return []; // No subjects if no class selected
@@ -175,7 +175,10 @@ const TimetableConfiguration: React.FC = () => {
     
     if (selectedClass?.subjects) {
       console.log('[TIMETABLE] 📚 Subjects found:', selectedClass.subjects);
-      return selectedClass.subjects.map((subject: any) => subject.name);
+      // Return bilingual names based on current language
+      return selectedClass.subjects.map((subject: any) => 
+        language === 'fr' ? (subject.nameFr || subject.name || subject.nameEn) : (subject.nameEn || subject.name || subject.nameFr)
+      ).filter(Boolean);
     }
     
     console.log('[TIMETABLE] ⚠️ No subjects found for class:', formData.className);

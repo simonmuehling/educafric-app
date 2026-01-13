@@ -1885,12 +1885,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
             console.log('[DIRECTOR_CLASSES_API] ⚠️ Could not count teachers for class', cls.id, ':', ttError);
           }
           
-          // Get subjects for this specific class
+          // Get subjects for this specific class - BILINGUAL (nameFr + nameEn)
           const classSubjectsData = schoolSubjects
             .filter(subject => subject.classId === cls.id)
             .map(subject => ({
               id: subject.id,
-              name: subject.nameFr || subject.nameEn
+              name: subject.nameFr || subject.nameEn || '',
+              nameFr: subject.nameFr || subject.nameEn || '',
+              nameEn: subject.nameEn || subject.nameFr || '',
+              code: subject.code || '',
+              coefficient: subject.coefficient || '1',
+              subjectType: subject.subjectType || 'general',
+              classId: subject.classId
             }));
           
           return {
