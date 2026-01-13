@@ -2316,7 +2316,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       });
       
-      // Build the subjects list with teacher info
+      // ✅ FIX: Fetch APPROVED grades from teacherGradeSubmissions for ALL subjects in this class
+      const studentId = req.query.studentId ? parseInt(req.query.studentId as string) : null;
+      const term = req.query.term as string || null;
+      
+      // Build conditions for approved grades
+      const gradeConditions = [
+        eq(teacherGradeSubmissions.classId, classId),
+        eq(teacherGradeSubmissions.schoolId, userSchoolId),
+        eq(teacherGradeSubmissions.reviewStatus, 'approved')
+      ];
+      
+      if (studentId) {
+        gradeConditions.push(eq(teacherGradeSubmissions.studentId, studentId));
+      }
+      if (term) {
+        gradeConditions.push(eq(teacherGradeSubmissions.term, term));
+      }
+      
+      const approvedGrades = await db
+        .select({
+          subjectId: teacherGradeSubmissions.subjectId,
+          studentId: teacherGradeSubmissions.studentId,
+          termAverage: teacherGradeSubmissions.termAverage,
+          term: teacherGradeSubmissions.term,
+          coefficient: teacherGradeSubmissions.coefficient,
+          subjectComments: teacherGradeSubmissions.subjectComments,
+          teacherId: teacherGradeSubmissions.teacherId,
+          teacherFirstName: users.firstName,
+          teacherLastName: users.lastName
+        })
+        .from(teacherGradeSubmissions)
+        .leftJoin(users, eq(teacherGradeSubmissions.teacherId, users.id))
+        .where(and(...gradeConditions));
+      
+      console.log('[BULLETIN_CLASS_SUBJECTS] 📊 Found', approvedGrades.length, 'approved grades for class', classId, 
+        studentId ? `student ${studentId}` : 'all students', term ? `term ${term}` : 'all terms');
+      
+      // Create a map: subjectId -> approved grade data
+      const approvedGradeMap = new Map<number, any>();
+      approvedGrades.forEach((g: any) => {
+        if (!approvedGradeMap.has(g.subjectId)) {
+          approvedGradeMap.set(g.subjectId, g);
+        }
+      });
+      
+      // Build the subjects list with teacher info AND approved grades
       const classSubjectsWithTeachers = classSubjects.map((subject: any, index: number) => {
         // Get subject name based on language
         const subjectName = userLanguage === 'en' 
@@ -2333,25 +2378,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
                        '';
         }
         
+        // ✅ FIX: Get approved grade for this subject
+        const approvedGrade = approvedGradeMap.get(subject.id);
+        const gradeValue = approvedGrade?.termAverage || 0;
+        
+        // Use teacher from approved grade if available (more accurate)
+        if (approvedGrade?.teacherFirstName && approvedGrade?.teacherLastName) {
+          teacherName = `${approvedGrade.teacherFirstName} ${approvedGrade.teacherLastName}`;
+        }
+        
         return {
           id: `subject-${subject.id}`,
+          subjectId: subject.id,
           name: subjectName,
           nameFr: subject.nameFr || '',
           nameEn: subject.nameEn || '',
           teacher: teacherName,
-          coefficient: parseFloat(subject.coefficient) || getDefaultCoefficient(subjectName),
+          coefficient: approvedGrade?.coefficient || parseFloat(subject.coefficient) || getDefaultCoefficient(subjectName),
           subjectType: subject.subjectType || 'general',
           bulletinSection: subject.bulletinSection || subject.subjectType || 'general',
-          grade: 0,
-          note1: 0,
-          moyenneFinale: 0,
+          grade: gradeValue,
+          note1: gradeValue,
+          moyenneFinale: gradeValue,
           competence1: '',
           competence2: '',
           competence3: '',
-          totalPondere: 0,
+          totalPondere: gradeValue * (approvedGrade?.coefficient || parseFloat(subject.coefficient) || 1),
           cote: '',
-          remark: '',
-          comments: []
+          remark: approvedGrade?.subjectComments || '',
+          comments: approvedGrade?.subjectComments ? [approvedGrade.subjectComments] : [],
+          hasApprovedGrade: !!approvedGrade
         };
       });
       
