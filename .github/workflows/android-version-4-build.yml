@@ -1,67 +1,82 @@
-name: Build Android APK
+name: Build Android APK & AAB
 
 on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
   workflow_dispatch:
     inputs:
       build_type:
-        description: 'Build type'
+        description: 'Build output type'
         required: true
-        default: 'debug'
+        default: 'both'
         type: choice
         options:
-        - debug
-        - release
+        - apk
+        - aab
+        - both
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-    
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '20'
-        cache: 'npm'
-        
-    - name: Setup Java 17
-      uses: actions/setup-java@v4
-      with:
-        java-version: '17'
-        distribution: 'temurin'
-        
-    - name: Setup Android SDK
-      uses: android-actions/setup-android@v3
-      
-    - name: Install dependencies
-      run: npm ci
-      
-    - name: Build web app
-      run: npm run build
-      
-    - name: Sync Capacitor
-      run: npx cap sync android
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+      - uses: android-actions/setup-android@v3
+      - run: yes | sdkmanager --licenses || true
+      - run: npm ci
+      - run: npm run build
+      - run: npx cap sync android
+      - run: cd android && chmod +x gradlew && ./gradlew clean
 
-    # 🔥 AJOUT 1 — nettoyer le cache Gradle
-    - name: Clear Gradle cache
-      run: rm -rf ~/.gradle/caches
+      - name: Build APK
+        if: inputs.build_type != 'aab'
+        run: cd android && ./gradlew assembleRelease
 
-    # 🔥 AJOUT 2 — clean Android build
-    - name: Clean Android build
-      run: |
-        cd android
-        chmod +x gradlew
-        ./gradlew clean
-      
-    - name: Build APK
-      run: |
-        cd android
-        chmod +x gradlew
-        ./gradlew assemble${{ github.event.inputs.build_type == 'release' && 'Release' || 'Debug' }}
-        
-    - name: Upload APK
-      uses: actions/upload-artifact@v4
-      with:
-        name: educafric-${{ github.event.inputs.build_type }}
-        path: android/app/build/outputs/apk/**/*.apk
-        retention-days: 30
+      - name: Build AAB
+        if: inputs.build_type != 'apk'
+        run: cd android && ./gradlew bundleRelease
+
+      - name: Sign APK
+        if: inputs.build_type != 'aab'
+        uses: r0adkll/sign-android-release@v1
+        id: sign_apk
+        with:
+          releaseDirectory: android/app/build/outputs/apk/release
+          signingKeyBase64: ${{ secrets.ANDROID_SIGNING_KEY }}
+          alias: ${{ secrets.ANDROID_KEY_ALIAS }}
+          keyStorePassword: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          keyPassword: ${{ secrets.ANDROID_KEY_PASSWORD }}
+
+      - name: Sign AAB
+        if: inputs.build_type != 'apk'
+        uses: r0adkll/sign-android-release@v1
+        id: sign_aab
+        with:
+          releaseDirectory: android/app/build/outputs/bundle/release
+          signingKeyBase64: ${{ secrets.ANDROID_SIGNING_KEY }}
+          alias: ${{ secrets.ANDROID_KEY_ALIAS }}
+          keyStorePassword: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          keyPassword: ${{ secrets.ANDROID_KEY_PASSWORD }}
+
+      - name: Upload APK
+        if: inputs.build_type != 'aab'
+        uses: actions/upload-artifact@v4
+        with:
+          name: educafric-apk-${{ github.run_number }}
+          path: android/app/build/outputs/apk/release/*.apk
+
+      - name: Upload AAB
+        if: inputs.build_type != 'apk'
+        uses: actions/upload-artifact@v4
+        with:
+          name: educafric-aab-playstore-${{ github.run_number }}
+          path: android/app/build/outputs/bundle/release/*.aab
