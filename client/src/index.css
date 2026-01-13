@@ -432,9 +432,10 @@ svg {
   /* A4 Container - Adaptive Single Page Fit */
   .a4-container {
     width: 198mm !important; /* 210mm - 6mm margins x2 */
-    height: 285mm !important; /* Fixed A4 height for proper layout */
+    height: auto !important; /* AUTO - no fixed height to prevent blank second page */
+    min-height: 0 !important;
     max-width: 198mm !important;
-    max-height: 285mm !important;
+    max-height: none !important; /* NO max-height to prevent overflow */
     margin: 0 auto !important;
     padding: 3mm !important;
     overflow: visible !important; /* Allow annual summary to show */
@@ -493,12 +494,13 @@ svg {
     page-break-inside: avoid !important; 
   }
   
-  /* ===== BULLETIN A4 OPTIMIZED - FULL PAGE ADAPTIVE FIT ===== */
+  /* ===== BULLETIN A4 OPTIMIZED - SINGLE PAGE PRINT ===== */
   .bulletin-a4-optimized {
     width: 100% !important;
     max-width: 198mm !important;
-    height: 285mm !important; /* Fixed A4 height - ALWAYS USE FULL PAGE */
-    max-height: 285mm !important;
+    height: auto !important; /* AUTO - prevents blank second page */
+    min-height: 0 !important;
+    max-height: none !important; /* NO max-height to prevent overflow */
     margin: 0 auto !important;
     padding: 2mm !important;
     font-family: Arial, sans-serif !important;
@@ -509,8 +511,7 @@ svg {
     overflow: visible !important;
     background: white !important;
     box-sizing: border-box !important;
-    display: flex !important;
-    flex-direction: column !important;
+    display: block !important; /* BLOCK layout for natural sizing */
   }
   
   .bulletin-a4-optimized .ministry-header {
