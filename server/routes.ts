@@ -1996,7 +1996,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const user = req.user as any;
       const classId = parseInt(req.params.classId);
-      const { name, level, capacity, teacherId, room } = req.body;
+      const { name, level, capacity, teacherId, room, subjects: classSubjects } = req.body;
       
       const userSchoolId = user.schoolId || user.school_id;
       
@@ -2008,7 +2008,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ success: false, message: 'Invalid class ID' });
       }
       
-      console.log('[UPDATE_CLASS] Updating class:', classId, { name, level, capacity });
+      console.log('[UPDATE_CLASS] Updating class:', classId, { name, level, capacity, subjectsCount: classSubjects?.length || 0 });
       
       // Verify class belongs to user's school
       const [existingClass] = await db.select().from(classes).where(eq(classes.id, classId)).limit(1);
@@ -2032,8 +2032,68 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .where(and(eq(classes.id, classId), eq(classes.schoolId, userSchoolId)))
         .returning();
       
+      // ✅ SYNC SUBJECTS: Handle subjects if provided (add new ones, keeping existing)
+      let newSubjectsCreated = 0;
+      if (classSubjects && Array.isArray(classSubjects) && classSubjects.length > 0) {
+        console.log('[UPDATE_CLASS] 📚 Processing', classSubjects.length, 'subjects for class');
+        
+        // Get existing subjects for this class
+        const existingSubjects = await db.select()
+          .from(subjects)
+          .where(and(
+            eq(subjects.classId, classId),
+            eq(subjects.schoolId, userSchoolId)
+          ));
+        
+        const existingSubjectNames = new Set(existingSubjects.map(s => 
+          (s.nameFr || s.nameEn || '').toLowerCase().trim()
+        ));
+        
+        // Add only NEW subjects (don't duplicate)
+        for (const subject of classSubjects) {
+          const subjectName = (subject.nameFr || subject.name || subject.nameEn || '').toLowerCase().trim();
+          
+          if (subjectName && !existingSubjectNames.has(subjectName)) {
+            const baseCode = (subject.name || subject.nameFr || '').substring(0, 4).toUpperCase();
+            const uniqueCode = `${baseCode}_C${classId}_${Date.now()}`;
+            
+            try {
+              await db.insert(subjects).values({
+                nameFr: subject.nameFr || subject.name,
+                nameEn: subject.nameEn || subject.name || subject.nameFr,
+                code: subject.code || uniqueCode,
+                coefficient: (subject.coefficient || '1').toString(),
+                schoolId: userSchoolId,
+                classId: classId,
+                subjectType: subject.category || subject.subjectType || 'general'
+              });
+              newSubjectsCreated++;
+              existingSubjectNames.add(subjectName); // Prevent duplicates within same request
+              console.log('[UPDATE_CLASS] ✅ Added new subject:', subject.nameFr || subject.name);
+            } catch (subjectError: any) {
+              if (subjectError.code === '23505') {
+                console.log('[UPDATE_CLASS] ⚠️ Subject already exists, skipping:', subjectName);
+              } else {
+                console.error('[UPDATE_CLASS] ❌ Error adding subject:', subjectError);
+              }
+            }
+          }
+        }
+        
+        if (newSubjectsCreated > 0) {
+          console.log('[UPDATE_CLASS] ✅ Created', newSubjectsCreated, 'new subjects for class');
+        }
+      }
+      
       console.log('[UPDATE_CLASS] ✅ Class updated successfully:', updatedClass.name);
-      res.json({ success: true, class: updatedClass, message: 'Class updated successfully' });
+      res.json({ 
+        success: true, 
+        class: updatedClass, 
+        newSubjectsCreated,
+        message: newSubjectsCreated > 0 
+          ? `Class updated and ${newSubjectsCreated} new subject(s) added`
+          : 'Class updated successfully' 
+      });
     } catch (error) {
       console.error('[UPDATE_CLASS] Error:', error);
       res.status(500).json({ success: false, message: 'Failed to update class' });
