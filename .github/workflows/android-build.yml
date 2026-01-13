@@ -17,6 +17,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      BUILD_TYPE: ${{ inputs.build_type || 'aab' }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -34,23 +36,23 @@ jobs:
       - run: npx cap sync android
       - run: cd android && chmod +x gradlew && ./gradlew clean
 
-      - name: Build APK (debug - pour tests)
-        if: inputs.build_type == 'apk'
+      - name: Build APK (debug)
+        if: env.BUILD_TYPE == 'apk'
         run: cd android && ./gradlew assembleDebug
 
-      - name: Build AAB (release - pour Play Store)
-        if: inputs.build_type == 'aab'
+      - name: Build AAB (Play Store)
+        if: env.BUILD_TYPE == 'aab'
         run: cd android && ./gradlew bundleRelease
 
       - name: Upload APK
-        if: inputs.build_type == 'apk'
+        if: env.BUILD_TYPE == 'apk'
         uses: actions/upload-artifact@v4
         with:
           name: educafric-debug-apk-${{ github.run_number }}
           path: android/app/build/outputs/apk/debug/*.apk
 
-      - name: Upload AAB (Play Store ready)
-        if: inputs.build_type == 'aab'
+      - name: Upload AAB
+        if: env.BUILD_TYPE == 'aab'
         uses: actions/upload-artifact@v4
         with:
           name: educafric-playstore-aab-${{ github.run_number }}
