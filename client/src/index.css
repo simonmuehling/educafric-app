@@ -78,6 +78,7 @@ svg {
   flex-direction: column;
   min-height: 297mm;
   height: 297mm; /* FIXED A4 height */
+  font-size: 11pt; /* BIGGER default font */
   font-weight: 600; /* BOLD text throughout */
 }
 
@@ -93,15 +94,29 @@ svg {
   flex: 1 1 auto;
   display: flex;
   flex-direction: column;
+  min-height: 0;
 }
 
 .bulletin-a4-optimized .grades-table-wrapper table {
   flex: 1 1 auto;
+  height: 100%;
+  display: table;
 }
 
-/* Rows stretch evenly when few subjects */
+/* Rows stretch evenly to fill available space - NO EMPTY ROWS */
+.bulletin-a4-optimized .grades-table-wrapper tbody {
+  display: table-row-group;
+  height: 100%;
+}
+
 .bulletin-a4-optimized .grades-table-wrapper tbody tr {
-  height: auto;
+  height: 1fr; /* Distribute height evenly */
+}
+
+.bulletin-a4-optimized .grades-table-wrapper tbody tr td {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  vertical-align: middle;
 }
 
 .bulletin-a4-optimized .bulletin-footer-section {
@@ -487,9 +502,9 @@ svg {
     margin: 0 auto !important;
     padding: 2mm !important;
     font-family: Arial, sans-serif !important;
-    font-size: 9pt !important;
+    font-size: 10pt !important; /* BIGGER font (+1pt) */
     font-weight: 600 !important; /* BOLD by default */
-    line-height: 1.2 !important;
+    line-height: 1.25 !important;
     color: #000 !important;
     overflow: visible !important;
     background: white !important;
@@ -504,13 +519,13 @@ svg {
   }
   
   .bulletin-a4-optimized .ministry-header-text {
-    font-size: 8pt !important;
+    font-size: 9pt !important; /* +1pt */
     font-weight: 700 !important; /* BOLD */
-    line-height: 1.15 !important;
+    line-height: 1.2 !important;
   }
   
   .bulletin-a4-optimized .ministry-header-title {
-    font-size: 9pt !important;
+    font-size: 10pt !important; /* +1pt */
     font-weight: 800 !important; /* EXTRA BOLD */
   }
   
@@ -559,7 +574,7 @@ svg {
   
   /* TABLE - Rows stretch to fill available space */
   .bulletin-a4-optimized table {
-    font-size: 8pt !important;
+    font-size: 9pt !important; /* +1pt */
     font-weight: 600 !important; /* BOLD */
     margin-bottom: 1mm !important;
     border: 1pt solid #000 !important;
@@ -568,10 +583,10 @@ svg {
   }
   
   .bulletin-a4-optimized th {
-    font-size: 7pt !important;
+    font-size: 8pt !important; /* +1pt */
     font-weight: 800 !important; /* EXTRA BOLD headers */
-    padding: 3px 4px !important;
-    line-height: 1.2 !important;
+    padding: 4px 5px !important;
+    line-height: 1.25 !important;
     background-color: #e8e8e8 !important;
     border: 1pt solid #000 !important;
     text-align: center !important;
@@ -579,33 +594,33 @@ svg {
   }
   
   .bulletin-a4-optimized td {
-    font-size: 8pt !important;
+    font-size: 9pt !important; /* +1pt */
     font-weight: 600 !important; /* BOLD */
-    padding: 4px 5px !important;
-    line-height: 1.25 !important;
+    padding: 5px 6px !important;
+    line-height: 1.3 !important;
     border: 1pt solid #000 !important;
     vertical-align: middle !important;
   }
   
   .bulletin-a4-optimized .subject-name {
-    font-size: 8pt !important;
+    font-size: 9pt !important; /* +1pt */
     font-weight: 700 !important; /* BOLD */
   }
   
   .bulletin-a4-optimized .teacher-name {
-    font-size: 7pt !important;
+    font-size: 8pt !important; /* +1pt */
     font-weight: 600 !important;
     color: #333 !important;
   }
   
   .bulletin-a4-optimized .competency-text {
-    font-size: 6pt !important;
+    font-size: 7pt !important; /* +1pt */
     font-weight: 500 !important;
-    line-height: 1.15 !important;
+    line-height: 1.2 !important;
   }
   
   .bulletin-a4-optimized .grade-value {
-    font-size: 10pt !important;
+    font-size: 11pt !important; /* +1pt */
     font-weight: 800 !important; /* EXTRA BOLD for grades */
     text-align: center !important;
   }
