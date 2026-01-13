@@ -1,59 +1,46 @@
-name: Build Android APK & AAB
+name: Build Android AAB for Play Store
 
 on:
   push:
     branches: [main, master]
   workflow_dispatch:
-    inputs:
-      build_type:
-        description: 'Build output type'
-        required: true
-        default: 'aab'
-        type: choice
-        options:
-        - apk
-        - aab
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    env:
-      BUILD_TYPE: ${{ inputs.build_type || 'aab' }}
     steps:
       - uses: actions/checkout@v4
+      
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
+          
       - uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'temurin'
+          
       - uses: android-actions/setup-android@v3
         
-      - run: npm ci
-      - run: npm run build
-      - run: npx cap sync android
-      - run: cd android && chmod +x gradlew && ./gradlew clean
-
-      - name: Build APK (debug)
-        if: env.BUILD_TYPE == 'apk'
-        run: cd android && ./gradlew assembleDebug
-
-      - name: Build AAB (Play Store)
-        if: env.BUILD_TYPE == 'aab'
-        run: cd android && ./gradlew bundleRelease
-
-      - name: Upload APK
-        if: env.BUILD_TYPE == 'apk'
-        uses: actions/upload-artifact@v4
-        with:
-          name: educafric-debug-apk-${{ github.run_number }}
-          path: android/app/build/outputs/apk/debug/*.apk
-
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Build web app
+        run: npm run build
+        
+      - name: Sync Capacitor
+        run: npx cap sync android
+        
+      - name: Build AAB
+        run: |
+          cd android
+          chmod +x gradlew
+          ./gradlew bundleRelease
+          
       - name: Upload AAB
-        if: env.BUILD_TYPE == 'aab'
         uses: actions/upload-artifact@v4
         with:
-          name: educafric-playstore-aab-${{ github.run_number }}
+          name: educafric-playstore-${{ github.run_number }}
           path: android/app/build/outputs/bundle/release/*.aab
+          retention-days: 30
