@@ -76,12 +76,19 @@ Educafric is a mobile-first, bilingual Progressive Web App (PWA) EdTech platform
     - `DashboardNavbar.tsx`: Barre de navigation avec titre, sous-titre, langue, notifications, déconnexion
     - `MobileIconTabNavigation.tsx`: Navigation par onglets sur mobile
     - `ResponsiveTabs.tsx`: Composant réutilisable pour onglets responsifs
-- PATTERN ONGLETS RESPONSIFS (STANDARD OBLIGATOIRE):
-    - TabsList: `grid w-full grid-cols-X h-auto p-1.5 bg-[#F3F5F7] rounded-xl gap-1`
-    - TabsTrigger: `flex items-center justify-center gap-2 min-h-[44px] px-2 py-2 text-xs sm:text-sm data-[state=active]:bg{white] data-[state=active]:text-[#7C5CFC] data-[state=active]:shadow-sm`
-    - Labels: `<span className="hidden sm:inline truncate">{label}</span>` (icônes seules sur mobile, icônes+texte sur desktop)
-    - Icônes: `className="w-4 h-4 flex-shrink-0"`
-    - Modules mis à jour: TeacherAbsenceManager, TeacherOnlineClasses, StudentCommunications, FunctionalParentProfile, et 10+ autres
+- PATTERN ONGLETS RESPONSIFS MOBILE (STANDARD OBLIGATOIRE JANVIER 2026):
+    - **TabsList**: `className="grid w-full grid-cols-X h-auto p-1.5 bg-[#F3F5F7] rounded-xl gap-1"`
+    - **TabsTrigger**: `className="flex items-center justify-center gap-2 min-h-[44px] px-2 py-2 text-xs sm:text-sm data-[state=active]:bg-white data-[state=active]:text-[#7C5CFC] data-[state=active]:shadow-sm"`
+    - **Labels texte**: `<span className="hidden lg:inline truncate">{label}</span>` (icônes seules sur mobile/tablette, icônes+texte sur desktop lg+)
+    - **Icônes**: `className="w-4 h-4 flex-shrink-0"` (taille fixe, jamais shrink)
+    - **Couleurs**: Fond gris clair #F3F5F7, onglet actif blanc avec texte violet #7C5CFC et ombre légère
+    - **Accessibilité**: min-h-[44px] pour touch targets selon WCAG 2.1
+    - **MODULES CORRIGÉS (4 profils mobiles)**:
+        - Director: AcademicManagementSuite (6 onglets), OnlineClassesManager (5), TeacherGradeReview (5), FeesManagement (5), SchoolAdministration (5), TeacherSubmittedBulletins (4), TeacherAbsenceManager (4)
+        - Teacher: TeacherGradeSubmissionsList (5), FunctionalTeacherAssignments (4), TeacherOnlineClasses (3)
+        - Student: StudentCommunications (4), FunctionalStudentProfile (3)
+        - Parent: FunctionalParentProfile (3), ParentChildrenHomework (3), ParentCommunicationsBidirectional (3)
+    - **RÈGLE**: Tout nouveau module avec 3+ onglets DOIT utiliser ce pattern. Copier-coller depuis un module existant.
 - TITRE DASHBOARD NON DUPLIQUÉ: Le titre et sous-titre du dashboard apparaissent UNIQUEMENT dans DashboardNavbar. NE JAMAIS ajouter de section titre dans le contenu principal (UnifiedIconDashboard). Le composant affiche directement la grille d'icônes sans titre répété.
 - COULEURS ICÔNES PRÉSERVÉES: Les icônes de modules conservent leurs couleurs distinctives originales (vert, violet, orange, rose, etc.). NE JAMAIS forcer toutes les icônes en violet - chaque module a sa couleur identitaire.
 - IMPORT EXCEL ENSEIGNANTS: L'import bulk des enseignants utilise le mot de passe par défaut `Educafric2024!` pour tous les nouveaux comptes. Champs importés: firstName, lastName, email, phone, gender, matricule, dateOfBirth, placeOfBirth, teachingSubjects. IMPORTANT: Le rôle DOIT être `'Teacher'` avec T majuscule (pas 'teacher' minuscule) car l'API `/api/director/teachers` filtre avec `eq(users.role, 'Teacher')`. Stratégie de déduplication: `ON CONFLICT DO NOTHING` sur email et phone. Les enseignants peuvent se connecter avec email OU téléphone + mot de passe `Educafric2024!` et doivent changer leur mot de passe après première connexion.
