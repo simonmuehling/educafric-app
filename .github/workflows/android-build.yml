@@ -8,12 +8,11 @@ on:
       build_type:
         description: 'Build output type'
         required: true
-        default: 'both'
+        default: 'aab'
         type: choice
         options:
         - apk
         - aab
-        - both
 
 jobs:
   build:
@@ -29,44 +28,30 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
       - uses: android-actions/setup-android@v3
-      
-      - name: Install Build Tools
-        run: sdkmanager "build-tools;34.0.0"
         
       - run: npm ci
       - run: npm run build
       - run: npx cap sync android
       - run: cd android && chmod +x gradlew && ./gradlew clean
 
-      - name: Build APK
-        if: inputs.build_type != 'aab'
-        run: cd android && ./gradlew assembleRelease
+      - name: Build APK (debug - pour tests)
+        if: inputs.build_type == 'apk'
+        run: cd android && ./gradlew assembleDebug
 
-      - name: Build AAB
-        if: inputs.build_type != 'apk'
+      - name: Build AAB (release - pour Play Store)
+        if: inputs.build_type == 'aab'
         run: cd android && ./gradlew bundleRelease
 
-      - name: Sign APK
-        if: inputs.build_type != 'aab'
-        uses: r0adkll/sign-android-release@v1
-        with:
-          releaseDirectory: android/app/build/outputs/apk/release
-          signingKeyBase64: ${{ secrets.ANDROID_SIGNING_KEY }}
-          alias: ${{ secrets.ANDROID_KEY_ALIAS }}
-          keyStorePassword: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
-          keyPassword: ${{ secrets.ANDROID_KEY_PASSWORD }}
-          buildToolsVersion: "34.0.0"
-
       - name: Upload APK
-        if: inputs.build_type != 'aab'
+        if: inputs.build_type == 'apk'
         uses: actions/upload-artifact@v4
         with:
-          name: educafric-apk-${{ github.run_number }}
-          path: android/app/build/outputs/apk/release/*.apk
+          name: educafric-debug-apk-${{ github.run_number }}
+          path: android/app/build/outputs/apk/debug/*.apk
 
-      - name: Upload AAB (non signé - Google Play re-signe)
-        if: inputs.build_type != 'apk'
+      - name: Upload AAB (Play Store ready)
+        if: inputs.build_type == 'aab'
         uses: actions/upload-artifact@v4
         with:
-          name: educafric-aab-${{ github.run_number }}
+          name: educafric-playstore-aab-${{ github.run_number }}
           path: android/app/build/outputs/bundle/release/*.aab
