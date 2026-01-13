@@ -1,7 +1,6 @@
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
 
 buildscript {
-    
     repositories {
         google()
         mavenCentral()
@@ -10,9 +9,6 @@ buildscript {
         classpath 'com.android.tools.build:gradle:8.2.2'
         classpath 'com.google.gms:google-services:4.4.2'
         classpath 'org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.22'
-
-        // NOTE: Do not place your application dependencies here; they belong
-        // in the individual module build.gradle files
     }
 }
 
@@ -25,12 +21,35 @@ allprojects {
     }
 }
 
-// Force Java 17 and Kotlin JVM target 17 for ALL subprojects
-// This prevents Java/Kotlin JVM target mismatch errors
-subprojects {
-    afterEvaluate { project ->
-        // Force Java 17 for all Android modules
-        if (project.hasProperty('android')) {
+task clean(type: Delete) {
+    delete rootProject.buildDir
+}
+
+/**
+ * Force Java 17 everywhere (including Capacitor modules)
+ * This prevents "invalid source release: 21" errors
+ */
+subprojects { project ->
+
+    // Force Java 17 for ALL JavaCompile tasks
+    tasks.withType(JavaCompile).configureEach {
+        sourceCompatibility = "17"
+        targetCompatibility = "17"
+        options.release = 17
+    }
+
+    // Force Kotlin JVM target 17 for all modules with Kotlin
+    project.plugins.withId("org.jetbrains.kotlin.android") {
+        project.tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
+            kotlinOptions {
+                jvmTarget = "17"
+            }
+        }
+    }
+
+    // Force Java 17 for Android modules
+    afterEvaluate {
+        if (project.hasProperty("android")) {
             project.android {
                 compileOptions {
                     sourceCompatibility JavaVersion.VERSION_17
@@ -38,16 +57,5 @@ subprojects {
                 }
             }
         }
-        
-        // Force Kotlin JVM target 17 for all modules with Kotlin
-        project.tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
-            kotlinOptions {
-                jvmTarget = "17"
-            }
-        }
     }
-}
-
-task clean(type: Delete) {
-    delete rootProject.buildDir
 }
