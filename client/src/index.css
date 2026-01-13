@@ -71,22 +71,37 @@ svg {
   fill: none !important;
 }
 
-/* ===== BULLETIN PREVIEW - Adaptive A4 Layout (Non-Print) ===== */
-/* Flexbox layout for proper content distribution on screen preview */
+/* ===== BULLETIN PREVIEW - FULL A4 PAGE LAYOUT (Non-Print) ===== */
+/* Flexbox layout ensures content fills entire A4 page */
 .bulletin-a4-optimized {
   display: flex;
   flex-direction: column;
   min-height: 297mm;
+  height: 297mm; /* FIXED A4 height */
+  font-weight: 600; /* BOLD text throughout */
 }
 
 .bulletin-a4-optimized .bulletin-main-content {
   flex: 1 1 auto;
   display: flex;
   flex-direction: column;
+  min-height: 0;
 }
 
+/* GRADES TABLE stretches to fill ALL available space */
 .bulletin-a4-optimized .grades-table-wrapper {
   flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.bulletin-a4-optimized .grades-table-wrapper table {
+  flex: 1 1 auto;
+}
+
+/* Rows stretch evenly when few subjects */
+.bulletin-a4-optimized .grades-table-wrapper tbody tr {
+  height: auto;
 }
 
 .bulletin-a4-optimized .bulletin-footer-section {
@@ -100,11 +115,13 @@ svg {
   visibility: visible !important;
 }
 
-/* A4 container preview styling */
+/* A4 container preview styling - FULL PAGE */
 .a4-container {
   display: flex;
   flex-direction: column;
   min-height: 297mm;
+  height: 297mm; /* FIXED A4 height */
+  font-weight: 600; /* BOLD */
 }
 
 /* ===== PDF CAPTURE MODE - Applies A4 compact styles for html2canvas ===== */
@@ -133,11 +150,13 @@ svg {
   width: 100% !important;
   max-width: 778px !important;
   min-height: 1100px !important;
+  height: 1123px !important; /* FIXED A4 height in pixels */
   margin: 0 !important;
   padding: 8px !important;
   font-family: Arial, sans-serif !important;
-  font-size: 8px !important;
-  line-height: 1.15 !important;
+  font-size: 9px !important;
+  font-weight: 600 !important; /* BOLD */
+  line-height: 1.2 !important;
   color: #000 !important;
   background: white !important;
   box-sizing: border-box !important;
@@ -459,19 +478,20 @@ svg {
     page-break-inside: avoid !important; 
   }
   
-  /* ===== BULLETIN A4 OPTIMIZED - ADAPTIVE SINGLE PAGE FIT ===== */
+  /* ===== BULLETIN A4 OPTIMIZED - FULL PAGE ADAPTIVE FIT ===== */
   .bulletin-a4-optimized {
     width: 100% !important;
     max-width: 198mm !important;
-    height: 285mm !important; /* Fixed A4 height */
+    height: 285mm !important; /* Fixed A4 height - ALWAYS USE FULL PAGE */
     max-height: 285mm !important;
     margin: 0 auto !important;
     padding: 2mm !important;
     font-family: Arial, sans-serif !important;
-    font-size: 8pt !important;
-    line-height: 1.15 !important;
+    font-size: 9pt !important;
+    font-weight: 600 !important; /* BOLD by default */
+    line-height: 1.2 !important;
     color: #000 !important;
-    overflow: visible !important; /* Allow annual summary footer to show */
+    overflow: visible !important;
     background: white !important;
     box-sizing: border-box !important;
     display: flex !important;
@@ -479,108 +499,157 @@ svg {
   }
   
   .bulletin-a4-optimized .ministry-header {
-    margin-bottom: 1mm !important;
+    margin-bottom: 2mm !important;
+    flex: 0 0 auto !important;
   }
   
   .bulletin-a4-optimized .ministry-header-text {
-    font-size: 7pt !important;
-    line-height: 1.1 !important;
+    font-size: 8pt !important;
+    font-weight: 700 !important; /* BOLD */
+    line-height: 1.15 !important;
   }
   
   .bulletin-a4-optimized .ministry-header-title {
-    font-size: 8pt !important;
-    font-weight: bold !important;
+    font-size: 9pt !important;
+    font-weight: 800 !important; /* EXTRA BOLD */
   }
   
   .bulletin-a4-optimized .school-logo {
-    width: 14mm !important;
-    height: 14mm !important;
+    width: 16mm !important;
+    height: 16mm !important;
   }
   
   .bulletin-a4-optimized .bulletin-title {
-    font-size: 9pt !important;
-    font-weight: bold !important;
-    margin-bottom: 1mm !important;
+    font-size: 11pt !important;
+    font-weight: 800 !important; /* EXTRA BOLD */
+    margin-bottom: 2mm !important;
+    text-transform: uppercase !important;
   }
   
   .bulletin-a4-optimized .student-photo {
-    width: 18mm !important;
-    height: 22mm !important;
+    width: 20mm !important;
+    height: 25mm !important;
   }
   
   .bulletin-a4-optimized .student-info-grid {
-    font-size: 7pt !important;
-    line-height: 1.2 !important;
-    margin-bottom: 1mm !important;
-    padding: 1mm !important;
+    font-size: 8pt !important;
+    font-weight: 600 !important; /* BOLD */
+    line-height: 1.3 !important;
+    margin-bottom: 2mm !important;
+    padding: 2mm !important;
+    flex: 0 0 auto !important;
   }
   
+  /* GRADES TABLE - STRETCHES TO FILL AVAILABLE SPACE */
+  .bulletin-a4-optimized .grades-table-wrapper {
+    flex: 1 1 auto !important; /* GROW to fill space */
+    display: flex !important;
+    flex-direction: column !important;
+    min-height: 0 !important;
+  }
+  
+  .bulletin-a4-optimized .grades-table-wrapper table {
+    flex: 1 1 auto !important;
+    height: 100% !important;
+  }
+  
+  .bulletin-a4-optimized .grades-table-wrapper tbody {
+    display: table-row-group !important;
+  }
+  
+  /* TABLE - Rows stretch to fill available space */
   .bulletin-a4-optimized table {
-    font-size: 7pt !important;
+    font-size: 8pt !important;
+    font-weight: 600 !important; /* BOLD */
     margin-bottom: 1mm !important;
-    border: 0.5pt solid #000 !important;
+    border: 1pt solid #000 !important;
+    width: 100% !important;
+    table-layout: fixed !important;
   }
   
   .bulletin-a4-optimized th {
-    font-size: 6pt !important;
-    font-weight: bold !important;
-    padding: 1px 2px !important;
-    line-height: 1.1 !important;
-    background-color: #f0f0f0 !important;
-    border: 0.5pt solid #000 !important;
+    font-size: 7pt !important;
+    font-weight: 800 !important; /* EXTRA BOLD headers */
+    padding: 3px 4px !important;
+    line-height: 1.2 !important;
+    background-color: #e8e8e8 !important;
+    border: 1pt solid #000 !important;
     text-align: center !important;
+    text-transform: uppercase !important;
   }
   
   .bulletin-a4-optimized td {
-    font-size: 7pt !important;
-    padding: 1px 2px !important;
-    line-height: 1.1 !important;
-    border: 0.5pt solid #000 !important;
+    font-size: 8pt !important;
+    font-weight: 600 !important; /* BOLD */
+    padding: 4px 5px !important;
+    line-height: 1.25 !important;
+    border: 1pt solid #000 !important;
     vertical-align: middle !important;
   }
   
   .bulletin-a4-optimized .subject-name {
-    font-size: 7pt !important;
-    font-weight: 600 !important;
+    font-size: 8pt !important;
+    font-weight: 700 !important; /* BOLD */
   }
   
   .bulletin-a4-optimized .teacher-name {
-    font-size: 6pt !important;
-    color: #444 !important;
+    font-size: 7pt !important;
+    font-weight: 600 !important;
+    color: #333 !important;
   }
   
   .bulletin-a4-optimized .competency-text {
-    font-size: 5pt !important;
-    line-height: 1.1 !important;
+    font-size: 6pt !important;
+    font-weight: 500 !important;
+    line-height: 1.15 !important;
   }
   
   .bulletin-a4-optimized .grade-value {
-    font-size: 8pt !important;
-    font-weight: bold !important;
+    font-size: 10pt !important;
+    font-weight: 800 !important; /* EXTRA BOLD for grades */
     text-align: center !important;
   }
   
   .bulletin-a4-optimized .grade-fail {
     color: #c00 !important;
+    font-weight: 800 !important;
   }
   
   .bulletin-a4-optimized .appreciation-text {
-    font-size: 6pt !important;
+    font-size: 7pt !important;
+    font-weight: 600 !important;
   }
   
   .bulletin-a4-optimized .summary-section {
-    margin-top: 1mm !important;
-    font-size: 7pt !important;
+    margin-top: 2mm !important;
+    font-size: 8pt !important;
+    font-weight: 700 !important;
+    flex: 0 0 auto !important;
   }
   
   .bulletin-a4-optimized .signature-section {
-    margin-top: 1mm !important;
-    font-size: 7pt !important;
+    margin-top: 2mm !important;
+    font-size: 8pt !important;
+    font-weight: 600 !important;
+    flex: 0 0 auto !important;
   }
   
   .bulletin-a4-optimized .footer-compact {
-    margin-top: 1mm !important;
-    font-size: 6pt !important;
+    margin-top: 2mm !important;
+    font-size: 7pt !important;
+    font-weight: 600 !important;
+    flex: 0 0 auto !important;
+  }
+  
+  /* AVERAGE AND RANK - EXTRA PROMINENT */
+  .bulletin-a4-optimized .overall-average {
+    font-size: 12pt !important;
+    font-weight: 900 !important;
+  }
+  
+  .bulletin-a4-optimized .student-rank {
+    font-size: 11pt !important;
+    font-weight: 800 !important;
   }
   
   /* Keep annual summary visible in print - REQUIRED FOR T3 BULLETINS */
@@ -588,7 +657,8 @@ svg {
     display: block !important;
     visibility: visible !important;
     background: white !important;
-    border: 1px solid #000 !important;
+    border: 1.5pt solid #000 !important;
+    font-weight: 700 !important;
     page-break-inside: avoid !important;
   }
   
