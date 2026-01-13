@@ -80,19 +80,23 @@ export function TimetableCreation({ onSlotCreated, onBulkOperation }: TimetableC
     fetchData();
   }, []);
 
-  // Predefined subjects
-  const subjects = [
-    { id: 1, name: 'Mathématiques', nameEn: 'Mathematics' },
-    { id: 2, name: 'Français', nameEn: 'French' },
-    { id: 3, name: 'Anglais', nameEn: 'English' },
-    { id: 4, name: 'Sciences', nameEn: 'Science' },
-    { id: 5, name: 'Histoire', nameEn: 'History' },
-    { id: 6, name: 'Géographie', nameEn: 'Geography' },
-    { id: 7, name: 'Éducation Physique', nameEn: 'Physical Education' },
-    { id: 8, name: 'Arts', nameEn: 'Arts' },
-    { id: 9, name: 'Informatique', nameEn: 'Computer Science' },
-    { id: 10, name: 'Philosophie', nameEn: 'Philosophy' }
-  ];
+  // Get subjects from selected class - DYNAMIC from API, not hardcoded
+  const getSubjectsForClass = () => {
+    if (!currentSlot.classId) {
+      return [];
+    }
+    const selectedClass = classesData.find((c: any) => c.id === currentSlot.classId);
+    if (selectedClass?.subjects && Array.isArray(selectedClass.subjects)) {
+      return selectedClass.subjects.map((s: any, idx: number) => ({
+        id: s.id || idx + 1,
+        name: s.nameFr || s.name || s.nameEn || '',
+        nameEn: s.nameEn || s.name || s.nameFr || ''
+      }));
+    }
+    return [];
+  };
+  
+  const subjects = getSubjectsForClass();
 
   // Generate manual time slots (every 5 minutes from 6:00 to 18:00)
   const timeSlots = (() => {
