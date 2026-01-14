@@ -1,5 +1,6 @@
 import { QueryClient, QueryFunction } from "@tanstack/react-query";
 import { csrfFetch } from "./csrf";
+import { networkMonitor, isNetworkError, shouldRetryRequest } from "@/utils/networkMonitor";
 
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
@@ -118,24 +119,45 @@ export const getQueryFn: <T>(options: {
 export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      queryFn: getQueryFn({ on401: "returnNull" }), // Return null instead of throwing on 401
+      queryFn: getQueryFn({ on401: "returnNull" }),
       refetchInterval: false,
-      refetchOnWindowFocus: true, // Enable refetch on tab focus for fresher data
+      refetchOnWindowFocus: true,
       refetchOnMount: true,
-      staleTime: 15 * 1000, // 15 seconds - subjects/coefficients need quicker updates
-      gcTime: 5 * 60 * 1000, // 5 minutes garbage collection
-      retry: (failureCount, error: any) => {
-        // Don't retry on authentication errors
-        if (error.message?.includes('401')) return false;
-        return failureCount < 1; // Réduit de 2 à 1
-      },
-    },
-    mutations: {
-      retry: (failureCount, error: any) => {
-        // Don't retry on authentication errors
-        if (error.message?.includes('401')) return false;
+      staleTime: 15 * 1000,
+      gcTime: 5 * 60 * 1000,
+      retry: (failureCount, error: unknown) => {
+        if (!networkMonitor.getStatus()) {
+          console.log('[QueryClient] Offline - skipping retry');
+          return false;
+        }
+        
+        if (error instanceof Error) {
+          if (error.message?.includes('401') || error.message?.includes('403')) {
+            return false;
+          }
+          if (error.message?.includes('404') || error.message?.includes('400')) {
+            return false;
+          }
+        }
+        
+        if (isNetworkError(error) && failureCount < 2) {
+          console.log(`[QueryClient] Network error - retry ${failureCount + 1}/2`);
+          return true;
+        }
+        
         return failureCount < 1;
       },
+      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 10000),
+    },
+    mutations: {
+      retry: (failureCount, error: unknown) => {
+        if (!networkMonitor.getStatus()) {
+          return false;
+        }
+        
+        return shouldRetryRequest(error, failureCount);
+      },
+      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 10000),
     },
   },
 });

@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { usePWANotifications } from "@/hooks/usePWANotifications";
 import { LanguageProvider } from "@/contexts/LanguageContext";
+import GlobalErrorBoundary from "@/components/GlobalErrorBoundary";
 import { CurrencyProvider } from "@/contexts/CurrencyContext";
 import { SandboxProvider } from "@/contexts/SandboxContext";
 import { SandboxPremiumProvider } from "@/components/sandbox/SandboxPremiumProvider";
@@ -598,39 +599,41 @@ function App() {
   }, []);
 
   return (
-    <HookErrorBoundary>
-      <QueryClientProvider client={queryClient}>
-        <ImageRefreshProvider>
-          <AuthProvider>
-            <OfflinePremiumProvider>
-              <LanguageProvider>
-                <NotificationProvider>
-                  <CurrencyProvider>
-                    <SandboxProvider>
-                      <SandboxPremiumProvider>
-                        <ConsolidatedNotificationProvider>
-                    <TooltipProvider>
-                      <FirebaseRedirectHandler />
-                      <AppLayout>
-                        <OfflineModeIndicator variant="banner" />
-                        <OfflineBanner />
-                        <ConnectionStatusIndicator />
-                        <Router />
-                      </AppLayout>
-                      <PWAUpdateNotification position="bottom" />
-                      <Toaster />
-                    </TooltipProvider>
-                      </ConsolidatedNotificationProvider>
-                      </SandboxPremiumProvider>
-                    </SandboxProvider>
-                  </CurrencyProvider>
-                </NotificationProvider>
-              </LanguageProvider>
-            </OfflinePremiumProvider>
-          </AuthProvider>
-        </ImageRefreshProvider>
-      </QueryClientProvider>
-    </HookErrorBoundary>
+    <GlobalErrorBoundary>
+      <HookErrorBoundary>
+        <QueryClientProvider client={queryClient}>
+          <ImageRefreshProvider>
+            <AuthProvider>
+              <OfflinePremiumProvider>
+                <LanguageProvider>
+                  <NotificationProvider>
+                    <CurrencyProvider>
+                      <SandboxProvider>
+                        <SandboxPremiumProvider>
+                          <ConsolidatedNotificationProvider>
+                            <TooltipProvider>
+                              <FirebaseRedirectHandler />
+                              <AppLayout>
+                                <OfflineModeIndicator variant="banner" />
+                                <OfflineBanner />
+                                <ConnectionStatusIndicator />
+                                <Router />
+                              </AppLayout>
+                              <PWAUpdateNotification position="bottom" />
+                              <Toaster />
+                            </TooltipProvider>
+                          </ConsolidatedNotificationProvider>
+                        </SandboxPremiumProvider>
+                      </SandboxProvider>
+                    </CurrencyProvider>
+                  </NotificationProvider>
+                </LanguageProvider>
+              </OfflinePremiumProvider>
+            </AuthProvider>
+          </ImageRefreshProvider>
+        </QueryClientProvider>
+      </HookErrorBoundary>
+    </GlobalErrorBoundary>
   );
 }
 
