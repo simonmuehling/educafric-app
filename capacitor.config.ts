@@ -19,7 +19,7 @@ const config: CapacitorConfig = {
     webContentsDebuggingEnabled: false, // Mettre à true pour debug
     backgroundColor: '#7C5CFC', // Thème violet Educafric
     // User-Agent pour détection côté serveur (blocage Commercial/SiteAdmin)
-    overrideUserAgent: 'EducafricApp/1.0.0 Capacitor Android',
+    overrideUserAgent: 'EducafricApp/1.0.34 Capacitor Android',
     buildOptions: {
       keystorePath: undefined,
       keystoreAlias: undefined,
