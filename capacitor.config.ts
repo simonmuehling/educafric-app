@@ -5,8 +5,8 @@ const config: CapacitorConfig = {
   appName: 'EDUCAFRIC',
   webDir: 'dist/public',
   server: {
-    // Production: charge depuis le serveur distant
-    url: 'https://educafric.com',
+    // Production: charge depuis le serveur distant (avec www pour éviter redirection)
+    url: 'https://www.educafric.com',
     androidScheme: 'https',
     cleartext: false,
     // Pour le développement local, décommenter ci-dessous:
