@@ -299,9 +299,10 @@ export const productionSessionConfig: SessionOptions = {
     secure: useSecureCookies, // FIXED: Use secure cookies on Replit (HTTPS)
     httpOnly: true,
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-    sameSite: 'lax' as 'lax' | 'strict' | 'none', // FIXED: lax works for Replit
+    sameSite: 'none' as 'lax' | 'strict' | 'none', // CRITICAL: 'none' required for Android Capacitor WebView
     path: '/',
-    domain: process.env.NODE_ENV === 'production' ? '.educafric.com' : undefined,
+    // Remove domain restriction to allow cookies in Capacitor WebView
+    // domain: process.env.NODE_ENV === 'production' ? '.educafric.com' : undefined,
   }
 };
 
@@ -309,6 +310,6 @@ console.log('[SESSION_CONFIG] Initialized with:', {
   environment: process.env.NODE_ENV || 'development',
   isReplit,
   secure: useSecureCookies,
-  sameSite: 'lax',
-  domain: process.env.NODE_ENV === 'production' ? '.educafric.com' : 'auto-detect'
+  sameSite: 'none', // Required for Android Capacitor WebView
+  domain: 'none (removed for Capacitor compatibility)'
 });
