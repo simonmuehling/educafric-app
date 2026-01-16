@@ -41,6 +41,71 @@ app.get('/_health', (req, res) => {
   res.status(200).send('OK');
 });
 
+// MAINTENANCE MODE - Controlled by environment variable
+app.use((req, res, next) => {
+  if (process.env.MAINTENANCE_MODE === 'true') {
+    // Allow health checks during maintenance
+    if (req.path === '/_health' || req.path === '/healthz' || req.path === '/api/health') {
+      return next();
+    }
+    // Show maintenance page
+    return res.status(503).send(`
+      <!DOCTYPE html>
+      <html lang="fr">
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Educafric - Maintenance</title>
+        <style>
+          * { margin: 0; padding: 0; box-sizing: border-box; }
+          body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #7C5CFC 0%, #5B3FD9 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+          }
+          .container {
+            text-align: center;
+            padding: 40px;
+            max-width: 500px;
+          }
+          .logo { font-size: 48px; margin-bottom: 20px; }
+          h1 { font-size: 28px; margin-bottom: 15px; }
+          p { font-size: 16px; opacity: 0.9; line-height: 1.6; }
+          .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(255,255,255,0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 30px auto;
+          }
+          @keyframes spin { to { transform: rotate(360deg); } }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="logo">🎓</div>
+          <h1>Maintenance en cours</h1>
+          <div class="spinner"></div>
+          <p>Nous améliorons Educafric pour vous offrir une meilleure expérience.</p>
+          <p style="margin-top: 15px;">Veuillez réessayer dans quelques minutes.</p>
+          <p style="margin-top: 30px; font-size: 14px; opacity: 0.7;">
+            We are improving Educafric to provide you with a better experience.<br>
+            Please try again in a few minutes.
+          </p>
+        </div>
+      </body>
+      </html>
+    `);
+  }
+  next();
+});
+
 // Request ID tracking - MUST be first
 app.use(requestIdMiddleware);
 
