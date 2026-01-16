@@ -3,6 +3,19 @@ import { exec } from "child_process";
 import path from "node:path";
 import fs from "node:fs";
 import { registerRoutes } from "./routes";
+
+// Determine the correct public directory based on environment
+const isProduction = process.env.NODE_ENV === 'production';
+const PUBLIC_DIR = isProduction 
+  ? (fs.existsSync(path.resolve(import.meta.dirname, 'public')) 
+      ? path.resolve(import.meta.dirname, 'public')  // dist/public when running from dist/index.js
+      : path.resolve(process.cwd(), 'dist', 'public')) // fallback
+  : 'public';
+const ASSETS_DIR = isProduction 
+  ? path.join(PUBLIC_DIR, 'assets')
+  : 'dist/public/assets';
+
+console.log(`[STATIC_PATHS] Environment: ${process.env.NODE_ENV}, PUBLIC_DIR: ${PUBLIC_DIR}, ASSETS_DIR: ${ASSETS_DIR}`);
 import { criticalAlertingService } from "./services/criticalAlertingService";
 import { systemReportService } from "./services/systemReportService";
 import { ConnectionTrackingService } from "./services/connectionTrackingService";
@@ -128,8 +141,8 @@ app.get('/sw.js', (req, res) => {
   try {
     // In development, serve the lightweight minimal service worker for performance
     const swPath = app.get("env") === "development" 
-      ? path.resolve('public/sw-minimal.js')
-      : path.resolve('public/sw.js');
+      ? path.resolve(PUBLIC_DIR, 'sw-minimal.js')
+      : path.resolve(PUBLIC_DIR, 'sw.js');
     
     if (fs.existsSync(swPath)) {
       console.log(`[SW_OPTIMIZATION] Serving ${app.get("env") === "development" ? 'minimal' : 'full'} service worker for performance`);
@@ -159,7 +172,7 @@ app.get('/sw.js', (req, res) => {
 app.get('/manifest.json', (req, res) => {
   res.setHeader('Content-Type', 'application/manifest+json');
   res.setHeader('Cache-Control', 'public, max-age=86400');
-  res.sendFile('manifest.json', { root: 'public' });
+  res.sendFile('manifest.json', { root: PUBLIC_DIR });
 });
 
 // Fix critical PWA icons MIME types
@@ -177,7 +190,7 @@ pwaIcons.forEach(iconName => {
   app.get(`/${iconName}`, (req, res) => {
     res.setHeader('Content-Type', 'image/png');
     res.setHeader('Cache-Control', 'public, max-age=86400');
-    res.sendFile(iconName, { root: 'public' });
+    res.sendFile(iconName, { root: PUBLIC_DIR });
   });
 });
 
@@ -185,7 +198,7 @@ pwaIcons.forEach(iconName => {
 app.get('/favicon.ico', (req, res) => {
   res.setHeader('Content-Type', 'image/x-icon');
   res.setHeader('Cache-Control', 'public, max-age=86400');
-  res.sendFile('favicon.ico', { root: 'public' });
+  res.sendFile('favicon.ico', { root: PUBLIC_DIR });
 });
 
 // 🚫 CRITICAL: JS middleware MUST be first to set correct MIME types before Vite
@@ -224,7 +237,7 @@ app.get('/readyz', readyz);
 app.use('/api', realTimeTrackingMiddleware);
 
 // 🚫 CRITICAL: Optimized static asset serving for production performance
-app.use('/assets', express.static('dist/public/assets', {
+app.use('/assets', express.static(ASSETS_DIR, {
   maxAge: '1y', // 1 year cache for hashed assets
   immutable: true,
   setHeaders: (res, path) => {
@@ -242,11 +255,11 @@ app.get('/pwa-notifications-fix.js', (req, res) => {
   res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
   res.setHeader('Cache-Control', 'public, max-age=86400'); // 24 hours cache
   res.setHeader('X-Memory-Optimized', 'true');
-  res.sendFile('pwa-notifications-fix.js', { root: 'public' });
+  res.sendFile('pwa-notifications-fix.js', { root: PUBLIC_DIR });
 });
 
 // Configure correct MIME types for public assets (consolidated to prevent memory leaks)
-app.use('/public', express.static('public', {
+app.use('/public', express.static(PUBLIC_DIR, {
   maxAge: '1d', // 1 day cache for public assets
   setHeaders: (res, path) => {
     if (path.endsWith('.png')) {
@@ -267,7 +280,7 @@ app.use('/public', express.static('public', {
 }));
 
 // Serve PWA assets from root with memory optimization
-app.use(express.static('public', {
+app.use(express.static(PUBLIC_DIR, {
   maxAge: '1d', // 1 day cache
   setHeaders: (res, path) => {
     // Skip serving pwa-notifications-fix.js here to prevent duplicate processing
