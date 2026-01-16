@@ -1,0 +1,1 @@
+DELETE FROM educafric_number_counters;

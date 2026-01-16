@@ -1,0 +1,1 @@
+DELETE FROM teacher_independent_sessions;
