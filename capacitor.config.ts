@@ -5,13 +5,10 @@ const config: CapacitorConfig = {
   appName: 'EDUCAFRIC',
   webDir: 'dist/public',
   server: {
-    // Production: charge depuis le serveur distant (avec www pour éviter redirection)
-    url: 'https://www.educafric.com',
+    // AAB utilise les assets locaux intégrés - plus fiable que le chargement distant
+    // L'app fait des appels API vers le serveur, mais le HTML/JS/CSS est local
     androidScheme: 'https',
     cleartext: false,
-    // Pour le développement local, décommenter ci-dessous:
-    // url: 'http://localhost:5000',
-    // cleartext: true,
   },
   android: {
     allowMixedContent: false,
@@ -19,7 +16,7 @@ const config: CapacitorConfig = {
     webContentsDebuggingEnabled: false, // Mettre à true pour debug
     backgroundColor: '#7C5CFC', // Thème violet Educafric
     // User-Agent pour détection côté serveur (blocage Commercial/SiteAdmin)
-    overrideUserAgent: 'EducafricApp/1.0.35 Capacitor Android',
+    overrideUserAgent: 'EducafricApp/1.0.36 Capacitor Android',
     buildOptions: {
       keystorePath: undefined,
       keystoreAlias: undefined,
