@@ -57,4 +57,4 @@ VITE_FIREBASE_DATABASE_URL = "https://smartwatch-tracker-e061f-default-rtdb.fire
 VITE_FIREBASE_AUTH_DOMAIN = "smartwatch-tracker-e061f.firebaseapp.com"
 
 [userenv.production]
-MAINTENANCE_MODE = "true"
+MAINTENANCE_MODE = "false"
