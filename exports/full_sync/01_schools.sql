@@ -1,0 +1,12 @@
+INSERT INTO schools (id, name, address, type) VALUES (3, 'École Primaire Bilingue Excellence', 'Yaoundé, Centre', 'private');
+INSERT INTO schools (id, name, address, type) VALUES (4, 'Collège Saint-Michel', 'Douala, Littoral', 'private');
+INSERT INTO schools (id, name, address, type) VALUES (5, 'Lycée Technique de Bafoussam', 'Bafoussam, Ouest', 'public');
+INSERT INTO schools (id, name, address, type) VALUES (6, 'Collège Saint-Joseph', '123 Rue de l''Education, Yaoundé, Cameroun', 'Secondary');
+INSERT INTO schools (id, name, address, type) VALUES (10, 'Government Technical High School Kumbo', '', 'private');
+INSERT INTO schools (id, name, address, type) VALUES (11, 'Government Bilingual High School Mbveh ', '', 'private');
+INSERT INTO schools (id, name, address, type) VALUES (12, 'Government Technical College Mbah', '', 'private');
+INSERT INTO schools (id, name, address, type) VALUES (13, 'Government Technical College Kikaikelaki', '', 'private');
+INSERT INTO schools (id, name, address, type) VALUES (14, 'École de Pierre Akaba', '', 'private');
+INSERT INTO schools (id, name, address, type) VALUES (15, 'École Test de Pierre Prince Akabo test', 'Yaoundé, Cameroun', 'private');
+INSERT INTO schools (id, name, address, type) VALUES (16, 'Government Bilingual High School Kumbo', '', 'private');
+INSERT INTO schools (id, name, address, type) VALUES (17, 'Government Bilingual High School down Town Bamenda', 'OLD TOWN BAMENDA', 'public');
